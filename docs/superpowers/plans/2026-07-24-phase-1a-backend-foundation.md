@@ -347,7 +347,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func startPostgres(t *testing.T) string {
@@ -364,7 +363,6 @@ func startPostgres(t *testing.T) string {
 
 	dsn, err := ctr.ConnectionString(ctx, "sslmode=disable")
 	require.NoError(t, err)
-	_ = wait.ForListeningPort
 	return dsn
 }
 
