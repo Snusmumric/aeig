@@ -1,0 +1,7 @@
+# Keep the code knowledge graph scoped to source code only.
+# Planning/design docs and scratch notes are not part of the code graph.
+docs/
+artifacts/
+.claude/
+graphify-out/
+node_modules/

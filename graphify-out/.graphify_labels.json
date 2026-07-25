@@ -1,0 +1,12 @@
+{
+  "0": "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией",
+  "1": "ElementRepo",
+  "2": "GraphRepo",
+  "3": "TestGraphRepo_CreateGetBump",
+  "5": "NewRouter",
+  "6": "Load",
+  "10": "TestElementRepo_UpsertAndGetSubgraph",
+  "11": "handleHealth",
+  "14": "errors.go",
+  "15": "github.com/aeig/backend"
+}

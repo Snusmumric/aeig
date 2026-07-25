@@ -1,0 +1,13 @@
+# graphify code knowledge graph:
+# commit the portable graph (graph.json, report, manifest, community labels);
+# ignore the large regenerable viz, AST cache, per-day backups, and internal markers.
+graphify-out/*
+!graphify-out/graph.json
+!graphify-out/GRAPH_REPORT.md
+!graphify-out/manifest.json
+!graphify-out/.graphify_labels.json
+
+# Local Claude Code settings (graphify PreToolUse hooks use a machine-absolute
+# graphify path; regenerated per clone by `make setup`). settings.local.json is
+# always per-user. The shareable graphify rules live in the committed CLAUDE.md.
+.claude/
