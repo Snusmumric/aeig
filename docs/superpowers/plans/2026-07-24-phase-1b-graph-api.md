@@ -736,14 +736,35 @@ The Go corpus is code-only, so extraction is pure **AST** — deterministic, no 
 
 Confirm the run reported a **non-empty** graph (nodes/edges > 0) and `Graph health: OK`. Skim `graphify-out/GRAPH_REPORT.md`; the God Nodes should surface the expected hubs — `internal/service`, `internal/httpapi`, `internal/storage/postgres`, `internal/storage/neo4j`, `internal/domain`. If `domain` is **not** a hub, that signals the layers are more coupled than intended — note it for the next slice.
 
-- [ ] **Step 3: Record the artifact**
+- [ ] **Step 3: Commit the graph; ignore only machine-local files**
 
-Add `graphify-out/` to the repo `.gitignore` (it is a regenerable artifact), or commit `graphify-out/GRAPH_REPORT.md` alone if the team wants the audit trail versioned. Do not commit the `graph.html`/`graph.json` blobs unless deliberately desired.
+The graph is a persistent, portable artifact meant to live beside the code and be queried by teammates, agents, and CI without a rebuild — so **commit it**. Exclude only the machine-specific files (absolute interpreter/scan paths and the local cost tracker):
 
 ```bash
-# option A — ignore the generated dir
-printf '\ngraphify-out/\n' >> .gitignore
-git add .gitignore && git commit -m "chore: ignore graphify-out/ (generated code graph)"
+printf '%s\n' \
+  'graphify-out/.graphify_python' \
+  'graphify-out/.graphify_root' \
+  'graphify-out/cost.json' >> .gitignore
+# graph.html is a large regenerable viz (rebuild via `graphify export html`);
+# ignore it unless you want a browsable copy in-repo:
+# echo 'graphify-out/graph.html' >> .gitignore
+
+git add .gitignore graphify-out/graph.json graphify-out/GRAPH_REPORT.md
+# also add the --update manifest graphify keeps in graphify-out/ (it is relativized/portable):
+git add graphify-out/ 2>/dev/null || true   # picks up the manifest; .gitignore keeps machine-local files out
+git commit -m "chore: add backend code knowledge graph (graphify-out)"
+```
+
+- [ ] **Step 4: Keep it fresh (cadence)**
+
+Maintain **one root `graphify-out/`** for the whole repo. After every later slice/phase that changes backend code, refresh incrementally and re-commit so the graph never drifts from the source:
+
+```
+/graphify backend --update
+```
+```bash
+git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md
+git commit -m "chore: refresh code knowledge graph after <slice>"
 ```
 
 > Optional: `/graphify backend --neo4j` also emits `graphify-out/cypher.txt`. If you push it into Neo4j, use a **separate database/instance** from the application graph data — do not mix the code graph with app graphs sharing `graphId`.

@@ -643,8 +643,21 @@ The TS/React corpus is code-only, so extraction is pure **AST** — deterministi
 
 Confirm the run reported a **non-empty** graph (nodes/edges > 0) and `Graph health: OK`. Skim `graphify-out/GRAPH_REPORT.md`; the God Nodes should surface the expected hubs — `src/graph` (`GraphCanvas`, `useGraph`, `toFlow`, `TypedNode`) and `src/api` (`client`, `types`). The `api/client` node should bridge the `graph` community to the (backend-defined) API surface.
 
-- [ ] **Step 3: Record the artifact**
+- [ ] **Step 3: Commit the graph; ignore only machine-local files**
 
-Add `graphify-out/` to `.gitignore` if not already done in 1B, or commit `graphify-out/GRAPH_REPORT.md` alone if the team versions the audit trail. Do not commit the `graph.html`/`graph.json` blobs unless deliberately desired.
+Same policy as 1B — the graph lives beside the code and is committed. If 1B already added the `.gitignore` lines for the machine-specific files, skip that part; otherwise add them:
+
+```bash
+printf '%s\n' \
+  'graphify-out/.graphify_python' \
+  'graphify-out/.graphify_root' \
+  'graphify-out/cost.json' >> .gitignore   # only if not already present from 1B
+
+git add .gitignore graphify-out/graph.json graphify-out/GRAPH_REPORT.md
+git add graphify-out/ 2>/dev/null || true   # picks up the portable --update manifest
+git commit -m "chore: extend code knowledge graph with frontend (graphify-out)"
+```
+
+Because 1C runs against the **single root `graphify-out/`** seeded in 1B (via `--update`, per Step 1's note), this commit shows the frontend nodes/edges being merged into the same graph — not a second, separate graph. From here on, refresh with `/graphify frontend --update` (or a root `--update`) and re-commit `graph.json` + `GRAPH_REPORT.md` after every slice/phase that touches frontend code.
 
 
