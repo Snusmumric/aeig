@@ -728,7 +728,7 @@ The code knowledge graph is kept fresh by the **post-commit hook installed in sl
 graphify hook status                 # expect: installed (else run `make setup`)
 git status --porcelain graphify-out/ # expect: clean — the graph matches the committed code
 ```
-If `graphify-out/` is dirty, the last code commit's graph refresh was not committed — run `make graph-refresh`, then `git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md && git commit`.
+If `graphify-out/` is dirty, the last code commit's graph refresh was not committed — run `make graph-refresh`, then `git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md graphify-out/.graphify_labels.json && git commit`.
 
 - [ ] **Step 2: Sanity-check the backend graph**
 

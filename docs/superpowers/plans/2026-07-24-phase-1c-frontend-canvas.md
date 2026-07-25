@@ -633,7 +633,7 @@ Same enforced hook as the backend (installed in slice 1A, Task 4). Commits in th
 graphify hook status                 # expect: installed (else run `make setup`)
 git status --porcelain graphify-out/ # expect: clean
 ```
-If `graphify-out/` is dirty, run `make graph-refresh`, then `git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md && git commit`.
+If `graphify-out/` is dirty, run `make graph-refresh`, then `git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md graphify-out/.graphify_labels.json && git commit`.
 
 - [ ] **Step 2: Sanity-check the frontend coverage**
 
