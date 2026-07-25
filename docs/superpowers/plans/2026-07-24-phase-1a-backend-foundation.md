@@ -953,7 +953,116 @@ git commit -m "feat(backend): neo4j driver and graphId-scoped element repository
 
 ---
 
+## Task 4: Cadence enforcement — graphify commit hook + CLAUDE.md; seed the code graph
+
+**Files:**
+- Create/Modify: `.gitignore`
+- Create: `Makefile`
+- Create/Modify: `CLAUDE.md`
+- Create: `AGENTS.md`
+- Generated: `graphify-out/` (`graph.json`, `GRAPH_REPORT.md`, portable `--update` manifest)
+
+**Interfaces:** none (tooling/config). This task makes the code knowledge graph an enforced, committed artifact that stays in sync with the code across all sessions — not a per-phase manual chore.
+
+**Why here:** installed once in the foundation slice, so from the very first code commit onward the post-commit hook keeps `graphify-out/` current. Later slices (1B/1C) then only *verify* the graph, never hand-build it.
+
+- [ ] **Step 1: Ensure graphify is installed and seed the graph from the backend code**
+
+```bash
+command -v graphify >/dev/null 2>&1 || uv tool install graphifyy
+# Seed the code knowledge graph. Go is code-only → pure AST, no LLM/API key, no token cost.
+graphify backend
+```
+Confirm it reports a non-empty graph and `Graph health: OK`.
+
+- [ ] **Step 2: Ignore machine-local graphify files**
+
+```bash
+printf '%s\n' \
+  'graphify-out/.graphify_python' \
+  'graphify-out/.graphify_root' \
+  'graphify-out/cost.json' \
+  'graphify-out/graph.html' >> .gitignore
+```
+`graph.html` is a large regenerable viz (`graphify export html` / `make graph`) — ignored by default; drop that line if you want a browsable copy versioned. `graph.json`, `GRAPH_REPORT.md`, and the `--update` manifest are committed (they are the portable, authoritative graph).
+
+- [ ] **Step 3: Install the post-commit hook and CLAUDE.md integration**
+
+```bash
+graphify hook install    # post-commit: re-extract changed code files, rebuild graph.json + GRAPH_REPORT.md
+graphify claude install  # writes a `## graphify` section into CLAUDE.md (query-before-answer, rebuild-after-change)
+graphify hook status     # verify: should report the hook is installed
+```
+
+- [ ] **Step 4: Make the hook reproducible across clones (Makefile)**
+
+The hook lives in the local `.git/hooks/` (git never clones hooks), so every clone must re-install it once. Create `Makefile`:
+
+```makefile
+CODE_DIRS := $(wildcard backend frontend)
+
+.PHONY: setup graph graph-refresh
+setup: ## one-time per clone: install the graphify commit hook + CLAUDE.md integration
+	command -v graphify >/dev/null 2>&1 || uv tool install graphifyy
+	graphify hook install
+	graphify claude install
+
+graph: ## full rebuild of the code knowledge graph (all code dirs)
+	graphify $(CODE_DIRS)
+
+graph-refresh: ## incremental refresh — what the commit hook runs internally
+	graphify $(CODE_DIRS) --update --no-viz
+```
+
+- [ ] **Step 5: Add the explicit cadence rule to CLAUDE.md + an AGENTS.md pointer**
+
+Append to `CLAUDE.md` (below the `## graphify` section that `graphify claude install` created):
+
+```markdown
+## Code knowledge graph — cadence (enforced)
+
+`graphify-out/` is the committed, authoritative code knowledge graph and MUST stay in sync with the code on every change:
+
+- Run `make setup` **once per clone** to install the post-commit hook (git does not clone hooks). Until then the graph will not auto-refresh.
+- The post-commit hook rebuilds `graphify-out/graph.json` + `GRAPH_REPORT.md` from the changed code after each commit. Because a post-commit hook cannot amend its own commit, the refreshed `graphify-out/` must then be committed — **any agent finishing a task that changed code must leave `graphify-out/` rebuilt and committed** (`make graph-refresh` then `git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md`).
+- Before answering questions about the codebase, query the existing graph (`graphify query "…"`) instead of re-reading files blindly.
+- Never commit the machine-local files (`.graphify_python`, `.graphify_root`, `cost.json`, `graph.html`) — they are gitignored.
+```
+
+Create `AGENTS.md` (tools that read AGENTS.md instead of CLAUDE.md get the same rule):
+
+```markdown
+# Agent instructions
+
+See [CLAUDE.md](CLAUDE.md). In particular: run `make setup` once per clone, and keep the
+`graphify-out/` code knowledge graph in sync per the "Code knowledge graph — cadence" rule —
+after any change to code, ensure `graphify-out/` is rebuilt and committed.
+```
+
+- [ ] **Step 6: Verify enforcement end-to-end**
+
+Make a trivial backend change, commit, and confirm the hook refreshed the graph:
+
+```bash
+# touch a real file so the hook has a changed code file to re-extract
+go vet ./... >/dev/null 2>&1 || true   # from backend/, no-op if already clean
+git commit -am "test: trigger code-graph hook" --allow-empty
+git status --porcelain graphify-out/   # expect graph.json / GRAPH_REPORT.md shown as modified by the hook
+```
+If `graphify-out/` shows no changes after committing a code change, the hook is not active — re-run `make setup`.
+
+- [ ] **Step 7: Commit the enforcement setup and the seeded graph**
+
+```bash
+git add .gitignore Makefile CLAUDE.md AGENTS.md graphify-out/graph.json graphify-out/GRAPH_REPORT.md
+git add graphify-out 2>/dev/null || true   # portable --update manifest; .gitignore keeps machine-local files out
+git commit -m "chore: enforce code-graph cadence (graphify hook + CLAUDE.md), seed backend graph"
+```
+
+---
+
 ## Self-Review (slice 1A)
+
 
 **Spec coverage (against §2, §3.1, §7 of the design):**
 - §2 two storage backends (Neo4j + Postgres) → Tasks 2 & 3. ✓

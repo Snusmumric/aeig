@@ -623,41 +623,20 @@ git commit -m "feat(frontend): typed custom node and react-flow graph canvas"
 
 ---
 
-## Post-completion: build the frontend code knowledge graph (`/graphify`)
+## Post-completion: verify the code knowledge graph covers the frontend
 
-Run this only **after** all three tasks are merged and the slice self-review passes. It builds a persistent, queryable knowledge graph of the React/TypeScript frontend produced in this slice, mirroring the backend graph from 1B so later phases can reason across both.
+Same enforced hook as the backend (installed in slice 1A, Task 4). Commits in this slice that touched `frontend/` already extended `graphify-out/` with the frontend files — the hook operates on *changed files*, so backend and frontend live in **one** graph with no separate directory and no manual merge. This is a verification step, not a manual build.
 
-- [ ] **Step 1: Run the pipeline over the frontend code**
-
-From the repo root:
-
-```
-/graphify frontend
-```
-
-The TS/React corpus is code-only, so extraction is pure **AST** — deterministic, no API key, no LLM token cost. Outputs land in `graphify-out/` (`graph.json`, `GRAPH_REPORT.md`, `graph.html`).
-
-> If 1B already produced a `graphify-out/` at the repo root, run `/graphify frontend --update` instead so the frontend files are added incrementally rather than overwriting the backend graph — or build the frontend graph into its own directory by running from `frontend/` (`cd frontend && /graphify .`). Pick one convention and keep it consistent across phases.
-
-- [ ] **Step 2: Sanity-check the graph**
-
-Confirm the run reported a **non-empty** graph (nodes/edges > 0) and `Graph health: OK`. Skim `graphify-out/GRAPH_REPORT.md`; the God Nodes should surface the expected hubs — `src/graph` (`GraphCanvas`, `useGraph`, `toFlow`, `TypedNode`) and `src/api` (`client`, `types`). The `api/client` node should bridge the `graph` community to the (backend-defined) API surface.
-
-- [ ] **Step 3: Commit the graph; ignore only machine-local files**
-
-Same policy as 1B — the graph lives beside the code and is committed. If 1B already added the `.gitignore` lines for the machine-specific files, skip that part; otherwise add them:
+- [ ] **Step 1: Confirm the graph is current**
 
 ```bash
-printf '%s\n' \
-  'graphify-out/.graphify_python' \
-  'graphify-out/.graphify_root' \
-  'graphify-out/cost.json' >> .gitignore   # only if not already present from 1B
-
-git add .gitignore graphify-out/graph.json graphify-out/GRAPH_REPORT.md
-git add graphify-out/ 2>/dev/null || true   # picks up the portable --update manifest
-git commit -m "chore: extend code knowledge graph with frontend (graphify-out)"
+graphify hook status                 # expect: installed (else run `make setup`)
+git status --porcelain graphify-out/ # expect: clean
 ```
+If `graphify-out/` is dirty, run `make graph-refresh`, then `git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md && git commit`.
 
-Because 1C runs against the **single root `graphify-out/`** seeded in 1B (via `--update`, per Step 1's note), this commit shows the frontend nodes/edges being merged into the same graph — not a second, separate graph. From here on, refresh with `/graphify frontend --update` (or a root `--update`) and re-commit `graph.json` + `GRAPH_REPORT.md` after every slice/phase that touches frontend code.
+- [ ] **Step 2: Sanity-check the frontend coverage**
+
+Skim `graphify-out/GRAPH_REPORT.md`; the God Nodes should now include the frontend hubs — `src/graph` (`GraphCanvas`, `useGraph`, `toFlow`, `TypedNode`) and `src/api` (`client`, `types`) — alongside the backend hubs from 1B. The `api/client` node should bridge the frontend `graph` community to the backend API surface.
 
 
