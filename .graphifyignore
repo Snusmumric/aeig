@@ -1,7 +1,7 @@
-# Keep the code knowledge graph scoped to source code only.
-# Planning/design docs and scratch notes are not part of the code graph.
-docs/
-artifacts/
-.claude/
-graphify-out/
-node_modules/
+# Code knowledge graph: index source code only.
+# Ignore everything at the repo root, then re-include just the code directories.
+# This keeps design docs, agent instructions (CLAUDE.md/AGENTS.md), build/config
+# files, and generated output out of the graph regardless of what lands at root.
+/*
+!/backend/
+!/frontend/
