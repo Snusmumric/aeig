@@ -621,3 +621,30 @@ git commit -m "feat(frontend): typed custom node and react-flow graph canvas"
 
 **Type consistency:** `TypedNodeData` is defined once (Task 2) and consumed by `TypedNode` (Task 3); `nodeTypes` key `"typed"` matches the `type: 'typed'` set in `toFlowNodes`. API JSON field names (`upsertNodes`/`baseVersion`/`properties`/`createdAt`) match the 1B backend and the 1B curl smoke test.
 
+---
+
+## Post-completion: build the frontend code knowledge graph (`/graphify`)
+
+Run this only **after** all three tasks are merged and the slice self-review passes. It builds a persistent, queryable knowledge graph of the React/TypeScript frontend produced in this slice, mirroring the backend graph from 1B so later phases can reason across both.
+
+- [ ] **Step 1: Run the pipeline over the frontend code**
+
+From the repo root:
+
+```
+/graphify frontend
+```
+
+The TS/React corpus is code-only, so extraction is pure **AST** — deterministic, no API key, no LLM token cost. Outputs land in `graphify-out/` (`graph.json`, `GRAPH_REPORT.md`, `graph.html`).
+
+> If 1B already produced a `graphify-out/` at the repo root, run `/graphify frontend --update` instead so the frontend files are added incrementally rather than overwriting the backend graph — or build the frontend graph into its own directory by running from `frontend/` (`cd frontend && /graphify .`). Pick one convention and keep it consistent across phases.
+
+- [ ] **Step 2: Sanity-check the graph**
+
+Confirm the run reported a **non-empty** graph (nodes/edges > 0) and `Graph health: OK`. Skim `graphify-out/GRAPH_REPORT.md`; the God Nodes should surface the expected hubs — `src/graph` (`GraphCanvas`, `useGraph`, `toFlow`, `TypedNode`) and `src/api` (`client`, `types`). The `api/client` node should bridge the `graph` community to the (backend-defined) API surface.
+
+- [ ] **Step 3: Record the artifact**
+
+Add `graphify-out/` to `.gitignore` if not already done in 1B, or commit `graphify-out/GRAPH_REPORT.md` alone if the team versions the audit trail. Do not commit the `graph.html`/`graph.json` blobs unless deliberately desired.
+
+

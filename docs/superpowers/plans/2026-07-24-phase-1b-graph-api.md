@@ -716,3 +716,36 @@ git commit -m "feat(backend): wire server with postgres migrations, neo4j, and g
 
 **Known phase-1 limitation (documented, intentional):** the version bump (Postgres) and element writes (Neo4j) are not one atomic transaction; a mid-mutation Neo4j failure advances the version without applying all writes. The client recovers by re-fetching the subgraph. Revisit if phase-4 versioning polish requires stronger guarantees.
 
+---
+
+## Post-completion: build the backend code knowledge graph (`/graphify`)
+
+Run this only **after** all three tasks are merged and the slice self-review passes. It builds a persistent, queryable knowledge graph of the Go backend produced in this slice, used to reason about architecture and file relationships in later phases (and to feed the `graphify` query/path/explain tools).
+
+- [ ] **Step 1: Run the pipeline over the backend code**
+
+From the repo root:
+
+```
+/graphify backend
+```
+
+The Go corpus is code-only, so extraction is pure **AST** — deterministic, no API key, no LLM token cost. Outputs land in `graphify-out/` (`graph.json`, `GRAPH_REPORT.md`, `graph.html`).
+
+- [ ] **Step 2: Sanity-check the graph**
+
+Confirm the run reported a **non-empty** graph (nodes/edges > 0) and `Graph health: OK`. Skim `graphify-out/GRAPH_REPORT.md`; the God Nodes should surface the expected hubs — `internal/service`, `internal/httpapi`, `internal/storage/postgres`, `internal/storage/neo4j`, `internal/domain`. If `domain` is **not** a hub, that signals the layers are more coupled than intended — note it for the next slice.
+
+- [ ] **Step 3: Record the artifact**
+
+Add `graphify-out/` to the repo `.gitignore` (it is a regenerable artifact), or commit `graphify-out/GRAPH_REPORT.md` alone if the team wants the audit trail versioned. Do not commit the `graph.html`/`graph.json` blobs unless deliberately desired.
+
+```bash
+# option A — ignore the generated dir
+printf '\ngraphify-out/\n' >> .gitignore
+git add .gitignore && git commit -m "chore: ignore graphify-out/ (generated code graph)"
+```
+
+> Optional: `/graphify backend --neo4j` also emits `graphify-out/cypher.txt`. If you push it into Neo4j, use a **separate database/instance** from the application graph data — do not mix the code graph with app graphs sharing `graphId`.
+
+
