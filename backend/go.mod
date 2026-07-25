@@ -7,7 +7,9 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.10.0
+	github.com/neo4j/neo4j-go-driver/v5 v5.28.4
 	github.com/stretchr/testify v1.11.1
+	github.com/testcontainers/testcontainers-go/modules/neo4j v0.43.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
 )
 
