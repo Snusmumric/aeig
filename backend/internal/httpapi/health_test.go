@@ -11,7 +11,7 @@ import (
 )
 
 func TestHealth_OK(t *testing.T) {
-	srv := httptest.NewServer(NewRouter())
+	srv := httptest.NewServer(NewRouter(nil))
 	defer srv.Close()
 
 	resp, err := http.Get(srv.URL + "/health")
