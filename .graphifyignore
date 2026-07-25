@@ -5,3 +5,6 @@
 /*
 !/backend/
 !/frontend/
+# never index dependencies or build output
+frontend/node_modules/
+frontend/dist/
