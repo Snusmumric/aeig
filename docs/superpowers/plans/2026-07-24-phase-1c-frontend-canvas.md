@@ -6,11 +6,11 @@
 
 **Architecture:** A thin typed API client wraps `fetch` over the 1B REST surface. A pure `toFlow` transform maps `domain.Subgraph` JSON into React Flow `Node[]`/`Edge[]`, resolving each element's visual style from a `TypeStyleMap`. A `GraphCanvas` component renders `<ReactFlow>` with a single custom node type (`TypedNode`) that draws the shape/color. Pure logic (client parsing, transform, style resolution) is unit-tested with Vitest; the canvas gets a mount smoke test.
 
-**Tech Stack:** Vite, React 18, TypeScript 5, `@xyflow/react` (React Flow v12), Vitest, `@testing-library/react`, `@testing-library/jest-dom`, jsdom.
+**Tech Stack:** Vite + React + TypeScript via `npm create vite@latest --template react-ts` (as of scaffold this is React 19 / Vite 8 / Vitest 4 / TS 6 / oxlint — pin as generated), `@xyflow/react` (React Flow v12), Vitest, `@testing-library/react` **+ its `@testing-library/dom` peer**, `@testing-library/jest-dom`, jsdom. **Requires Node 18+** (Vite 8 / Vitest 4 will not run on Node 16 — use `nvm use 20`).
 
 ## Global Constraints
 
-- Frontend lives under `frontend/` at the repo root; package name `aeig-frontend`.
+- Frontend lives under `frontend/` at the repo root; keep the scaffold's package name (`frontend`).
 - API base URL comes from `import.meta.env.VITE_API_URL` (default `http://localhost:8080`); the client is created with an explicit base so tests inject their own.
 - JSON field names match the backend exactly: `upsertNodes`, `upsertEdges`, `deleteNodeIds`, `deleteEdgeIds`, `baseVersion`, `properties`, `createdAt`. `version` is a JS `number` in phase 1.
 - All React Flow node data flows through one custom node type keyed `"typed"`; there are no default-styled nodes.
@@ -38,11 +38,13 @@
 
 ```bash
 cd <repo root>
+# Node 18+ required (Vite 8 / Vitest 4). If the default is older: nvm use 20.
 npm create vite@latest frontend -- --template react-ts
 cd frontend
 npm install
 npm install @xyflow/react
-npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom
+# @testing-library/dom is a REQUIRED peer of @testing-library/react v16 — install it explicitly.
+npm install -D vitest @testing-library/react @testing-library/dom @testing-library/jest-dom jsdom
 ```
 
 - [ ] **Step 2: Configure Vitest**
@@ -436,13 +438,13 @@ Create `frontend/src/graph/TypedNode.test.tsx`:
 ```tsx
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { ReactFlowProvider } from '@xyflow/react'
+import { ReactFlowProvider, type NodeProps } from '@xyflow/react'
 import { TypedNode } from './TypedNode'
 
 function renderNode(data: unknown) {
   return render(
     <ReactFlowProvider>
-      <TypedNode {...({ data } as never)} />
+      <TypedNode {...({ data } as unknown as NodeProps)} />
     </ReactFlowProvider>,
   )
 }

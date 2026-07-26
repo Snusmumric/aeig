@@ -986,6 +986,11 @@ Create `.graphifyignore`:
 /*
 !/backend/
 !/frontend/
+# frontend: index only source, not tsconfig/package.json/vite config/deps/build
+# (harmless before frontend/ exists; prevents `compilerOptions`/`devDependencies`
+#  god-nodes once the 1C scaffold lands)
+frontend/*
+!frontend/src/
 ```
 
 Then seed from the repo root:
