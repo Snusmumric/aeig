@@ -15,10 +15,10 @@ setup: ## one-time per clone: install graphify commit hooks + CLAUDE.md/agent in
 	graphify claude install
 
 graph: ## full rebuild of the code knowledge graph (force)
-	graphify update . --force
+	PYTHONHASHSEED=0 graphify update . --force
 
 graph-refresh: ## incremental refresh — what the commit hook runs
-	graphify update .
+	PYTHONHASHSEED=0 graphify update .
 
 test: ## backend unit tests
 	cd backend && go test ./...
