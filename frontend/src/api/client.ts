@@ -1,4 +1,4 @@
-import type { Graph, Subgraph, Mutations } from './types'
+import type { Graph, Subgraph, Mutations, Layout, Position, Viewport } from './types'
 
 export class ApiError extends Error {
   status: number
@@ -36,6 +36,14 @@ export function createClient(baseURL: string) {
         method: 'POST',
         body: JSON.stringify({ baseVersion, ...m }),
       }),
+    listLayouts: (id: string) => request<Layout[]>(`${baseURL}/graphs/${id}/layouts`),
+    saveLayout: (id: string, name: string, positions: Record<string, Position>, viewport: Viewport) =>
+      request<Layout>(`${baseURL}/graphs/${id}/layouts`, {
+        method: 'POST',
+        body: JSON.stringify({ name, positions, viewport }),
+      }),
+    getLayout: (id: string, name: string) =>
+      request<Layout>(`${baseURL}/graphs/${id}/layouts/${encodeURIComponent(name)}`),
   }
 }
 

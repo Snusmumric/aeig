@@ -30,3 +30,23 @@ export interface Mutations {
   deleteNodeIds?: string[]
   deleteEdgeIds?: string[]
 }
+
+export interface Position {
+  x: number
+  y: number
+}
+
+export interface Viewport {
+  x: number
+  y: number
+  zoom: number
+}
+
+export interface Layout {
+  id: string
+  graphId: string
+  name: string
+  positions: Record<string, Position>
+  viewport: Viewport
+  createdAt: string
+}
