@@ -7,8 +7,13 @@
   "5": "NewRouter",
   "6": "Load",
   "7": "stubAPI",
+  "8": "devDependencies",
+  "9": "compilerOptions",
   "10": "TestElementRepo_UpsertAndGetSubgraph",
-  "11": "handleHealth",
+  "12": "client.ts",
+  "13": "plugins",
   "14": "errors.go",
-  "15": "github.com/aeig/backend"
+  "15": "github.com/aeig/backend",
+  "16": "Load",
+  "17": "ResizeObserverMock"
 }

@@ -5,6 +5,6 @@
 /*
 !/backend/
 !/frontend/
-# never index dependencies or build output
-frontend/node_modules/
-frontend/dist/
+# frontend: index only source, not tsconfig/package.json/vite config/deps/build
+frontend/*
+!frontend/src/
