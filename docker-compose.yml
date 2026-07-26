@@ -13,4 +13,4 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: aeig
     ports:
-      - "5432:5432"
+      - "${PG_PORT:-5432}:5432"

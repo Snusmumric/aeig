@@ -1,4 +1,10 @@
-.PHONY: setup graph graph-refresh test test-integration
+.PHONY: setup graph graph-refresh test test-integration dev down
+
+dev: ## run the full dev stack in one command (databases + backend + frontend)
+	./scripts/dev.sh
+
+down: ## stop the dev databases (docker compose)
+	docker compose down
 
 setup: ## one-time per clone: install graphify commit hooks + CLAUDE.md/agent integration
 	command -v graphify >/dev/null 2>&1 || uv tool install graphifyy
