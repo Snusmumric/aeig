@@ -2,7 +2,11 @@ import { createClient } from './api/client'
 import { GraphEditor } from './graph/GraphEditor'
 import type { TypeStyleMap } from './graph/typeStyle'
 
-const client = createClient(import.meta.env.VITE_API_URL ?? 'http://localhost:8080')
+// Default to a relative base ('') so the browser talks to the same origin:
+// in dev the Vite proxy forwards /graphs and /health to the Go server; when the
+// backend serves the built frontend, requests are same-origin too. Override with
+// VITE_API_URL for cross-origin setups.
+const client = createClient(import.meta.env.VITE_API_URL ?? '')
 
 const styles: TypeStyleMap = {
   Task: { shape: 'rectangle', color: '#3366cc' },
