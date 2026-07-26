@@ -56,7 +56,7 @@ func doReq(t *testing.T, h http.Handler, method, path, body string) *httptest.Re
 
 func TestCreateGraph_201(t *testing.T) {
 	api := &stubAPI{created: domain.Graph{ID: "g1", Version: 1}}
-	rec := doReq(t, NewRouter(api), http.MethodPost, "/graphs", `{"name":"demo"}`)
+	rec := doReq(t, NewRouter(Deps{Graphs: api}), http.MethodPost, "/graphs", `{"name":"demo"}`)
 	require.Equal(t, http.StatusCreated, rec.Code)
 	var g domain.Graph
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &g))
@@ -66,19 +66,19 @@ func TestCreateGraph_201(t *testing.T) {
 
 func TestCreateGraph_400OnInvalid(t *testing.T) {
 	api := &stubAPI{createErr: service.ErrInvalidInput}
-	rec := doReq(t, NewRouter(api), http.MethodPost, "/graphs", `{"name":""}`)
+	rec := doReq(t, NewRouter(Deps{Graphs: api}), http.MethodPost, "/graphs", `{"name":""}`)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
 func TestGetGraph_404(t *testing.T) {
 	api := &stubAPI{getErr: domain.ErrNotFound}
-	rec := doReq(t, NewRouter(api), http.MethodGet, "/graphs/x", "")
+	rec := doReq(t, NewRouter(Deps{Graphs: api}), http.MethodGet, "/graphs/x", "")
 	assert.Equal(t, http.StatusNotFound, rec.Code)
 }
 
 func TestGetSubgraph_200(t *testing.T) {
 	api := &stubAPI{sub: domain.Subgraph{Nodes: []domain.Node{{ID: "n1", Type: "Task"}}}}
-	rec := doReq(t, NewRouter(api), http.MethodGet, "/graphs/g1/subgraph", "")
+	rec := doReq(t, NewRouter(Deps{Graphs: api}), http.MethodGet, "/graphs/g1/subgraph", "")
 	require.Equal(t, http.StatusOK, rec.Code)
 	var sg domain.Subgraph
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &sg))
@@ -88,7 +88,7 @@ func TestGetSubgraph_200(t *testing.T) {
 func TestApplyMutations_200(t *testing.T) {
 	api := &stubAPI{version: 7}
 	body := `{"baseVersion":6,"upsertNodes":[{"id":"n1","type":"Task","properties":{}}]}`
-	rec := doReq(t, NewRouter(api), http.MethodPost, "/graphs/g1/mutations", body)
+	rec := doReq(t, NewRouter(Deps{Graphs: api}), http.MethodPost, "/graphs/g1/mutations", body)
 	require.Equal(t, http.StatusOK, rec.Code)
 	var out map[string]int64
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &out))
@@ -99,6 +99,6 @@ func TestApplyMutations_200(t *testing.T) {
 
 func TestApplyMutations_409OnConflict(t *testing.T) {
 	api := &stubAPI{applyErr: domain.ErrVersionConflict}
-	rec := doReq(t, NewRouter(api), http.MethodPost, "/graphs/g1/mutations", `{"baseVersion":1}`)
+	rec := doReq(t, NewRouter(Deps{Graphs: api}), http.MethodPost, "/graphs/g1/mutations", `{"baseVersion":1}`)
 	assert.Equal(t, http.StatusConflict, rec.Code)
 }

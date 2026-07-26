@@ -35,13 +35,14 @@ func main() {
 	}
 	defer driver.Close(ctx)
 
-	svc := service.NewGraphService(
-		pgstore.NewGraphRepo(pool),
-		neo4jstore.NewElementRepo(driver),
-	)
+	graphRepo := pgstore.NewGraphRepo(pool)
+	svc := service.NewGraphService(graphRepo, neo4jstore.NewElementRepo(driver))
+	layoutSvc := service.NewLayoutService(pgstore.NewLayoutRepo(pool), graphRepo)
+
+	router := httpapi.NewRouter(httpapi.Deps{Graphs: svc, Layouts: layoutSvc})
 
 	log.Printf("listening on %s", cfg.HTTPAddr)
-	if err := http.ListenAndServe(cfg.HTTPAddr, httpapi.NewRouter(svc)); err != nil {
+	if err := http.ListenAndServe(cfg.HTTPAddr, router); err != nil {
 		log.Fatalf("server: %v", err)
 	}
 }
