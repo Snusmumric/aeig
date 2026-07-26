@@ -9,9 +9,26 @@ import type { TypeStyleMap } from './graph/typeStyle'
 const client = createClient(import.meta.env.VITE_API_URL ?? '')
 
 const styles: TypeStyleMap = {
+  // sample metamodel types
   Task: { shape: 'rectangle', color: '#3366cc' },
   Milestone: { shape: 'diamond', color: '#cc6633' },
   depends_on: { shape: 'rectangle', color: '#888888' },
+  // AEiG code-graph seed types (see scripts/seedgen.py) — backend
+  service: { shape: 'rectangle', color: '#3b82f6' },
+  httpapi: { shape: 'rectangle', color: '#06b6d4' },
+  domain: { shape: 'ellipse', color: '#8b5cf6' },
+  pg: { shape: 'rectangle', color: '#10b981' },
+  neo4j: { shape: 'rectangle', color: '#22c55e' },
+  config: { shape: 'rectangle', color: '#64748b' },
+  cmd: { shape: 'diamond', color: '#f59e0b' },
+  backend: { shape: 'rectangle', color: '#475569' },
+  // frontend
+  'fe-graph': { shape: 'rectangle', color: '#ec4899' },
+  'fe-api': { shape: 'rectangle', color: '#f43f5e' },
+  'fe-app': { shape: 'rectangle', color: '#e11d48' },
+  'fe-test': { shape: 'rectangle', color: '#a855f7' },
+  frontend: { shape: 'rectangle', color: '#9333ea' },
+  code: { shape: 'rectangle', color: '#94a3b8' },
 }
 
 const graphId = new URLSearchParams(window.location.search).get('graph') ?? ''

@@ -2330,7 +2330,7 @@
       "label": "App()",
       "file_type": "code",
       "source_file": "frontend/src/App.tsx",
-      "source_location": "L19",
+      "source_location": "L36",
       "_origin": "ast",
       "id": "frontend_src_app_app",
       "community": 0,
@@ -7659,7 +7659,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/App.tsx",
-      "source_location": "L19",
+      "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app",
@@ -9512,5 +9512,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "a41bb878a28e77c259dc7c378d04240bd16cd1f8"
+  "built_at_commit": "00c6aefdf7fe3211ed8faddfa7869cf2cdf4853f"
 }

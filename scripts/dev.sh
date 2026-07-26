@@ -63,9 +63,12 @@ for _ in $(seq 1 30); do
   sleep 1
 done
 
-# --- seed a demo graph (the UI has no create-graph flow yet) ---
-GID="$(curl -fsS -XPOST "$API/graphs" -d '{"name":"demo"}' | sed -E 's/.*"id":"([^"]+)".*/\1/')"
-echo "==> demo graph created: $GID"
+# --- seed the AEiG code graph (the app's own code as a typed graph) ---
+# Postgres row needs the schema, so this runs after the backend applied migrations.
+GID="c0de0000-0000-4000-8000-000000000001"
+echo "==> seeding the AEiG code graph into the databases"
+docker compose exec -T -e PGPASSWORD="$PGPW" postgres psql -q -U aeig -d aeig < seed/aeig-code-graph.sql
+docker compose exec -T neo4j cypher-shell -u neo4j -p "$NEO4J_PW" < seed/aeig-code-graph.cypher >/dev/null
 echo "==> OPEN:  http://localhost:5173/?graph=$GID"
 
 # --- frontend (foreground; Ctrl+C stops everything via the trap) ---

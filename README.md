@@ -26,7 +26,7 @@ make dev
 1. starts the databases (`docker compose up -d`),
 2. waits for Postgres and Neo4j to be ready,
 3. starts the **backend** on `:8080` (migrations run on start),
-4. seeds a **demo graph** (the UI has no create-graph screen yet) and prints its URL,
+4. loads the **AEiG code graph** seed — the app's own code (from graphify) as a typed graph — and prints its URL,
 5. starts the **frontend** on `:5173` (Vite proxies `/graphs` and `/health` to the backend, so the browser talks same-origin — no CORS).
 
 Then open the printed URL, e.g. **`http://localhost:5173/?graph=<id>`**. Use **Add Task** to create nodes and **Save layout** to persist positions.
@@ -42,6 +42,15 @@ PG_PORT=5433 make dev
 ```
 
 Overridable env for `make dev`: `PG_PORT` (Postgres host port, default 5432), `PGPW` (Postgres dev password, default `devpass`), `NEO4J_PW` (must match `NEO4J_AUTH` in `docker-compose.yml`, default `password123`), `HTTP_ADDR` (default `:8080`).
+
+### Seed data (the AEiG code graph)
+
+`make dev` loads a committed seed under `seed/` so the app opens with real content: **AEiG's own source code as a typed graph** (284 nodes / 546 edges; node `type` = source module like `service`, `httpapi`, `domain`, `fe-graph`). It is generated from `graphify-out/graph.json` by `scripts/seedgen.py` into AEiG's schema:
+
+- `seed/aeig-code-graph.sql` — the `graphs` registry row (fixed id `c0de0000-…-0001`).
+- `seed/aeig-code-graph.cypher` — `:Element` nodes + `:REL` edges (graphId-scoped).
+
+Regenerate after code/graph changes: `make seed-regen` (needs Python 3). Databases have **no named volumes**, so each `make dev` starts empty and re-applies this seed.
 
 ## Run pieces manually
 
