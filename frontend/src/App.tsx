@@ -1,7 +1,8 @@
-import { toFlowNodes, toFlowEdges } from './graph/toFlow'
-import { GraphCanvas } from './graph/GraphCanvas'
+import { createClient } from './api/client'
+import { GraphEditor } from './graph/GraphEditor'
 import type { TypeStyleMap } from './graph/typeStyle'
-import type { Subgraph } from './api/types'
+
+const client = createClient(import.meta.env.VITE_API_URL ?? 'http://localhost:8080')
 
 const styles: TypeStyleMap = {
   Task: { shape: 'rectangle', color: '#3366cc' },
@@ -9,22 +10,11 @@ const styles: TypeStyleMap = {
   depends_on: { shape: 'rectangle', color: '#888888' },
 }
 
-const demo: Subgraph = {
-  nodes: [
-    { id: 'm1', type: 'Milestone', properties: { label: 'Release' } },
-    { id: 't1', type: 'Task', properties: { label: 'Build API' } },
-    { id: 't2', type: 'Task', properties: { label: 'Build UI' } },
-  ],
-  edges: [
-    { id: 'e1', type: 'depends_on', source: 't1', target: 'm1', properties: {} },
-    { id: 'e2', type: 'depends_on', source: 't2', target: 'm1', properties: {} },
-  ],
-}
+const graphId = new URLSearchParams(window.location.search).get('graph') ?? ''
 
 export default function App() {
-  return (
-    <div style={{ width: '100vw', height: '100vh' }}>
-      <GraphCanvas nodes={toFlowNodes(demo, styles)} edges={toFlowEdges(demo, styles)} />
-    </div>
-  )
+  if (!graphId) {
+    return <div style={{ padding: 20 }}>Append ?graph=&lt;id&gt; to the URL to open a graph.</div>
+  }
+  return <GraphEditor client={client} graphId={graphId} styles={styles} />
 }
