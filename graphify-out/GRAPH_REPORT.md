@@ -1,7 +1,7 @@
 # Graph Report - AEiG  (2026-07-26)
 
 ## Corpus Check
-- 57 files · ~8,611 words
+- 57 files · ~8,659 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `be47195f`
+- Built from commit: `a41bb878`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
