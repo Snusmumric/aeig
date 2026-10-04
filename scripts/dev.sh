@@ -13,6 +13,17 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 # --- prerequisites ---
+# Postgres host port must be free (docker compose binds it) — fail fast with a hint.
+if (exec 3<>/dev/tcp/localhost/"$PG_PORT") 2>/dev/null; then
+  exec 3>&- 3<&- 2>/dev/null || true
+  echo "ERROR: Postgres port :$PG_PORT is already in use — another Postgres or service is listening on it:"
+  lsof -nP -iTCP:"$PG_PORT" -sTCP:LISTEN 2>/dev/null || true
+  echo
+  echo "       Stop that service, or run the dev stack on a different port:"
+  echo "         PG_PORT=5433 make dev"
+  exit 1
+fi
+
 command -v docker >/dev/null || { echo "ERROR: docker is required"; exit 1; }
 docker info >/dev/null 2>&1 || { echo "ERROR: docker daemon is not running"; exit 1; }
 command -v go >/dev/null || { echo "ERROR: go is required"; exit 1; }
