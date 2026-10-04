@@ -11,7 +11,8 @@ export function TypeFilterPanel({ types, visibleTypes, styles, onChange }: TypeF
   const isChecked = (t: string) => !visibleTypes || visibleTypes.has(t)
 
   const toggle = (t: string) => {
-    const next = new Set(visibleTypes ?? types)
+    const known = new Set(types)
+    const next = new Set([...(visibleTypes ?? types)].filter((x) => known.has(x)))
     if (next.has(t)) next.delete(t)
     else next.add(t)
     onChange(next.size === types.length ? null : next)

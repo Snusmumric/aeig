@@ -27,6 +27,20 @@ describe('TypeFilterPanel', () => {
     expect(onChange).toHaveBeenCalledWith(null)
   })
 
+  it('prunes stale types from an active set before normalizing', () => {
+    const onChange = vi.fn()
+    render(
+      <TypeFilterPanel
+        types={['phase', 'slice']}
+        visibleTypes={new Set(['phase', 'slice', 'gone'])}
+        styles={styles}
+        onChange={onChange}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('type-phase'))
+    expect(onChange).toHaveBeenCalledWith(new Set(['slice']))
+  })
+
   it('Все / Ни одного buttons', () => {
     const onChange = vi.fn()
     render(<TypeFilterPanel types={['phase']} visibleTypes={new Set()} styles={styles} onChange={onChange} />)
