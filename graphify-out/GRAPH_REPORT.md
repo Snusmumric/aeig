@@ -5,12 +5,12 @@
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 301 nodes · 548 edges · 21 communities (17 shown, 4 thin omitted)
-- Extraction: 87% EXTRACTED · 13% INFERRED · 0% AMBIGUOUS · INFERRED: 72 edges (avg confidence: 0.8)
+- 301 nodes · 593 edges · 19 communities (16 shown, 3 thin omitted)
+- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 72 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bfcc420a`
+- Built from commit: `611b9a0a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -33,20 +33,18 @@
 - github.com/aeig/backend
 - ResizeObserverMock
 - toFlow.ts
-- App.tsx
-- layout.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `NewRouter()` - 19 edges
 2. `doReq()` - 16 edges
 3. `main()` - 11 edges
-4. `routerWithLayouts()` - 10 edges
-5. `writeJSON()` - 10 edges
-6. `writeError()` - 10 edges
-7. `NewGraphService()` - 10 edges
-8. `stubElementStore` - 9 edges
-9. `NewLayoutService()` - 9 edges
-10. `stubAPI` - 8 edges
+4. `TypeStyleMap` - 11 edges
+5. `routerWithLayouts()` - 10 edges
+6. `writeJSON()` - 10 edges
+7. `writeError()` - 10 edges
+8. `NewGraphService()` - 10 edges
+9. `ApiClient` - 10 edges
+10. `stubElementStore` - 9 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `main()` --calls--> `Load()`  [INFERRED]
@@ -63,15 +61,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (21 total, 4 thin omitted)
+## Communities (19 total, 3 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.13
-Nodes (17): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+9 more)
+Cohesion: 0.10
+Nodes (25): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+17 more)
 
 ### Community 1 - "ElementRepo"
-Cohesion: 0.18
-Nodes (16): Context, Graph, Mutations, Subgraph, NewGraphService(), edgeIDs(), T, nodeIDs() (+8 more)
+Cohesion: 0.10
+Nodes (25): Context, Graph, Mutations, Subgraph, NewGraphService(), edgeIDs(), Context, Graph (+17 more)
 
 ### Community 2 - "GraphRepo"
 Cohesion: 0.13
@@ -98,8 +96,8 @@ Cohesion: 0.28
 Nodes (9): Context, Layout, Pool, Position, Viewport, NewLayoutRepo(), scanLayout(), LayoutRepo (+1 more)
 
 ### Community 8 - "devDependencies"
-Cohesion: 0.19
-Nodes (9): Context, Graph, Subgraph, Edge, Mutations, Node, Subgraph, stubElementStore (+1 more)
+Cohesion: 0.29
+Nodes (5): GraphCanvas(), GraphCanvasProps, nodeTypes, shapeStyle(), TypedNode()
 
 ### Community 9 - "compilerOptions"
 Cohesion: 0.42
@@ -122,17 +120,13 @@ Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
 ### Community 18 - "toFlow.ts"
-Cohesion: 0.09
-Nodes (21): filterFlow(), allEdges, allNodes, GraphCanvas(), GraphCanvasProps, nodeTypes, sg, styles (+13 more)
-
-### Community 19 - "App.tsx"
-Cohesion: 0.17
-Nodes (9): App(), client, params, styles, GraphEditor(), GraphEditorProps, styles, TypeFilterPanel() (+1 more)
+Cohesion: 0.14
+Nodes (19): filterFlow(), allEdges, allNodes, sg, styles, toFlowEdges(), toFlowNodes(), TypedNodeData (+11 more)
 
 ## Knowledge Gaps
-- **21 isolated node(s):** `GraphEditorProps`, `styles`, `TypeFilterPanelProps`, `PositionMap`, `github.com/aeig/backend` (+16 more)
+- **19 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `GraphNode` (+14 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -149,5 +143,5 @@ _Questions this graph is uniquely positioned to answer:_
   _`doReq()` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 10 inferred relationships involving `main()` (e.g. with `Load()` and `NewRouter()`) actually correct?**
   _`main()` has 10 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 7 inferred relationships involving `writeJSON()` (e.g. with `handleApplyMutations()` and `handleCreateGraph()`) actually correct?**
-  _`writeJSON()` has 7 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `github.com/aeig/backend`, `client`, `styles` to the rest of the system?**
+  _19 weakly-connected nodes found - possible documentation gaps or missing edges._
