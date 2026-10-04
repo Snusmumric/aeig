@@ -58,7 +58,9 @@ this feature is the client-side slice of that UX, delivered now.
 - Empty visible set saved explicitly as `[]` → on load the canvas is empty; allowed,
   no special-casing.
 - Types that disappear from the subgraph simply vanish from the checkbox list; the
-  set may contain stale entries — harmless (nothing matches them).
+  set may contain stale entries — they are pruned on the next toggle (the panel
+  normalizes against the current subgraph's types), so they cannot skew the
+  "all checked → null" normalization.
 - 409-conflict reload flow (`commitMutation`) is unaffected: reload refetches the
   full subgraph and re-applies the current set.
 
