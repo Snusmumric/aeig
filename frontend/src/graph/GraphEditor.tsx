@@ -62,7 +62,7 @@ export function GraphEditor({ client, graphId, styles }: GraphEditorProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh' }}>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', borderBottom: '1px solid #ddd' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', borderBottom: '1px solid #ddd' }}>
         <button onClick={() => void addNode()}>Add Task</button>
         <LayoutBar
           layouts={layouts}

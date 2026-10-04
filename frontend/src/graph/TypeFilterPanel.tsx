@@ -19,7 +19,7 @@ export function TypeFilterPanel({ types, visibleTypes, styles, onChange }: TypeF
   }
 
   return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }} data-testid="type-filter">
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }} data-testid="type-filter">
       {types.map((t) => (
         <label key={t} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
           <input

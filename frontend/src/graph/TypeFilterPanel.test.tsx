@@ -13,6 +13,11 @@ describe('TypeFilterPanel', () => {
     expect(screen.getByText('phase')).toBeInTheDocument()
   })
 
+  it('wraps its checkboxes instead of overflowing horizontally', () => {
+    render(<TypeFilterPanel types={['phase']} visibleTypes={null} styles={styles} onChange={vi.fn()} />)
+    expect(screen.getByTestId('type-filter')).toHaveStyle({ flexWrap: 'wrap' })
+  })
+
   it('unchecking a type calls onChange with that type excluded', () => {
     const onChange = vi.fn()
     render(<TypeFilterPanel types={['phase', 'slice']} visibleTypes={null} styles={styles} onChange={onChange} />)
