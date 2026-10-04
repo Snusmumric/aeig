@@ -82,6 +82,16 @@ docker compose exec -T -e PGPASSWORD="$PGPW" postgres psql -q -U aeig -d aeig < 
 docker compose exec -T neo4j cypher-shell -u neo4j -p "$NEO4J_PW" < seed/aeig-code-graph.cypher >/dev/null
 echo "==> OPEN:  http://localhost:5173/?graph=$GID"
 
+# --- seed the AEiG roadmap graph (regenerated from the PAIW tracker when available) ---
+GID_ROADMAP="c0de0000-0000-4000-8000-000000000002"
+echo "==> seeding the AEiG roadmap graph"
+if ! python3 scripts/roadmapgen.py; then
+  echo "    (roadmap.md not available — seeding the last committed seed)"
+fi
+docker compose exec -T -e PGPASSWORD="$PGPW" postgres psql -q -U aeig -d aeig < seed/roadmap-graph.sql
+docker compose exec -T neo4j cypher-shell -u neo4j -p "$NEO4J_PW" < seed/roadmap-graph.cypher >/dev/null
+echo "==> OPEN roadmap:  http://localhost:5173/?graph=$GID_ROADMAP"
+
 # --- frontend (foreground; Ctrl+C stops everything via the trap) ---
 echo "==> starting frontend (Vite :5173) — press Ctrl+C to stop the whole stack"
 ( cd frontend && npm run dev )

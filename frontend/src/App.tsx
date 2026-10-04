@@ -29,6 +29,15 @@ const styles: TypeStyleMap = {
   'fe-test': { shape: 'rectangle', color: '#a855f7' },
   frontend: { shape: 'rectangle', color: '#9333ea' },
   code: { shape: 'rectangle', color: '#94a3b8' },
+  // roadmap graph types (see scripts/roadmapgen.py)
+  phase: { shape: 'diamond', color: '#dc2626' },
+  slice: { shape: 'rectangle', color: '#f97316' },
+  feature: { shape: 'rectangle', color: '#0ea5e9' },
+  simplification: { shape: 'rectangle', color: '#94a3b8' },
+  extension: { shape: 'ellipse', color: '#65a30d' },
+  contains: { shape: 'rectangle', color: '#cbd5e1' },
+  next: { shape: 'rectangle', color: '#dc2626' },
+  revisit: { shape: 'rectangle', color: '#64748b' },
 }
 
 const graphId = new URLSearchParams(window.location.search).get('graph') ?? ''

@@ -1,4 +1,4 @@
-.PHONY: setup graph graph-refresh test test-integration dev down seed-regen
+.PHONY: setup graph graph-refresh test test-integration dev down seed-regen roadmap-regen
 
 dev: ## run the full dev stack in one command (databases + backend + frontend)
 	./scripts/dev.sh
@@ -8,6 +8,9 @@ down: ## stop the dev databases (docker compose)
 
 seed-regen: ## regenerate the AEiG code-graph seed from graphify-out/graph.json
 	python3 scripts/seedgen.py
+
+roadmap-regen: ## regenerate the roadmap graph seed from the PAIW roadmap.md (ROADMAP_MD overridable)
+	python3 scripts/roadmapgen.py
 
 setup: ## one-time per clone: install graphify commit hooks + CLAUDE.md/agent integration
 	command -v graphify >/dev/null 2>&1 || uv tool install graphifyy
