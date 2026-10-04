@@ -1,16 +1,16 @@
 # Graph Report - AEiG  (2026-10-04)
 
 ## Corpus Check
-- 61 files · ~9,537 words
+- 61 files · ~9,675 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 296 nodes · 578 edges · 18 communities (15 shown, 3 thin omitted)
+- 296 nodes · 581 edges · 19 communities (16 shown, 3 thin omitted)
 - Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 72 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e496e313`
+- Built from commit: `0cb4e1b1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,6 +32,7 @@
 - errors.go
 - github.com/aeig/backend
 - ResizeObserverMock
+- toFlow.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `NewRouter()` - 19 edges
@@ -60,11 +61,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (18 total, 3 thin omitted)
+## Communities (19 total, 3 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.07
-Nodes (41): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+33 more)
+Cohesion: 0.10
+Nodes (25): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+17 more)
 
 ### Community 1 - "ElementRepo"
 Cohesion: 0.10
@@ -117,6 +118,10 @@ Nodes (4): Time, Layout, Position, Viewport
 ### Community 14 - "errors.go"
 Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
+
+### Community 18 - "toFlow.ts"
+Cohesion: 0.16
+Nodes (16): filterFlow(), allEdges, allNodes, sg, styles, toFlowEdges(), toFlowNodes(), TypedNodeData (+8 more)
 
 ## Knowledge Gaps
 - **18 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `GraphNode` (+13 more)
