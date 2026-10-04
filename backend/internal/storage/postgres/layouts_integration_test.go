@@ -82,4 +82,12 @@ func TestLayoutRepo_NodeTypesRoundtrip(t *testing.T) {
 	got, err := layouts.GetLayoutByName(ctx, g.ID, "filtered")
 	require.NoError(t, err)
 	assert.Nil(t, got.NodeTypes)
+
+	// [] ("show none") roundtrips distinctly from NULL
+	_, err = layouts.SaveLayout(ctx, g.ID, "filtered", nil, domain.Viewport{}, []string{})
+	require.NoError(t, err)
+	gotEmpty, err := layouts.GetLayoutByName(ctx, g.ID, "filtered")
+	require.NoError(t, err)
+	require.NotNil(t, gotEmpty.NodeTypes)
+	assert.Empty(t, *gotEmpty.NodeTypes)
 }
