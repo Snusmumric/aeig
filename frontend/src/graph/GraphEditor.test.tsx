@@ -55,6 +55,17 @@ describe('GraphEditor', () => {
     expect(args[4]).toEqual(['Task'])
   })
 
+  it('saving with an active filter still persists hidden node positions', async () => {
+    const client = fakeClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(screen.getByTestId('type-filter')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('type-Milestone'))
+    fireEvent.click(screen.getByText('Save layout'))
+    await waitFor(() => expect(client.saveLayout).toHaveBeenCalled())
+    const args = (client.saveLayout as any).mock.calls[0]
+    expect(Object.keys(args[2])).toEqual(expect.arrayContaining(['n1', 'n2']))
+  })
+
   it('loading a layout applies its nodeTypes', async () => {
     const client = fakeClient()
     ;(client.getLayout as any).mockResolvedValue({

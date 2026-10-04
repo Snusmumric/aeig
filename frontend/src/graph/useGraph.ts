@@ -9,6 +9,7 @@ export type PositionMap = Record<string, { x: number; y: number }>
 
 export interface UseGraph {
   nodes: Node<TypedNodeData>[]
+  allNodes: Node<TypedNodeData>[]
   edges: Edge[]
   types: string[]
   visibleTypes: Set<string> | null
@@ -49,5 +50,5 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
   const { nodes, edges } = useMemo(() => filterFlow(allNodes, allEdges, visibleTypes), [allNodes, allEdges, visibleTypes])
   const types = useMemo(() => [...new Set(allNodes.map((n) => n.data.nodeType))].sort(), [allNodes])
 
-  return { nodes, edges, types, visibleTypes, setVisibleTypes, version, error, reload, onNodesChange, setVersion }
+  return { nodes, allNodes, edges, types, visibleTypes, setVisibleTypes, version, error, reload, onNodesChange, setVersion }
 }

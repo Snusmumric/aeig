@@ -16,7 +16,7 @@ export interface GraphEditorProps {
 }
 
 export function GraphEditor({ client, graphId, styles }: GraphEditorProps) {
-  const { nodes, edges, version, error, reload, onNodesChange, setVersion, types, visibleTypes, setVisibleTypes } =
+  const { nodes, edges, allNodes, version, error, reload, onNodesChange, setVersion, types, visibleTypes, setVisibleTypes } =
     useGraph(client, graphId, styles)
   const [layouts, setLayouts] = useState<Layout[]>([])
   const [notice, setNotice] = useState<string | null>(null)
@@ -39,16 +39,16 @@ export function GraphEditor({ client, graphId, styles }: GraphEditorProps) {
       setVersion(res.version)
       setNotice(null)
     }
-    await reload(extractPositions(nodes))
-  }, [client, graphId, version, nodes, reload, setVersion, setVisibleTypes])
+    await reload(extractPositions(allNodes))
+  }, [client, graphId, version, allNodes, reload, setVersion, setVisibleTypes])
 
   const onSaveLayout = useCallback(
     async (name: string) => {
       const nodeTypes = visibleTypes ? [...visibleTypes] : undefined
-      await client.saveLayout(graphId, name, extractPositions(nodes), { x: 0, y: 0, zoom: 1 }, nodeTypes)
+      await client.saveLayout(graphId, name, extractPositions(allNodes), { x: 0, y: 0, zoom: 1 }, nodeTypes)
       await refreshLayouts()
     },
-    [client, graphId, nodes, visibleTypes, refreshLayouts],
+    [client, graphId, allNodes, visibleTypes, refreshLayouts],
   )
 
   const onLoadLayout = useCallback(
