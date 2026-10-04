@@ -37,10 +37,10 @@ export function createClient(baseURL: string) {
         body: JSON.stringify({ baseVersion, ...m }),
       }),
     listLayouts: (id: string) => request<Layout[]>(`${baseURL}/graphs/${id}/layouts`),
-    saveLayout: (id: string, name: string, positions: Record<string, Position>, viewport: Viewport) =>
+    saveLayout: (id: string, name: string, positions: Record<string, Position>, viewport: Viewport, nodeTypes?: string[]) =>
       request<Layout>(`${baseURL}/graphs/${id}/layouts`, {
         method: 'POST',
-        body: JSON.stringify({ name, positions, viewport }),
+        body: JSON.stringify({ name, positions, viewport, ...(nodeTypes !== undefined ? { nodeTypes } : {}) }),
       }),
     getLayout: (id: string, name: string) =>
       request<Layout>(`${baseURL}/graphs/${id}/layouts/${encodeURIComponent(name)}`),

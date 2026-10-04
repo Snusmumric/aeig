@@ -52,3 +52,25 @@ describe('api client', () => {
     await expect(c.applyMutations('g1', 1, {})).rejects.toBeInstanceOf(ApiError)
   })
 })
+
+describe('saveLayout', () => {
+  it('sends nodeTypes when provided (including empty array)', async () => {
+    mockFetchOnce(201, { id: 'l1' })
+    const c = createClient('http://api')
+    await c.saveLayout('g1', 'n', { n1: { x: 0, y: 0 } }, { x: 0, y: 0, zoom: 1 }, ['phase'])
+    const [, opts] = (fetch as any).mock.calls[0]
+    expect(JSON.parse(opts.body).nodeTypes).toEqual(['phase'])
+
+    await c.saveLayout('g1', 'n', {}, { x: 0, y: 0, zoom: 1 }, [])
+    const [, opts2] = (fetch as any).mock.calls[1]
+    expect(JSON.parse(opts2.body).nodeTypes).toEqual([])
+  })
+
+  it('omits nodeTypes when undefined', async () => {
+    mockFetchOnce(201, { id: 'l1' })
+    const c = createClient('http://api')
+    await c.saveLayout('g1', 'n', {}, { x: 0, y: 0, zoom: 1 })
+    const [, opts] = (fetch as any).mock.calls[0]
+    expect(JSON.parse(opts.body)).not.toHaveProperty('nodeTypes')
+  })
+})

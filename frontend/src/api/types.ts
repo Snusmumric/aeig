@@ -48,5 +48,6 @@ export interface Layout {
   name: string
   positions: Record<string, Position>
   viewport: Viewport
+  nodeTypes?: string[]
   createdAt: string
 }
