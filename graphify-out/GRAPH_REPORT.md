@@ -1,16 +1,16 @@
-# Graph Report - AEiG  (2026-07-26)
+# Graph Report - AEiG  (2026-10-04)
 
 ## Corpus Check
-- 57 files · ~8,772 words
+- 57 files · ~8,834 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 284 nodes · 546 edges · 18 communities (15 shown, 3 thin omitted)
+- 284 nodes · 540 edges · 19 communities (15 shown, 4 thin omitted)
 - Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 64 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f6cd53e9`
+- Built from commit: `123eb9e7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,6 +32,7 @@
 - errors.go
 - github.com/aeig/backend
 - ResizeObserverMock
+- App.tsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `NewRouter()` - 19 edges
@@ -60,11 +61,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (18 total, 3 thin omitted)
+## Communities (19 total, 4 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.08
-Nodes (36): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+28 more)
+Cohesion: 0.09
+Nodes (34): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+26 more)
 
 ### Community 1 - "ElementRepo"
 Cohesion: 0.10
@@ -119,9 +120,9 @@ Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
 ## Knowledge Gaps
-- **15 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `GraphNode`, `GraphEdge` (+10 more)
+- **15 isolated node(s):** `client`, `styles`, `github.com/aeig/backend`, `GraphNode`, `GraphEdge` (+10 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
