@@ -1,16 +1,16 @@
 # Graph Report - AEiG  (2026-10-04)
 
 ## Corpus Check
-- 59 files · ~9,094 words
+- 61 files · ~9,284 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 292 nodes · 555 edges · 19 communities (16 shown, 3 thin omitted)
-- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 64 edges (avg confidence: 0.8)
+- 293 nodes · 566 edges · 19 communities (16 shown, 3 thin omitted)
+- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 69 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b0d80a74`
+- Built from commit: `77b69ee0`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -64,8 +64,8 @@
 ## Communities (19 total, 3 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.08
-Nodes (38): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+30 more)
+Cohesion: 0.10
+Nodes (25): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+17 more)
 
 ### Community 1 - "ElementRepo"
 Cohesion: 0.10
@@ -76,8 +76,8 @@ Cohesion: 0.13
 Nodes (19): Context, Layout, Position, Viewport, NewLayoutService(), Context, Graph, Layout (+11 more)
 
 ### Community 3 - "TestGraphRepo_CreateGetBump"
-Cohesion: 0.13
-Nodes (15): main(), Context, Graph, Pool, T, startPostgres(), TestGraphRepo_CreateGetBump(), NewGraphRepo() (+7 more)
+Cohesion: 0.14
+Nodes (16): main(), Context, Graph, Pool, T, startPostgres(), TestGraphRepo_CreateGetBump(), NewGraphRepo() (+8 more)
 
 ### Community 4 - "NewGraphService"
 Cohesion: 0.18
@@ -120,11 +120,11 @@ Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
 ### Community 18 - "filterFlow.test.ts"
-Cohesion: 0.33
-Nodes (3): filterFlow(), allEdges, allNodes
+Cohesion: 0.15
+Nodes (16): filterFlow(), allEdges, allNodes, sg, styles, toFlowEdges(), toFlowNodes(), TypedNodeData (+8 more)
 
 ## Knowledge Gaps
-- **18 isolated node(s):** `allNodes`, `allEdges`, `github.com/aeig/backend`, `client`, `styles` (+13 more)
+- **18 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `GraphNode` (+13 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -132,11 +132,11 @@ Nodes (3): filterFlow(), allEdges, allNodes
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `main()` connect `TestGraphRepo_CreateGetBump` to `ElementRepo`, `GraphRepo`, `NewGraphService`, `NewRouter`, `stubAPI`, `stubLayoutAPI`?**
-  _High betweenness centrality (0.344) - this node is a cross-community bridge._
+  _High betweenness centrality (0.345) - this node is a cross-community bridge._
 - **Why does `NewRouter()` connect `NewGraphService` to `TestGraphRepo_CreateGetBump`, `Load`?**
   _High betweenness centrality (0.208) - this node is a cross-community bridge._
 - **Why does `NewGraphService()` connect `ElementRepo` to `TestGraphRepo_CreateGetBump`?**
-  _High betweenness centrality (0.135) - this node is a cross-community bridge._
+  _High betweenness centrality (0.134) - this node is a cross-community bridge._
 - **Are the 16 inferred relationships involving `NewRouter()` (e.g. with `main()` and `TestApplyMutations_200()`) actually correct?**
   _`NewRouter()` has 16 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 4 inferred relationships involving `doReq()` (e.g. with `TestGetLayout_404()` and `TestListLayouts_200()`) actually correct?**

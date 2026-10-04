@@ -19,5 +19,6 @@ type Layout struct {
 	Name      string              `json:"name"`
 	Positions map[string]Position `json:"positions"`
 	Viewport  Viewport            `json:"viewport"`
+	NodeTypes *[]string           `json:"nodeTypes,omitempty"`
 	CreatedAt time.Time           `json:"createdAt"`
 }

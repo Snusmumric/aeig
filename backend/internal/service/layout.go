@@ -8,7 +8,7 @@ import (
 )
 
 type LayoutStore interface {
-	SaveLayout(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport) (domain.Layout, error)
+	SaveLayout(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes []string) (domain.Layout, error)
 	ListLayouts(ctx context.Context, graphID string) ([]domain.Layout, error)
 	GetLayoutByName(ctx context.Context, graphID, name string) (domain.Layout, error)
 }
@@ -26,7 +26,7 @@ func NewLayoutService(store LayoutStore, graphs GraphExistence) *LayoutService {
 	return &LayoutService{store: store, graphs: graphs}
 }
 
-func (s *LayoutService) SaveLayout(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport) (domain.Layout, error) {
+func (s *LayoutService) SaveLayout(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes []string) (domain.Layout, error) {
 	if strings.TrimSpace(name) == "" {
 		return domain.Layout{}, ErrInvalidInput
 	}
@@ -36,7 +36,7 @@ func (s *LayoutService) SaveLayout(ctx context.Context, graphID, name string, po
 	if positions == nil {
 		positions = map[string]domain.Position{}
 	}
-	return s.store.SaveLayout(ctx, graphID, name, positions, vp)
+	return s.store.SaveLayout(ctx, graphID, name, positions, vp, nodeTypes)
 }
 
 func (s *LayoutService) ListLayouts(ctx context.Context, graphID string) ([]domain.Layout, error) {

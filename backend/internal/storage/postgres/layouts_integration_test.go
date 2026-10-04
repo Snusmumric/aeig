@@ -29,14 +29,14 @@ func TestLayoutRepo_SaveListGet(t *testing.T) {
 	pos := map[string]domain.Position{"n1": {X: 10, Y: 20}}
 	vp := domain.Viewport{X: 1, Y: 2, Zoom: 1.5}
 
-	saved, err := layouts.SaveLayout(ctx, g.ID, "default", pos, vp)
+	saved, err := layouts.SaveLayout(ctx, g.ID, "default", pos, vp, nil)
 	require.NoError(t, err)
 	assert.NotEmpty(t, saved.ID)
 	assert.Equal(t, "default", saved.Name)
 
 	// Upsert: same (graph, name) overwrites, keeps one row and the same id.
 	pos2 := map[string]domain.Position{"n1": {X: 99, Y: 0}, "n2": {X: 5, Y: 5}}
-	saved2, err := layouts.SaveLayout(ctx, g.ID, "default", pos2, vp)
+	saved2, err := layouts.SaveLayout(ctx, g.ID, "default", pos2, vp, nil)
 	require.NoError(t, err)
 	assert.Equal(t, saved.ID, saved2.ID)
 
@@ -53,4 +53,33 @@ func TestLayoutRepo_SaveListGet(t *testing.T) {
 
 	_, err = layouts.GetLayoutByName(ctx, g.ID, "missing")
 	assert.ErrorIs(t, err, domain.ErrNotFound)
+}
+
+func TestLayoutRepo_NodeTypesRoundtrip(t *testing.T) {
+	ctx := context.Background()
+	dsn := startPostgres(t)
+	require.NoError(t, RunMigrations(dsn))
+
+	pool, err := NewPool(ctx, dsn)
+	require.NoError(t, err)
+	defer pool.Close()
+
+	graphs := NewGraphRepo(pool)
+	layouts := NewLayoutRepo(pool)
+
+	g, err := graphs.CreateGraph(ctx, "g")
+	require.NoError(t, err)
+
+	saved, err := layouts.SaveLayout(ctx, g.ID, "filtered", nil, domain.Viewport{}, []string{"service", "domain"})
+	require.NoError(t, err)
+	require.NotNil(t, saved.NodeTypes)
+	assert.Equal(t, []string{"service", "domain"}, *saved.NodeTypes)
+
+	// upsert with nil overwrites node_types back to NULL
+	_, err = layouts.SaveLayout(ctx, g.ID, "filtered", nil, domain.Viewport{}, nil)
+	require.NoError(t, err)
+
+	got, err := layouts.GetLayoutByName(ctx, g.ID, "filtered")
+	require.NoError(t, err)
+	assert.Nil(t, got.NodeTypes)
 }

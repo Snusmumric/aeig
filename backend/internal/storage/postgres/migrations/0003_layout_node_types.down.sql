@@ -1,0 +1,1 @@
+ALTER TABLE layouts DROP COLUMN IF EXISTS node_types;

@@ -25,7 +25,7 @@ type stubLayoutAPI struct {
 func (s *stubLayoutAPI) ListLayouts(_ context.Context, _ string) ([]domain.Layout, error) {
 	return s.list, nil
 }
-func (s *stubLayoutAPI) SaveLayout(_ context.Context, _ string, name string, p map[string]domain.Position, _ domain.Viewport) (domain.Layout, error) {
+func (s *stubLayoutAPI) SaveLayout(_ context.Context, _ string, name string, p map[string]domain.Position, _ domain.Viewport, _ []string) (domain.Layout, error) {
 	s.gotName = name
 	s.gotPosLen = len(p)
 	if s.saveErr != nil {

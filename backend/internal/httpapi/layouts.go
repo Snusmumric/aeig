@@ -12,7 +12,7 @@ import (
 
 type LayoutAPI interface {
 	ListLayouts(ctx context.Context, graphID string) ([]domain.Layout, error)
-	SaveLayout(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport) (domain.Layout, error)
+	SaveLayout(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes []string) (domain.Layout, error)
 	GetLayout(ctx context.Context, graphID, name string) (domain.Layout, error)
 }
 
@@ -39,7 +39,7 @@ func handleSaveLayout(api LayoutAPI) http.HandlerFunc {
 			writeError(w, service.ErrInvalidInput)
 			return
 		}
-		l, err := api.SaveLayout(r.Context(), chi.URLParam(r, "id"), req.Name, req.Positions, req.Viewport)
+		l, err := api.SaveLayout(r.Context(), chi.URLParam(r, "id"), req.Name, req.Positions, req.Viewport, nil)
 		if err != nil {
 			writeError(w, err)
 			return

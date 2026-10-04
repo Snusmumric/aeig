@@ -16,7 +16,7 @@ type stubLayoutStore struct {
 	getErr error
 }
 
-func (s *stubLayoutStore) SaveLayout(_ context.Context, graphID, name string, p map[string]domain.Position, vp domain.Viewport) (domain.Layout, error) {
+func (s *stubLayoutStore) SaveLayout(_ context.Context, graphID, name string, p map[string]domain.Position, vp domain.Viewport, _ []string) (domain.Layout, error) {
 	s.saved = domain.Layout{ID: "l1", GraphID: graphID, Name: name, Positions: p, Viewport: vp}
 	return s.saved, nil
 }
@@ -35,13 +35,13 @@ func (s *stubGraphExistence) GetGraph(_ context.Context, _ string) (domain.Graph
 
 func TestLayoutService_SaveEmptyName(t *testing.T) {
 	svc := NewLayoutService(&stubLayoutStore{}, &stubGraphExistence{})
-	_, err := svc.SaveLayout(context.Background(), "g1", " ", nil, domain.Viewport{})
+	_, err := svc.SaveLayout(context.Background(), "g1", " ", nil, domain.Viewport{}, nil)
 	assert.ErrorIs(t, err, ErrInvalidInput)
 }
 
 func TestLayoutService_SaveUnknownGraph(t *testing.T) {
 	svc := NewLayoutService(&stubLayoutStore{}, &stubGraphExistence{err: domain.ErrNotFound})
-	_, err := svc.SaveLayout(context.Background(), "gX", "default", nil, domain.Viewport{})
+	_, err := svc.SaveLayout(context.Background(), "gX", "default", nil, domain.Viewport{}, nil)
 	assert.ErrorIs(t, err, domain.ErrNotFound)
 }
 
@@ -49,7 +49,7 @@ func TestLayoutService_SaveOK(t *testing.T) {
 	store := &stubLayoutStore{}
 	svc := NewLayoutService(store, &stubGraphExistence{})
 	l, err := svc.SaveLayout(context.Background(), "g1", "default",
-		map[string]domain.Position{"n1": {X: 1, Y: 2}}, domain.Viewport{Zoom: 1})
+		map[string]domain.Position{"n1": {X: 1, Y: 2}}, domain.Viewport{Zoom: 1}, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "default", l.Name)
 	assert.EqualValues(t, 1, store.saved.Positions["n1"].X)

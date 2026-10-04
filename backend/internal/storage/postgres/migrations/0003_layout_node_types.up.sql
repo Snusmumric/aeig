@@ -1,0 +1,1 @@
+ALTER TABLE layouts ADD COLUMN node_types JSONB NULL;
