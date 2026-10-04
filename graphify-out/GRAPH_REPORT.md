@@ -5,12 +5,12 @@
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 296 nodes · 581 edges · 19 communities (16 shown, 3 thin omitted)
-- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 72 edges (avg confidence: 0.8)
+- 296 nodes · 562 edges · 19 communities (16 shown, 3 thin omitted)
+- Extraction: 87% EXTRACTED · 13% INFERRED · 0% AMBIGUOUS · INFERRED: 72 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0cb4e1b1`
+- Built from commit: `d0d0b320`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -42,9 +42,9 @@
 5. `writeJSON()` - 10 edges
 6. `writeError()` - 10 edges
 7. `NewGraphService()` - 10 edges
-8. `ApiClient` - 10 edges
-9. `stubElementStore` - 9 edges
-10. `NewLayoutService()` - 9 edges
+8. `stubElementStore` - 9 edges
+9. `NewLayoutService()` - 9 edges
+10. `stubAPI` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `main()` --calls--> `Load()`  [INFERRED]
@@ -64,8 +64,8 @@
 ## Communities (19 total, 3 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.10
-Nodes (25): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+17 more)
+Cohesion: 0.09
+Nodes (27): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+19 more)
 
 ### Community 1 - "ElementRepo"
 Cohesion: 0.10
@@ -120,11 +120,11 @@ Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
 ### Community 18 - "toFlow.ts"
-Cohesion: 0.16
-Nodes (16): filterFlow(), allEdges, allNodes, sg, styles, toFlowEdges(), toFlowNodes(), TypedNodeData (+8 more)
+Cohesion: 0.17
+Nodes (14): Subgraph, filterFlow(), allEdges, allNodes, sg, styles, toFlowEdges(), toFlowNodes() (+6 more)
 
 ## Knowledge Gaps
-- **18 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `GraphNode` (+13 more)
+- **18 isolated node(s):** `styles`, `PositionMap`, `github.com/aeig/backend`, `client`, `styles` (+13 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
