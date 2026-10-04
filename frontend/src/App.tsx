@@ -40,11 +40,16 @@ const styles: TypeStyleMap = {
   revisit: { shape: 'rectangle', color: '#64748b' },
 }
 
-const graphId = new URLSearchParams(window.location.search).get('graph') ?? ''
+// Default to the roadmap graph (seeded by `make dev`, see scripts/roadmapgen.py):
+// opening "/" redirects to it; any ?graph=<id> still wins.
+const ROADMAP_GRAPH_ID = 'c0de0000-0000-4000-8000-000000000002'
+
+const params = new URLSearchParams(window.location.search)
+const graphId = params.get('graph') ?? ROADMAP_GRAPH_ID
+if (!params.has('graph')) {
+  window.history.replaceState(null, '', `?graph=${ROADMAP_GRAPH_ID}`)
+}
 
 export default function App() {
-  if (!graphId) {
-    return <div style={{ padding: 20 }}>Append ?graph=&lt;id&gt; to the URL to open a graph.</div>
-  }
   return <GraphEditor client={client} graphId={graphId} styles={styles} />
 }
