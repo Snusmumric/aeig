@@ -1,16 +1,16 @@
 # Graph Report - AEiG  (2026-10-04)
 
 ## Corpus Check
-- 57 files · ~8,853 words
+- 59 files · ~9,094 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 285 nodes · 548 edges · 18 communities (15 shown, 3 thin omitted)
+- 292 nodes · 555 edges · 19 communities (16 shown, 3 thin omitted)
 - Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 64 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8a8911cf`
+- Built from commit: `b0d80a74`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,6 +32,7 @@
 - errors.go
 - github.com/aeig/backend
 - ResizeObserverMock
+- filterFlow.test.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `NewRouter()` - 19 edges
@@ -60,7 +61,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (18 total, 3 thin omitted)
+## Communities (19 total, 3 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
 Cohesion: 0.08
@@ -118,8 +119,12 @@ Nodes (4): Time, Layout, Position, Viewport
 Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
+### Community 18 - "filterFlow.test.ts"
+Cohesion: 0.33
+Nodes (3): filterFlow(), allEdges, allNodes
+
 ## Knowledge Gaps
-- **16 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `GraphNode` (+11 more)
+- **18 isolated node(s):** `allNodes`, `allEdges`, `github.com/aeig/backend`, `client`, `styles` (+13 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -127,11 +132,11 @@ Nodes (3): ResponseWriter, handleHealth(), Request
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `main()` connect `TestGraphRepo_CreateGetBump` to `ElementRepo`, `GraphRepo`, `NewGraphService`, `NewRouter`, `stubAPI`, `stubLayoutAPI`?**
-  _High betweenness centrality (0.361) - this node is a cross-community bridge._
+  _High betweenness centrality (0.344) - this node is a cross-community bridge._
 - **Why does `NewRouter()` connect `NewGraphService` to `TestGraphRepo_CreateGetBump`, `Load`?**
-  _High betweenness centrality (0.219) - this node is a cross-community bridge._
+  _High betweenness centrality (0.208) - this node is a cross-community bridge._
 - **Why does `NewGraphService()` connect `ElementRepo` to `TestGraphRepo_CreateGetBump`?**
-  _High betweenness centrality (0.141) - this node is a cross-community bridge._
+  _High betweenness centrality (0.135) - this node is a cross-community bridge._
 - **Are the 16 inferred relationships involving `NewRouter()` (e.g. with `main()` and `TestApplyMutations_200()`) actually correct?**
   _`NewRouter()` has 16 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 4 inferred relationships involving `doReq()` (e.g. with `TestGetLayout_404()` and `TestListLayouts_200()`) actually correct?**
