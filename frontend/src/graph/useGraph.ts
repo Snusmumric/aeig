@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 import { applyNodeChanges, type Edge, type Node, type NodeChange } from '@xyflow/react'
 import type { ApiClient } from '../api/client'
 import { toFlowEdges, toFlowNodes, type TypedNodeData } from './toFlow'
@@ -12,7 +12,7 @@ export interface UseGraph {
   edges: Edge[]
   types: string[]
   visibleTypes: Set<string> | null
-  setVisibleTypes: (v: Set<string> | null) => void
+  setVisibleTypes: Dispatch<SetStateAction<Set<string> | null>>
   version: number
   error: string | null
   reload: (positions?: PositionMap) => Promise<void>
