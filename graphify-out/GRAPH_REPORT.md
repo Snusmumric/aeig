@@ -1,16 +1,16 @@
-# Graph Report - AEiG  (2026-10-04)
+# Graph Report - AEiG  (2026-10-05)
 
 ## Corpus Check
-- 63 files · ~10,264 words
+- 63 files · ~10,289 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 301 nodes · 554 edges · 21 communities (17 shown, 4 thin omitted)
+- 301 nodes · 548 edges · 21 communities (17 shown, 4 thin omitted)
 - Extraction: 87% EXTRACTED · 13% INFERRED · 0% AMBIGUOUS · INFERRED: 72 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f3af8251`
+- Built from commit: `bfcc420a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -66,12 +66,12 @@
 ## Communities (21 total, 4 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.14
-Nodes (16): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+8 more)
+Cohesion: 0.13
+Nodes (17): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+9 more)
 
 ### Community 1 - "ElementRepo"
-Cohesion: 0.10
-Nodes (25): Context, Graph, Mutations, Subgraph, NewGraphService(), edgeIDs(), Context, Graph (+17 more)
+Cohesion: 0.18
+Nodes (16): Context, Graph, Mutations, Subgraph, NewGraphService(), edgeIDs(), T, nodeIDs() (+8 more)
 
 ### Community 2 - "GraphRepo"
 Cohesion: 0.13
@@ -98,8 +98,8 @@ Cohesion: 0.28
 Nodes (9): Context, Layout, Pool, Position, Viewport, NewLayoutRepo(), scanLayout(), LayoutRepo (+1 more)
 
 ### Community 8 - "devDependencies"
-Cohesion: 0.29
-Nodes (5): GraphCanvas(), GraphCanvasProps, nodeTypes, shapeStyle(), TypedNode()
+Cohesion: 0.19
+Nodes (9): Context, Graph, Subgraph, Edge, Mutations, Node, Subgraph, stubElementStore (+1 more)
 
 ### Community 9 - "compilerOptions"
 Cohesion: 0.42
@@ -122,15 +122,15 @@ Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
 ### Community 18 - "toFlow.ts"
-Cohesion: 0.14
-Nodes (17): Subgraph, filterFlow(), allEdges, allNodes, sg, styles, toFlowEdges(), toFlowNodes() (+9 more)
+Cohesion: 0.09
+Nodes (21): filterFlow(), allEdges, allNodes, GraphCanvas(), GraphCanvasProps, nodeTypes, sg, styles (+13 more)
 
 ### Community 19 - "App.tsx"
-Cohesion: 0.16
-Nodes (9): App(), client, params, styles, GraphEditor(), GraphEditorProps, PositionMap, styles (+1 more)
+Cohesion: 0.17
+Nodes (9): App(), client, params, styles, GraphEditor(), GraphEditorProps, styles, TypeFilterPanel() (+1 more)
 
 ## Knowledge Gaps
-- **20 isolated node(s):** `GraphEditorProps`, `PositionMap`, `github.com/aeig/backend`, `client`, `styles` (+15 more)
+- **21 isolated node(s):** `GraphEditorProps`, `styles`, `TypeFilterPanelProps`, `PositionMap`, `github.com/aeig/backend` (+16 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
