@@ -32,6 +32,7 @@ func handleSaveLayout(api LayoutAPI) http.HandlerFunc {
 		Name      string                     `json:"name"`
 		Positions map[string]domain.Position `json:"positions"`
 		Viewport  domain.Viewport            `json:"viewport"`
+		NodeTypes []string                   `json:"nodeTypes"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req request
@@ -39,7 +40,7 @@ func handleSaveLayout(api LayoutAPI) http.HandlerFunc {
 			writeError(w, service.ErrInvalidInput)
 			return
 		}
-		l, err := api.SaveLayout(r.Context(), chi.URLParam(r, "id"), req.Name, req.Positions, req.Viewport, nil)
+		l, err := api.SaveLayout(r.Context(), chi.URLParam(r, "id"), req.Name, req.Positions, req.Viewport, req.NodeTypes)
 		if err != nil {
 			writeError(w, err)
 			return

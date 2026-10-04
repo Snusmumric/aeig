@@ -10,14 +10,16 @@ import (
 )
 
 type stubLayoutStore struct {
-	saved  domain.Layout
-	list   []domain.Layout
-	byName domain.Layout
-	getErr error
+	saved    domain.Layout
+	list     []domain.Layout
+	byName   domain.Layout
+	getErr   error
+	gotTypes []string
 }
 
-func (s *stubLayoutStore) SaveLayout(_ context.Context, graphID, name string, p map[string]domain.Position, vp domain.Viewport, _ []string) (domain.Layout, error) {
+func (s *stubLayoutStore) SaveLayout(_ context.Context, graphID, name string, p map[string]domain.Position, vp domain.Viewport, nodeTypes []string) (domain.Layout, error) {
 	s.saved = domain.Layout{ID: "l1", GraphID: graphID, Name: name, Positions: p, Viewport: vp}
+	s.gotTypes = nodeTypes
 	return s.saved, nil
 }
 func (s *stubLayoutStore) ListLayouts(_ context.Context, _ string) ([]domain.Layout, error) {
@@ -53,4 +55,12 @@ func TestLayoutService_SaveOK(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "default", l.Name)
 	assert.EqualValues(t, 1, store.saved.Positions["n1"].X)
+}
+
+func TestLayoutService_SavePassesNodeTypes(t *testing.T) {
+	store := &stubLayoutStore{}
+	svc := NewLayoutService(store, &stubGraphExistence{})
+	_, err := svc.SaveLayout(context.Background(), "g1", "default", nil, domain.Viewport{}, []string{"phase"})
+	require.NoError(t, err)
+	assert.Equal(t, []string{"phase"}, store.gotTypes)
 }

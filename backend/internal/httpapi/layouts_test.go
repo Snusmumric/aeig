@@ -20,14 +20,16 @@ type stubLayoutAPI struct {
 	getErr    error
 	gotName   string
 	gotPosLen int
+	gotTypes  []string
 }
 
 func (s *stubLayoutAPI) ListLayouts(_ context.Context, _ string) ([]domain.Layout, error) {
 	return s.list, nil
 }
-func (s *stubLayoutAPI) SaveLayout(_ context.Context, _ string, name string, p map[string]domain.Position, _ domain.Viewport, _ []string) (domain.Layout, error) {
+func (s *stubLayoutAPI) SaveLayout(_ context.Context, _ string, name string, p map[string]domain.Position, _ domain.Viewport, nodeTypes []string) (domain.Layout, error) {
 	s.gotName = name
 	s.gotPosLen = len(p)
+	s.gotTypes = nodeTypes
 	if s.saveErr != nil {
 		return domain.Layout{}, s.saveErr
 	}
@@ -63,6 +65,22 @@ func TestSaveLayout_400OnInvalid(t *testing.T) {
 	l := &stubLayoutAPI{saveErr: service.ErrInvalidInput}
 	rec := doReq(t, routerWithLayouts(l), http.MethodPost, "/graphs/g1/layouts", `{"name":""}`)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestSaveLayout_NodeTypes_201(t *testing.T) {
+	l := &stubLayoutAPI{saved: domain.Layout{ID: "l1", Name: "default"}}
+	body := `{"name":"default","nodeTypes":["service","domain"]}`
+	rec := doReq(t, routerWithLayouts(l), http.MethodPost, "/graphs/g1/layouts", body)
+	require.Equal(t, http.StatusCreated, rec.Code)
+	assert.Equal(t, []string{"service", "domain"}, l.gotTypes)
+}
+
+func TestSaveLayout_NodeTypesAbsent_201(t *testing.T) {
+	l := &stubLayoutAPI{saved: domain.Layout{ID: "l1", Name: "default"}}
+	body := `{"name":"default"}`
+	rec := doReq(t, routerWithLayouts(l), http.MethodPost, "/graphs/g1/layouts", body)
+	require.Equal(t, http.StatusCreated, rec.Code)
+	assert.Nil(t, l.gotTypes)
 }
 
 func TestGetLayout_404(t *testing.T) {
