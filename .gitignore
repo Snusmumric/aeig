@@ -10,3 +10,6 @@ graphify-out/*
 # graphify path; regenerated per clone by `make setup`). settings.local.json is
 # always per-user. The shareable graphify rules live in the committed CLAUDE.md.
 .claude/
+
+# Python bytecode cache
+__pycache__/
