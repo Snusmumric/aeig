@@ -15,7 +15,10 @@ function fakeClient(): ApiClient {
         { id: 'n2', type: 'Milestone', properties: {} },
         { id: 'n3', type: 'Task', properties: {} },
       ],
-      edges: [{ id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} }],
+      edges: [
+        { id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} },
+        { id: 'e2', type: 'blocks', source: 'n2', target: 'n3', properties: {} },
+      ],
     }),
     createGraph: vi.fn(),
     applyMutations: vi.fn(),
@@ -75,6 +78,36 @@ describe('useGraph', () => {
       result.current.setVisibleTypes(new Set(['Task', 'Milestone']))
     })
     expect(result.current.nodes).toHaveLength(3)
-    expect(result.current.edges).toHaveLength(1)
+    expect(result.current.edges).toHaveLength(2)
+  })
+
+  it('exposes sorted edgeTypes and applies visibleEdgeTypes to edges only', async () => {
+    const { result } = renderHook(() => useGraph(fakeClient(), 'g1', styles))
+    await act(async () => {
+      await result.current.reload()
+    })
+    expect(result.current.edgeTypes).toEqual(['blocks', 'depends_on'])
+    expect(result.current.visibleEdgeTypes).toBeNull()
+    act(() => {
+      result.current.setVisibleEdgeTypes(new Set(['blocks']))
+    })
+    expect(result.current.edges.map((e) => e.id)).toEqual(['e2'])
+    expect(result.current.nodes).toHaveLength(3)
+  })
+
+  it('hideOrphans drops nodes whose edges are all hidden by the edge filter', async () => {
+    const { result } = renderHook(() => useGraph(fakeClient(), 'g1', styles))
+    await act(async () => {
+      await result.current.reload()
+    })
+    act(() => {
+      result.current.setVisibleEdgeTypes(new Set(['depends_on']))
+      result.current.setHideOrphans(true)
+    })
+    expect(result.current.nodes.map((n) => n.id)).toEqual(['n1', 'n2'])
+    act(() => {
+      result.current.setHideOrphans(false)
+    })
+    expect(result.current.nodes).toHaveLength(3)
   })
 })

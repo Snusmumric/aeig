@@ -12,7 +12,7 @@ export function filterFlow(
   const nodes = visibleTypes ? allNodes.filter((n) => visibleTypes.has(n.data.nodeType)) : allNodes
   const visible = new Set(nodes.map((n) => n.id))
   let edges = allEdges.filter((e) => visible.has(e.source) && visible.has(e.target))
-  if (visibleEdgeTypes) edges = edges.filter((e) => visibleEdgeTypes.has(e.data.edgeType))
+  if (visibleEdgeTypes) edges = edges.filter((e) => e.data !== undefined && visibleEdgeTypes.has(e.data.edgeType))
   if (hideOrphans) {
     const connected = new Set(edges.flatMap((e) => [e.source, e.target]))
     return { nodes: nodes.filter((n) => connected.has(n.id)), edges }

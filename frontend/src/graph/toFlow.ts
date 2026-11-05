@@ -12,6 +12,7 @@ export interface TypedNodeData {
 
 export interface TypedEdgeData {
   edgeType: string
+  [key: string]: unknown
 }
 
 const GRID_COLS = 5
