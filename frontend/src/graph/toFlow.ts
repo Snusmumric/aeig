@@ -10,6 +10,10 @@ export interface TypedNodeData {
   [key: string]: unknown
 }
 
+export interface TypedEdgeData {
+  edgeType: string
+}
+
 const GRID_COLS = 5
 const GRID_DX = 200
 const GRID_DY = 150
@@ -36,12 +40,13 @@ export function toFlowNodes(
   }))
 }
 
-export function toFlowEdges(sg: Subgraph, styles: TypeStyleMap): Edge[] {
+export function toFlowEdges(sg: Subgraph, styles: TypeStyleMap): Edge<TypedEdgeData>[] {
   return sg.edges.map((e) => ({
     id: e.id,
     source: e.source,
     target: e.target,
     label: e.type,
     style: { stroke: resolveStyle(styles, e.type).color },
+    data: { edgeType: e.type },
   }))
 }

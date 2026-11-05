@@ -39,5 +39,6 @@ describe('toFlow', () => {
     const edges = toFlowEdges(sg, styles)
     expect(edges[0]).toMatchObject({ id: 'e1', source: 'n1', target: 'n2', label: 'depends_on' })
     expect(edges[0].style?.stroke).toBe('#cc3366')
+    expect(edges[0].data).toEqual({ edgeType: 'depends_on' })
   })
 })

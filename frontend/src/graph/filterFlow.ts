@@ -1,14 +1,21 @@
 import type { Edge, Node } from '@xyflow/react'
-import type { TypedNodeData } from './toFlow'
+import type { TypedEdgeData, TypedNodeData } from './toFlow'
 
 export function filterFlow(
   allNodes: Node<TypedNodeData>[],
-  allEdges: Edge[],
+  allEdges: Edge<TypedEdgeData>[],
   visibleTypes: Set<string> | null,
-): { nodes: Node<TypedNodeData>[]; edges: Edge[] } {
-  if (!visibleTypes) return { nodes: allNodes, edges: allEdges }
-  const nodes = allNodes.filter((n) => visibleTypes.has(n.data.nodeType))
+  visibleEdgeTypes: Set<string> | null = null,
+  hideOrphans = false,
+): { nodes: Node<TypedNodeData>[]; edges: Edge<TypedEdgeData>[] } {
+  if (!visibleTypes && !visibleEdgeTypes && !hideOrphans) return { nodes: allNodes, edges: allEdges }
+  const nodes = visibleTypes ? allNodes.filter((n) => visibleTypes.has(n.data.nodeType)) : allNodes
   const visible = new Set(nodes.map((n) => n.id))
-  const edges = allEdges.filter((e) => visible.has(e.source) && visible.has(e.target))
+  let edges = allEdges.filter((e) => visible.has(e.source) && visible.has(e.target))
+  if (visibleEdgeTypes) edges = edges.filter((e) => visibleEdgeTypes.has(e.data.edgeType))
+  if (hideOrphans) {
+    const connected = new Set(edges.flatMap((e) => [e.source, e.target]))
+    return { nodes: nodes.filter((n) => connected.has(n.id)), edges }
+  }
   return { nodes, edges }
 }
