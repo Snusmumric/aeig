@@ -132,4 +132,29 @@ describe('GraphEditor', () => {
     await waitFor(() => expect(screen.queryByText('n2')).not.toBeInTheDocument())
     expect(screen.getByTestId('type-Milestone')).not.toBeChecked()
   })
+
+  it('shift+pointerdown on a node is not canceled (box-selection interceptor off)', async () => {
+    // ReactFlow's default selectionKeyCode='Shift' cancels pointerdown started on a node,
+    // which in a real browser suppresses the compatibility mousedown — d3-drag never
+    // starts and shift-drag-follow dies. selectionKeyCode={null} removes the interceptor.
+    render(<GraphEditor client={fakeClient()} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(document.querySelector('.react-flow__node[data-id="n1"]')).not.toBeNull())
+    const n1El = document.querySelector('.react-flow__node[data-id="n1"]') as HTMLElement
+    // The interceptor arms on the Shift keydown (ReactFlow useKeyPress), not on the
+    // pointer event's modifier flags — a real user holds the physical key down first.
+    fireEvent.keyDown(document, { key: 'Shift', code: 'ShiftLeft', shiftKey: true })
+    const pd = new PointerEvent('pointerdown', {
+      bubbles: true,
+      cancelable: true,
+      button: 0,
+      clientX: 100,
+      clientY: 100,
+      isPrimary: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+      shiftKey: true,
+    })
+    n1El.dispatchEvent(pd)
+    expect(pd.defaultPrevented).toBe(false)
+  })
 })

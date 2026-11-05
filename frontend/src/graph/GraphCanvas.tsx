@@ -31,6 +31,7 @@ export function GraphCanvas({ nodes, edges, onNodesChange, onNodeDragStart, onNo
         onNodeDragStart={onNodeDragStart}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
+        selectionKeyCode={null}
         nodeTypes={nodeTypes}
         fitView
       >
