@@ -54,4 +54,21 @@ describe('TypeFilterPanel', () => {
     fireEvent.click(screen.getByText('Ни одного'))
     expect(onChange).toHaveBeenCalledWith(new Set())
   })
+
+  it('renders with an alternate testid prefix for edge types', () => {
+    const onChange = vi.fn()
+    render(
+      <TypeFilterPanel
+        types={['depends_on']}
+        visibleTypes={null}
+        styles={styles}
+        onChange={onChange}
+        testPrefix="edge-type"
+      />,
+    )
+    expect(screen.getByTestId('edge-type-filter')).toBeInTheDocument()
+    expect(screen.getByTestId('edge-type-depends_on')).toBeChecked()
+    fireEvent.click(screen.getByTestId('edge-type-depends_on'))
+    expect(onChange).toHaveBeenCalledWith(new Set())
+  })
 })

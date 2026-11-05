@@ -5,9 +5,10 @@ export interface TypeFilterPanelProps {
   visibleTypes: Set<string> | null
   styles: TypeStyleMap
   onChange: (next: Set<string> | null) => void
+  testPrefix?: string
 }
 
-export function TypeFilterPanel({ types, visibleTypes, styles, onChange }: TypeFilterPanelProps) {
+export function TypeFilterPanel({ types, visibleTypes, styles, onChange, testPrefix = 'type' }: TypeFilterPanelProps) {
   const isChecked = (t: string) => !visibleTypes || visibleTypes.has(t)
 
   const toggle = (t: string) => {
@@ -19,14 +20,14 @@ export function TypeFilterPanel({ types, visibleTypes, styles, onChange }: TypeF
   }
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }} data-testid="type-filter">
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }} data-testid={`${testPrefix}-filter`}>
       {types.map((t) => (
         <label key={t} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
           <input
             type="checkbox"
             checked={isChecked(t)}
             onChange={() => toggle(t)}
-            data-testid={`type-${t}`}
+            data-testid={`${testPrefix}-${t}`}
           />
           <span
             style={{
