@@ -6,7 +6,6 @@ import { LayoutBar } from './LayoutBar'
 import { TypeFilterPanel } from './TypeFilterPanel'
 import { useGraph } from './useGraph'
 import { extractPositions } from './layout'
-import { commitMutation, newNodeMutation } from './commit'
 import type { TypeStyleMap } from './typeStyle'
 
 export interface GraphEditorProps {
@@ -16,10 +15,23 @@ export interface GraphEditorProps {
 }
 
 export function GraphEditor({ client, graphId, styles }: GraphEditorProps) {
-  const { nodes, edges, allNodes, version, error, reload, onNodesChange, setVersion, types, visibleTypes, setVisibleTypes } =
-    useGraph(client, graphId, styles)
+  const {
+    nodes,
+    edges,
+    allNodes,
+    error,
+    reload,
+    onNodesChange,
+    types,
+    visibleTypes,
+    setVisibleTypes,
+    edgeTypes,
+    visibleEdgeTypes,
+    setVisibleEdgeTypes,
+    hideOrphans,
+    setHideOrphans,
+  } = useGraph(client, graphId, styles)
   const [layouts, setLayouts] = useState<Layout[]>([])
-  const [notice, setNotice] = useState<string | null>(null)
 
   const refreshLayouts = useCallback(async () => {
     setLayouts(await client.listLayouts(graphId))
@@ -29,18 +41,6 @@ export function GraphEditor({ client, graphId, styles }: GraphEditorProps) {
     void reload()
     void refreshLayouts()
   }, [reload, refreshLayouts])
-
-  const addNode = useCallback(async () => {
-    setVisibleTypes((prev) => (prev && !prev.has('Task') ? new Set(prev).add('Task') : prev))
-    const res = await commitMutation(client, graphId, version, newNodeMutation('Task'))
-    if (res.conflict) {
-      setNotice('Someone else changed this graph — reloaded the latest version.')
-    } else {
-      setVersion(res.version)
-      setNotice(null)
-    }
-    await reload(extractPositions(allNodes))
-  }, [client, graphId, version, allNodes, reload, setVersion, setVisibleTypes])
 
   const onSaveLayout = useCallback(
     async (name: string) => {
@@ -63,7 +63,6 @@ export function GraphEditor({ client, graphId, styles }: GraphEditorProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', borderBottom: '1px solid #ddd' }}>
-        <button onClick={() => void addNode()}>Add Task</button>
         <LayoutBar
           layouts={layouts}
           onSave={(n) => void onSaveLayout(n)}
@@ -75,8 +74,22 @@ export function GraphEditor({ client, graphId, styles }: GraphEditorProps) {
           styles={styles}
           onChange={setVisibleTypes}
         />
+        <TypeFilterPanel
+          types={edgeTypes}
+          visibleTypes={visibleEdgeTypes}
+          styles={styles}
+          onChange={setVisibleEdgeTypes}
+          testPrefix="edge-type"
+        />
+        <button
+          onClick={() => setHideOrphans((v) => !v)}
+          aria-pressed={hideOrphans}
+          data-testid="hide-orphans"
+          style={hideOrphans ? { background: '#d0d4da' } : undefined}
+        >
+          Скрыть сироты
+        </button>
         {error && <span style={{ color: 'red' }}>{error}</span>}
-        {notice && <span style={{ color: '#a60' }}>{notice}</span>}
       </div>
       <div style={{ flex: 1 }}>
         <GraphCanvas nodes={nodes} edges={edges} onNodesChange={onNodesChange} />

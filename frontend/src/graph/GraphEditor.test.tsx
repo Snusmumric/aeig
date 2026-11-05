@@ -10,8 +10,9 @@ function fakeClient(): ApiClient {
       nodes: [
         { id: 'n1', type: 'Task', properties: {} },
         { id: 'n2', type: 'Milestone', properties: {} },
+        { id: 'n3', type: 'Task', properties: {} },
       ],
-      edges: [],
+      edges: [{ id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} }],
     }),
     listLayouts: vi.fn().mockResolvedValue([]),
     saveLayout: vi.fn(),
@@ -24,9 +25,61 @@ function fakeClient(): ApiClient {
 describe('GraphEditor', () => {
   it('mounts, loads, and shows the toolbar and canvas', async () => {
     render(<GraphEditor client={fakeClient()} graphId="g1" styles={{}} />)
-    await waitFor(() => expect(screen.getByText('Add Task')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByTestId('type-filter')).toBeInTheDocument())
+    expect(screen.queryByText('Add Task')).not.toBeInTheDocument()
     expect(screen.getByTestId('graph-canvas')).toBeInTheDocument()
     expect(screen.getByText('Save layout')).toBeInTheDocument()
+  })
+
+  it('renders the edge filter panel with a checkbox per edge type', async () => {
+    render(<GraphEditor client={fakeClient()} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(screen.getByTestId('edge-type-filter')).toBeInTheDocument())
+    expect(screen.getByTestId('edge-type-depends_on')).toBeChecked()
+  })
+
+  it('unchecking an edge type hides its edges but not the endpoint nodes', async () => {
+    render(<GraphEditor client={fakeClient()} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(screen.getByText('n1')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('edge-type-depends_on'))
+    // edge hidden, but endpoint nodes stay: the edge filter alone never hides nodes
+    expect(screen.getByText('n1')).toBeInTheDocument()
+    expect(screen.getByText('n2')).toBeInTheDocument()
+    // proof the edge is really gone: with hide-orphans active n1/n2 became orphans and vanish
+    fireEvent.click(screen.getByTestId('hide-orphans'))
+    await waitFor(() => expect(screen.queryByText('n1')).not.toBeInTheDocument())
+    expect(screen.queryByText('n2')).not.toBeInTheDocument()
+    // re-check: the edge is back, n1/n2 are connected again
+    fireEvent.click(screen.getByTestId('edge-type-depends_on'))
+    await waitFor(() => expect(screen.getByText('n1')).toBeInTheDocument())
+    expect(screen.getByText('n2')).toBeInTheDocument()
+  })
+
+  it('hide-orphans toggle hides and shows isolated nodes', async () => {
+    render(<GraphEditor client={fakeClient()} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(screen.getByText('n3')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('hide-orphans'))
+    expect(screen.getByTestId('hide-orphans')).toHaveAttribute('aria-pressed', 'true')
+    await waitFor(() => expect(screen.queryByText('n3')).not.toBeInTheDocument())
+    expect(screen.getByText('n1')).toBeInTheDocument()
+    expect(screen.getByText('n2')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('hide-orphans'))
+    await waitFor(() => expect(screen.getByText('n3')).toBeInTheDocument())
+  })
+
+  it('layout load does not reset the edge filter or orphan toggle', async () => {
+    const client = fakeClient()
+    ;(client.getLayout as any).mockResolvedValue({
+      id: 'l1', graphId: 'g1', name: 'default', positions: {}, viewport: { x: 0, y: 0, zoom: 1 },
+    })
+    ;(client.listLayouts as any).mockResolvedValue([{ id: 'l1', name: 'default' }])
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(screen.getByText('default')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('edge-type-depends_on'))
+    fireEvent.click(screen.getByTestId('hide-orphans'))
+    fireEvent.click(screen.getByText('default'))
+    await waitFor(() => expect(screen.getByTestId('type-Task')).toBeChecked())
+    expect(screen.getByTestId('edge-type-depends_on')).not.toBeChecked()
+    expect(screen.getByTestId('hide-orphans')).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('renders the type filter panel with a checkbox per type', async () => {
