@@ -7,4 +7,12 @@ describe('GraphCanvas', () => {
     render(<GraphCanvas nodes={[]} edges={[]} />)
     expect(screen.getByTestId('graph-canvas')).toBeInTheDocument()
   })
+
+  it('renders with drag handler props without crashing', () => {
+    const noop = () => {}
+    render(
+      <GraphCanvas nodes={[]} edges={[]} onNodeDragStart={noop} onNodeDrag={noop} onNodeDragStop={noop} />,
+    )
+    expect(screen.getByTestId('graph-canvas')).toBeInTheDocument()
+  })
 })

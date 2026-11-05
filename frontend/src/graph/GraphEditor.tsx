@@ -30,6 +30,9 @@ export function GraphEditor({ client, graphId, styles }: GraphEditorProps) {
     setVisibleEdgeTypes,
     hideOrphans,
     setHideOrphans,
+    onNodeDragStart,
+    onNodeDrag,
+    onNodeDragStop,
   } = useGraph(client, graphId, styles)
   const [layouts, setLayouts] = useState<Layout[]>([])
 
@@ -92,7 +95,14 @@ export function GraphEditor({ client, graphId, styles }: GraphEditorProps) {
         {error && <span style={{ color: 'red' }}>{error}</span>}
       </div>
       <div style={{ flex: 1 }}>
-        <GraphCanvas nodes={nodes} edges={edges} onNodesChange={onNodesChange} />
+        <GraphCanvas
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onNodeDragStart={onNodeDragStart}
+          onNodeDrag={onNodeDrag}
+          onNodeDragStop={onNodeDragStop}
+        />
       </div>
     </div>
   )
