@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
-import { applyNodeChanges, type Edge, type Node, type NodeChange } from '@xyflow/react'
+import { useCallback, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react'
+import { applyNodeChanges, type Edge, type Node, type NodeChange, type OnNodeDrag } from '@xyflow/react'
 import type { ApiClient } from '../api/client'
 import { toFlowEdges, toFlowNodes, type TypedEdgeData, type TypedNodeData } from './toFlow'
 import { filterFlow } from './filterFlow'
+import { applyFollowDrag, planFollowers } from './followDrag'
 import type { TypeStyleMap } from './typeStyle'
 
 export type PositionMap = Record<string, { x: number; y: number }>
@@ -23,7 +24,20 @@ export interface UseGraph {
   error: string | null
   reload: (positions?: PositionMap) => Promise<void>
   onNodesChange: (changes: NodeChange[]) => void
+  onNodeDragStart: OnNodeDrag
+  onNodeDrag: OnNodeDrag
+  onNodeDragStop: OnNodeDrag
   setVersion: (v: number) => void
+}
+
+interface DragSession {
+  draggedId: string
+  starts: Record<string, { x: number; y: number }>
+  plan: Map<string, number>
+}
+
+function shiftOf(event: Parameters<OnNodeDrag>[0]): boolean {
+  return 'shiftKey' in event && event.shiftKey === true
 }
 
 export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMap): UseGraph {
@@ -65,6 +79,40 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
     [allEdges],
   )
 
+  const dragSession = useRef<DragSession | null>(null)
+
+  const onNodeDragStart = useCallback<OnNodeDrag>(
+    (event, draggedNode) => {
+      const selectedCount = nodes.filter((n) => n.selected).length
+      if (!shiftOf(event) || selectedCount > 1) {
+        dragSession.current = null
+        return
+      }
+      const starts: Record<string, { x: number; y: number }> = {}
+      for (const n of nodes) starts[n.id] = { ...n.position }
+      dragSession.current = {
+        draggedId: draggedNode.id,
+        starts,
+        plan: planFollowers(nodes, edges, draggedNode.id),
+      }
+    },
+    [nodes, edges],
+  )
+
+  const onNodeDrag = useCallback<OnNodeDrag>((_event, draggedNode) => {
+    const session = dragSession.current
+    if (!session || session.draggedId !== draggedNode.id) return
+    const start = session.starts[draggedNode.id]
+    if (!start) return
+    const delta = { x: draggedNode.position.x - start.x, y: draggedNode.position.y - start.y }
+    const next = applyFollowDrag(session.starts, session.plan, delta)
+    setAllNodes((nds) => nds.map((n) => (next[n.id] ? { ...n, position: next[n.id] } : n)))
+  }, [])
+
+  const onNodeDragStop = useCallback<OnNodeDrag>(() => {
+    dragSession.current = null
+  }, [])
+
   return {
     nodes,
     allNodes,
@@ -81,6 +129,9 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
     error,
     reload,
     onNodesChange,
+    onNodeDragStart,
+    onNodeDrag,
+    onNodeDragStop,
     setVersion,
   }
 }
