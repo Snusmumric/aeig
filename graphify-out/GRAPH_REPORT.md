@@ -1,16 +1,16 @@
 # Graph Report - AEiG  (2026-11-05)
 
 ## Corpus Check
-- 63 files · ~10,872 words
+- 65 files · ~12,700 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 303 nodes · 594 edges · 19 communities (16 shown, 3 thin omitted)
+- 314 nodes · 613 edges · 19 communities (16 shown, 3 thin omitted)
 - Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 72 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d89732e1`
+- Built from commit: `ada54eb9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -37,14 +37,14 @@
 ## God Nodes (most connected - your core abstractions)
 1. `NewRouter()` - 19 edges
 2. `doReq()` - 16 edges
-3. `main()` - 11 edges
-4. `TypeStyleMap` - 11 edges
-5. `routerWithLayouts()` - 10 edges
-6. `writeJSON()` - 10 edges
-7. `writeError()` - 10 edges
-8. `NewGraphService()` - 10 edges
-9. `ApiClient` - 10 edges
-10. `useGraph` - 10 edges
+3. `useGraph` - 13 edges
+4. `main()` - 11 edges
+5. `TypeStyleMap` - 11 edges
+6. `routerWithLayouts()` - 10 edges
+7. `writeJSON()` - 10 edges
+8. `writeError()` - 10 edges
+9. `NewGraphService()` - 10 edges
+10. `ApiClient` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `main()` --calls--> `Load()`  [INFERRED]
@@ -64,8 +64,8 @@
 ## Communities (19 total, 3 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.10
-Nodes (23): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+15 more)
+Cohesion: 0.08
+Nodes (30): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+22 more)
 
 ### Community 1 - "ElementRepo"
 Cohesion: 0.10
@@ -120,11 +120,11 @@ Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
 ### Community 18 - "toFlow.ts"
-Cohesion: 0.13
-Nodes (22): Subgraph, filterFlow(), allEdges, allNodes, tEdges, sg, styles, toFlowEdges() (+14 more)
+Cohesion: 0.11
+Nodes (21): filterFlow(), allEdges, allNodes, tEdges, addAdjacent(), applyFollowDrag(), planFollowers(), toFlowEdges() (+13 more)
 
 ## Knowledge Gaps
-- **20 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `GraphNode` (+15 more)
+- **22 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `GraphNode` (+17 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -132,11 +132,11 @@ Nodes (22): Subgraph, filterFlow(), allEdges, allNodes, tEdges, sg, styles, toFl
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `main()` connect `TestGraphRepo_CreateGetBump` to `ElementRepo`, `GraphRepo`, `NewGraphService`, `NewRouter`, `stubAPI`, `stubLayoutAPI`?**
-  _High betweenness centrality (0.332) - this node is a cross-community bridge._
+  _High betweenness centrality (0.309) - this node is a cross-community bridge._
 - **Why does `NewRouter()` connect `NewGraphService` to `TestGraphRepo_CreateGetBump`, `Load`?**
-  _High betweenness centrality (0.203) - this node is a cross-community bridge._
+  _High betweenness centrality (0.189) - this node is a cross-community bridge._
 - **Why does `NewGraphService()` connect `ElementRepo` to `TestGraphRepo_CreateGetBump`?**
-  _High betweenness centrality (0.128) - this node is a cross-community bridge._
+  _High betweenness centrality (0.119) - this node is a cross-community bridge._
 - **Are the 16 inferred relationships involving `NewRouter()` (e.g. with `main()` and `TestApplyMutations_200()`) actually correct?**
   _`NewRouter()` has 16 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 6 inferred relationships involving `doReq()` (e.g. with `TestGetLayout_404()` and `TestListLayouts_200()`) actually correct?**
@@ -144,4 +144,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 10 inferred relationships involving `main()` (e.g. with `Load()` and `NewRouter()`) actually correct?**
   _`main()` has 10 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `github.com/aeig/backend`, `client`, `styles` to the rest of the system?**
-  _20 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _22 weakly-connected nodes found - possible documentation gaps or missing edges._
