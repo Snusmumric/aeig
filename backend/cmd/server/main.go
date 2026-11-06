@@ -37,9 +37,9 @@ func main() {
 
 	graphRepo := pgstore.NewGraphRepo(pool)
 	svc := service.NewGraphService(graphRepo, neo4jstore.NewElementRepo(driver))
-	layoutSvc := service.NewLayoutService(pgstore.NewLayoutRepo(pool), graphRepo)
+	vizSvc := service.NewVisualizationService(pgstore.NewVisualizationRepo(pool), graphRepo)
 
-	router := httpapi.NewRouter(httpapi.Deps{Graphs: svc, Layouts: layoutSvc})
+	router := httpapi.NewRouter(httpapi.Deps{Graphs: svc, Visualizations: vizSvc})
 
 	log.Printf("listening on %s", cfg.HTTPAddr)
 	if err := http.ListenAndServe(cfg.HTTPAddr, router); err != nil {

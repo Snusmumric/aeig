@@ -8,8 +8,8 @@ import (
 )
 
 type Deps struct {
-	Graphs  GraphAPI
-	Layouts LayoutAPI
+	Graphs         GraphAPI
+	Visualizations VisualizationAPI
 }
 
 func NewRouter(d Deps) http.Handler {
@@ -21,9 +21,11 @@ func NewRouter(d Deps) http.Handler {
 		r.Get("/{id}", handleGetGraph(d.Graphs))
 		r.Get("/{id}/subgraph", handleGetSubgraph(d.Graphs))
 		r.Post("/{id}/mutations", handleApplyMutations(d.Graphs))
-		r.Get("/{id}/layouts", handleListLayouts(d.Layouts))
-		r.Post("/{id}/layouts", handleSaveLayout(d.Layouts))
-		r.Get("/{id}/layouts/{name}", handleGetLayout(d.Layouts))
+		r.Route("/{id}/visualizations", func(r chi.Router) {
+			r.Get("/default", handleGetDefaultVisualization(d.Visualizations))
+			r.Get("/{name}", handleGetVisualization(d.Visualizations))
+			r.Put("/{name}", handleSaveVisualization(d.Visualizations))
+		})
 	})
 	return r
 }
