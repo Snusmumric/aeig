@@ -591,4 +591,41 @@ describe('GraphEditor — visualization manifest', () => {
     const later = (client.saveVisualization as any).mock.calls[1]
     expect(later[2]).not.toHaveProperty('dead')
   })
+
+  it('sync refuses to run on a failed graph load and recovers', async () => {
+    vi.useFakeTimers()
+    // the viz row resolves (bound) but the subgraph fails: allNodes is empty,
+    // version is 0 — the bound viz diffs as "everything deleted" and the bar
+    // renders next to the red error. One sync click would PUT manifest
+    // {nodes:{}, edges:{}}, graphVersion 0, positions {} — an irreversible
+    // wipe. Sync must bail exactly like the autosave does.
+    const bad = fakeClient({ ...boundManifest })
+    ;(bad.getSubgraph as any).mockRejectedValue(new Error('db down'))
+    const utils = render(<GraphEditor client={bad} graphId="g1" styles={{}} />)
+    await settle()
+    expect(screen.getByText('db down')).toBeInTheDocument()
+    expect(screen.getByTestId('viz-diff-bar')).toBeInTheDocument() // «Удалённое (3)»
+    fireEvent.click(screen.getByTestId('sync-viz'))
+    await settle()
+    expect(bad.saveVisualization).not.toHaveBeenCalled()
+    // recovery: a working client re-runs the load (subgraph resolves) — sync
+    // now PUTs the manifest built from the REAL graph
+    const good = fakeClient({ ...boundManifest })
+    utils.rerender(<GraphEditor client={good} graphId="g1" styles={{}} />)
+    await settle()
+    expect(screen.queryByText('db down')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('sync-viz'))
+    await settle()
+    expect(good.saveVisualization).toHaveBeenCalledTimes(1)
+    const args = (good.saveVisualization as any).mock.calls[0]
+    expect(args[7]).toEqual({
+      graphVersion: 1,
+      nodes: {
+        n1: { type: 'Task', label: 'n1', x: 0, y: 0 },
+        n2: { type: 'Milestone', label: 'n2', x: 200, y: 0 },
+        n3: { type: 'Task', label: 'n3', x: 400, y: 0 },
+      },
+      edges: { e1: { type: 'depends_on', source: 'n1', target: 'n2' } },
+    })
+  })
 })

@@ -241,11 +241,22 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       ? { graphVersion: viz.graphVersion, nodes: viz.nodes ?? {}, edges: viz.edges ?? {} }
       : undefined
 
+  // a failed or still-in-flight load means allNodes is empty — PUTting that
+  // snapshot would wipe the saved row (positions and/or the manifest binding;
+  // last-write-wins, no recovery); autosave AND sync must bail instead
+  const saveBlocked = useCallback(() => {
+    const { allNodes: an, error: err } = latest.current
+    return err !== null || an.length === 0
+  }, [])
+
   // «Синхронизировать» — the ONLY act that adopts the current graph: manifest
   // := current subgraph (all nodes/edges, unfiltered), graphVersion := current,
   // positions := current on-screen positions (dead ids pruned for good)
   const handleSync = () => {
-    if (!vizName) return
+    // viz row resolved but the graph load failed/stalled: the diff bar may
+    // show "everything deleted" next to the load error — syncing the empty
+    // snapshot would destroy the binding AND all saved positions
+    if (!vizName || saveBlocked()) return
     const { visibleTypes: vt, visibleEdgeTypes: vet, hideOrphans: ho } = latest.current
     const manifest: VisualizationManifest = {
       graphVersion: version,
@@ -318,12 +329,6 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   // Never sends the manifest fields — the binding refreshes only via sync.
   useEffect(() => {
     if (!vizName) return
-    const saveBlocked = () => {
-      const { allNodes: an, error: err } = latest.current
-      // a failed or still-in-flight load means allNodes is empty — PUTting that
-      // snapshot would wipe the saved positions over the row; keep dirty instead
-      return err !== null || an.length === 0
-    }
     const save = () => {
       if (!dirty.current) return
       if (saveBlocked()) return
@@ -349,7 +354,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       clearInterval(id)
       window.removeEventListener('beforeunload', onBeforeUnload)
     }
-  }, [vizName, client, graphId, buildSaveArgs])
+  }, [vizName, client, graphId, buildSaveArgs, saveBlocked])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh' }}>
