@@ -63,10 +63,11 @@ const ROADMAP_GRAPH_ID = 'c0de0000-0000-4000-8000-000000000002'
 
 const params = new URLSearchParams(window.location.search)
 const graphId = params.get('graph') ?? ROADMAP_GRAPH_ID
+const initialVizName = params.get('viz') ?? undefined
 if (!params.has('graph')) {
   window.history.replaceState(null, '', `?graph=${ROADMAP_GRAPH_ID}`)
 }
 
 export default function App() {
-  return <GraphEditor client={client} graphId={graphId} styles={styles} />
+  return <GraphEditor client={client} graphId={graphId} styles={styles} initialVizName={initialVizName} />
 }
