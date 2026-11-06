@@ -56,9 +56,9 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
 
   // Snapshot of the state the autosave needs — refreshed every render so the
   // 10s interval keeps a stable identity and never resets mid-session.
-  const latest = useRef({ allNodes, visibleTypes, visibleEdgeTypes, hideOrphans })
+  const latest = useRef({ allNodes, visibleTypes, visibleEdgeTypes, hideOrphans, error })
   useEffect(() => {
-    latest.current = { allNodes, visibleTypes, visibleEdgeTypes, hideOrphans }
+    latest.current = { allNodes, visibleTypes, visibleEdgeTypes, hideOrphans, error }
   })
 
   // Mount: resolve the visualization — the ?viz= name, falling back to the
@@ -144,12 +144,21 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     if (!vizName) return
     const saveArgs = () => {
       const { allNodes: an, visibleTypes: vt, visibleEdgeTypes: vet, hideOrphans: ho } = latest.current
-      const nodeTypes = vt?.size ? [...vt] : undefined
-      const edgeTypes = vet?.size ? [...vet] : undefined
+      // an existing Set always serializes — even empty («Ни одного» = show none,
+      // distinct from null = filter inactive)
+      const nodeTypes = vt ? [...vt] : undefined
+      const edgeTypes = vet ? [...vet] : undefined
       return [graphId, vizName, extractPositions(an), viewportRef.current, nodeTypes, edgeTypes, ho] as const
+    }
+    const saveBlocked = () => {
+      const { allNodes: an, error: err } = latest.current
+      // a failed or still-in-flight load means allNodes is empty — PUTting that
+      // snapshot would wipe the saved positions over the row; keep dirty instead
+      return err !== null || an.length === 0
     }
     const save = () => {
       if (!dirty.current) return
+      if (saveBlocked()) return
       const revAtSaveStart = revision.current
       void client
         .saveVisualization(...saveArgs())
@@ -164,7 +173,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         .catch(() => setNotice('autosave failed — retrying'))
     }
     const onBeforeUnload = () => {
-      if (dirty.current) void client.saveVisualization(...saveArgs())
+      if (dirty.current && !saveBlocked()) void client.saveVisualization(...saveArgs())
     }
     const id = setInterval(save, AUTOSAVE_INTERVAL_MS)
     window.addEventListener('beforeunload', onBeforeUnload)

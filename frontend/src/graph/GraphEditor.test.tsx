@@ -243,6 +243,51 @@ describe('GraphEditor — visualizations', () => {
     expect(screen.getByText('autosave failed — retrying')).toBeInTheDocument()
   })
 
+  it('never autosaves empty positions while the graph failed to load, and recovers', async () => {
+    vi.useFakeTimers()
+    const bad = fakeClient()
+    ;(bad.getSubgraph as any).mockRejectedValue(new Error('db down'))
+    const utils = render(<GraphEditor client={bad} graphId="g1" styles={{}} />)
+    await settle()
+    // the viz resolves but the subgraph fails: no nodes loaded — the state can
+    // still go dirty (filter click), and the autosave must NOT PUT the empty
+    // snapshot over the saved row
+    fireEvent.click(screen.getByTestId('hide-orphans'))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(bad.saveVisualization).not.toHaveBeenCalled()
+    // the load recovers (client/effect re-run, subgraph now resolves) — the
+    // preserved dirty flag must produce exactly one save, with the full node set
+    const good = fakeClient()
+    utils.rerender(<GraphEditor client={good} graphId="g1" styles={{}} />)
+    await settle()
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(good.saveVisualization).toHaveBeenCalledTimes(1)
+    const args = (good.saveVisualization as any).mock.calls[0]
+    expect(Object.keys(args[2])).toEqual(expect.arrayContaining(['n1', 'n2', 'n3']))
+  })
+
+  it('saves [] (show none) distinctly from an inactive filter', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    // «Ни одного» in both panels → empty Sets (not null) → payload must carry []
+    const noneButtons = screen.getAllByText('Ни одного')
+    fireEvent.click(noneButtons[0])
+    fireEvent.click(noneButtons[1])
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(client.saveVisualization).toHaveBeenCalledTimes(1)
+    const args = (client.saveVisualization as any).mock.calls[0]
+    expect(args[4]).toEqual([])
+    expect(args[5]).toEqual([])
+  })
+
   it('a save that resolves after newer edits does not wipe the dirty flag', async () => {
     vi.useFakeTimers()
     const client = fakeClient()
