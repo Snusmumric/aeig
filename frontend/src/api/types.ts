@@ -42,12 +42,15 @@ export interface Viewport {
   zoom: number
 }
 
-export interface Layout {
+export interface Visualization {
   id: string
   graphId: string
   name: string
   positions: Record<string, Position>
   viewport: Viewport
   nodeTypes?: string[]
+  edgeTypes?: string[] | null
+  hideOrphans: boolean
+  isDefault?: boolean
   createdAt: string
 }

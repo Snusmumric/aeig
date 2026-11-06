@@ -1,4 +1,4 @@
-import type { Graph, Subgraph, Mutations, Layout, Position, Viewport } from './types'
+import type { Graph, Subgraph, Mutations, Visualization, Position, Viewport } from './types'
 
 export class ApiError extends Error {
   status: number
@@ -36,14 +36,30 @@ export function createClient(baseURL: string) {
         method: 'POST',
         body: JSON.stringify({ baseVersion, ...m }),
       }),
-    listLayouts: (id: string) => request<Layout[]>(`${baseURL}/graphs/${id}/layouts`),
-    saveLayout: (id: string, name: string, positions: Record<string, Position>, viewport: Viewport, nodeTypes?: string[]) =>
-      request<Layout>(`${baseURL}/graphs/${id}/layouts`, {
-        method: 'POST',
-        body: JSON.stringify({ name, positions, viewport, ...(nodeTypes !== undefined ? { nodeTypes } : {}) }),
+    getVisualization: (id: string, name: string) =>
+      request<Visualization>(`${baseURL}/graphs/${id}/visualizations/${encodeURIComponent(name)}`),
+    getDefaultVisualization: (id: string) =>
+      request<Visualization>(`${baseURL}/graphs/${id}/visualizations/default`),
+    saveVisualization: (
+      id: string,
+      name: string,
+      positions: Record<string, Position>,
+      viewport: Viewport,
+      nodeTypes: string[] | undefined,
+      edgeTypes: string[] | null | undefined,
+      hideOrphans: boolean,
+    ) =>
+      request<Visualization>(`${baseURL}/graphs/${id}/visualizations/${encodeURIComponent(name)}`, {
+        method: 'PUT',
+        keepalive: true,
+        body: JSON.stringify({
+          positions,
+          viewport,
+          ...(nodeTypes !== undefined ? { nodeTypes } : {}),
+          ...(edgeTypes !== undefined ? { edgeTypes } : {}),
+          hideOrphans,
+        }),
       }),
-    getLayout: (id: string, name: string) =>
-      request<Layout>(`${baseURL}/graphs/${id}/layouts/${encodeURIComponent(name)}`),
   }
 }
 

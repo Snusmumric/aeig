@@ -53,24 +53,56 @@ describe('api client', () => {
   })
 })
 
-describe('saveLayout', () => {
-  it('sends nodeTypes when provided (including empty array)', async () => {
-    mockFetchOnce(201, { id: 'l1' })
+describe('visualizations', () => {
+  it('getDefaultVisualization GETs the default route', async () => {
+    mockFetchOnce(200, { id: 'v1', name: 'quiet-harbor-42' })
     const c = createClient('http://api')
-    await c.saveLayout('g1', 'n', { n1: { x: 0, y: 0 } }, { x: 0, y: 0, zoom: 1 }, ['phase'])
-    const [, opts] = (fetch as any).mock.calls[0]
-    expect(JSON.parse(opts.body).nodeTypes).toEqual(['phase'])
-
-    await c.saveLayout('g1', 'n', {}, { x: 0, y: 0, zoom: 1 }, [])
-    const [, opts2] = (fetch as any).mock.calls[1]
-    expect(JSON.parse(opts2.body).nodeTypes).toEqual([])
+    const viz = await c.getDefaultVisualization('g1')
+    expect(viz.name).toBe('quiet-harbor-42')
+    expect(fetch).toHaveBeenCalledWith('http://api/graphs/g1/visualizations/default', expect.any(Object))
   })
 
-  it('omits nodeTypes when undefined', async () => {
-    mockFetchOnce(201, { id: 'l1' })
+  it('getVisualization GETs the encoded name', async () => {
+    mockFetchOnce(200, { id: 'v1', name: 'my viz' })
     const c = createClient('http://api')
-    await c.saveLayout('g1', 'n', {}, { x: 0, y: 0, zoom: 1 })
-    const [, opts] = (fetch as any).mock.calls[0]
-    expect(JSON.parse(opts.body)).not.toHaveProperty('nodeTypes')
+    await c.getVisualization('g1', 'my viz')
+    expect(fetch).toHaveBeenCalledWith('http://api/graphs/g1/visualizations/my%20viz', expect.any(Object))
+  })
+
+  it('saveVisualization PUTs edgeTypes and hideOrphans', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    await c.saveVisualization(
+      'g1',
+      'quiet-harbor-42',
+      { n1: { x: 1, y: 2 } },
+      { x: 0, y: 0, zoom: 1 },
+      ['Task'],
+      ['depends_on'],
+      true,
+    )
+    const [url, opts] = (fetch as any).mock.calls[0]
+    expect(url).toBe('http://api/graphs/g1/visualizations/quiet-harbor-42')
+    expect(opts.method).toBe('PUT')
+    expect(opts.keepalive).toBe(true)
+    expect(JSON.parse(opts.body)).toEqual({
+      positions: { n1: { x: 1, y: 2 } },
+      viewport: { x: 0, y: 0, zoom: 1 },
+      nodeTypes: ['Task'],
+      edgeTypes: ['depends_on'],
+      hideOrphans: true,
+    })
+  })
+
+  it('saveVisualization omits undefined filters, keeps hideOrphans, encodes the name', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    await c.saveVisualization('g1', 'my viz', {}, { x: 0, y: 0, zoom: 1 }, undefined, undefined, false)
+    const [url, opts] = (fetch as any).mock.calls[0]
+    expect(url).toBe('http://api/graphs/g1/visualizations/my%20viz')
+    const body = JSON.parse(opts.body)
+    expect(body).not.toHaveProperty('nodeTypes')
+    expect(body).not.toHaveProperty('edgeTypes')
+    expect(body.hideOrphans).toBe(false)
   })
 })
