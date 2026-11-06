@@ -253,3 +253,36 @@ func TestVisualizationRepo_PromotionMigration(t *testing.T) {
 	_, err = pool.Exec(ctx, `SELECT hide_orphans FROM layouts LIMIT 1`)
 	assert.Error(t, err)
 }
+
+func TestVisualizationRepo_SaveNeverFlipsDefault(t *testing.T) {
+	ctx := context.Background()
+	dsn := startPostgres(t)
+	require.NoError(t, RunMigrations(dsn))
+
+	pool, err := NewPool(ctx, dsn)
+	require.NoError(t, err)
+	defer pool.Close()
+
+	graphs := NewGraphRepo(pool)
+	viz := NewVisualizationRepo(pool)
+
+	g, err := graphs.CreateGraph(ctx, "g")
+	require.NoError(t, err)
+
+	def, created, err := viz.TryCreateDefaultVisualization(ctx, g.ID, "quiet-harbor-42")
+	require.NoError(t, err)
+	require.True(t, created)
+
+	// autosave PUTs the whole state over the default row's name — the row must
+	// stay the graph's default (upsert never flips is_default)
+	saved, err := viz.SaveVisualization(ctx, g.ID, "quiet-harbor-42",
+		map[string]domain.Position{"n1": {X: 5, Y: 5}}, domain.Viewport{Zoom: 1}, nil, nil, true)
+	require.NoError(t, err)
+	assert.Equal(t, def.ID, saved.ID)
+
+	got, err := viz.GetDefaultVisualization(ctx, g.ID)
+	require.NoError(t, err)
+	assert.Equal(t, def.ID, got.ID)
+	assert.Equal(t, "quiet-harbor-42", got.Name)
+	assert.True(t, got.IsDefault)
+}

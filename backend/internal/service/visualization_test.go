@@ -116,6 +116,8 @@ func TestGetDefault_Exhausted(t *testing.T) {
 	_, err := svc.GetDefaultVisualization(context.Background(), "g1")
 	require.Error(t, err)
 	assert.Equal(t, 5, store.tryCalls)
+	// exhaustion is a server failure (500), never surfaced as a missing graph (404)
+	assert.NotErrorIs(t, err, domain.ErrNotFound)
 }
 
 func TestGetDefault_UnknownGraph(t *testing.T) {
