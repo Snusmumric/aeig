@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ReactFlow,
   Background,
@@ -7,6 +7,7 @@ import {
   type Edge,
   type NodeChange,
   type OnNodeDrag,
+  type OnMove,
   type ReactFlowInstance,
   type Viewport,
 } from '@xyflow/react'
@@ -40,17 +41,31 @@ export function GraphCanvas({
   onMove,
   fitView = true,
 }: GraphCanvasProps) {
-  const instanceRef = useRef<ReactFlowInstance | null>(null)
+  const [instance, setInstance] = useState<ReactFlowInstance | null>(null)
   const appliedRef = useRef(false)
+  const suppressMove = useRef(false)
   useEffect(() => {
     // The visualization loads asynchronously, so `applyViewport` usually arrives
-    // after onInit already fired — apply it once, as soon as both are available
-    // (and before any user interaction could have moved the pane).
-    if (applyViewport && instanceRef.current && !appliedRef.current) {
-      appliedRef.current = true
-      void instanceRef.current.setViewport(applyViewport)
-    }
-  }, [applyViewport])
+    // after onInit already fired — re-run whenever either becomes available,
+    // apply once, before any user interaction could have moved the pane.
+    if (!applyViewport || !instance || appliedRef.current) return
+    appliedRef.current = true
+    // setViewport() runs a programmatic d3-zoom transform which ReactFlow echoes
+    // through onMove (sourceEvent=null) — suppress that echo until it settles:
+    // it is not user interaction and must not dirty the editor's autosave state.
+    suppressMove.current = true
+    void instance
+      .setViewport(applyViewport)
+      .catch(() => undefined)
+      .finally(() => {
+        suppressMove.current = false
+      })
+  }, [applyViewport, instance])
+
+  const handleFlowMove: OnMove = (_event, vp) => {
+    if (suppressMove.current) return
+    onMove?.(vp)
+  }
   return (
     <div style={{ width: '100%', height: '100%' }} data-testid="graph-canvas">
       <ReactFlow
@@ -62,10 +77,8 @@ export function GraphCanvas({
         onNodeDragStop={onNodeDragStop}
         selectionKeyCode={null}
         nodeTypes={nodeTypes}
-        onInit={(instance) => {
-          instanceRef.current = instance
-        }}
-        onMove={onMove ? (_event, vp) => onMove(vp) : undefined}
+        onInit={setInstance}
+        onMove={onMove ? handleFlowMove : undefined}
         fitView={fitView}
       >
         <Background />

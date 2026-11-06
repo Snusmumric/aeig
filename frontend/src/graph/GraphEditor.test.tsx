@@ -197,6 +197,12 @@ describe('GraphEditor — visualizations', () => {
     render(<GraphEditor client={client} graphId="g1" styles={{}} />)
     await settle()
     expect(client.saveVisualization).not.toHaveBeenCalled()
+    // loading a visualization must NOT dirty the state: the onMove echo from
+    // applying the saved viewport is programmatic, not user interaction
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(client.saveVisualization).not.toHaveBeenCalled()
     // dirty: a filter change is one of the wrapped dirty sources
     fireEvent.click(screen.getByTestId('type-Milestone'))
     await act(async () => {
@@ -235,6 +241,47 @@ describe('GraphEditor — visualizations', () => {
     })
     expect(client.saveVisualization).toHaveBeenCalledTimes(2)
     expect(screen.getByText('autosave failed — retrying')).toBeInTheDocument()
+  })
+
+  it('a save that resolves after newer edits does not wipe the dirty flag', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient()
+    let resolveSave: (v: Visualization) => void = () => {}
+    ;(client.saveVisualization as any).mockImplementation(
+      () => new Promise<Visualization>((res) => (resolveSave = res)),
+    )
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    // S0 dirty → PUT(S0) starts and stays in flight
+    fireEvent.click(screen.getByTestId('type-Milestone'))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(client.saveVisualization).toHaveBeenCalledTimes(1)
+    expect((client.saveVisualization as any).mock.calls[0][6]).toBe(false) // S0: hideOrphans off
+    // S1 happens while PUT(S0) is still in flight
+    fireEvent.click(screen.getByTestId('hide-orphans'))
+    // PUT(S0) resolves — S1 must survive it
+    await act(async () => {
+      resolveSave(viz())
+    })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(client.saveVisualization).toHaveBeenCalledTimes(2)
+    expect((client.saveVisualization as any).mock.calls[1][6]).toBe(true) // S1: hideOrphans on
+  })
+
+  it('falls back to default and rewrites the dead ?viz= name in the URL', async () => {
+    window.history.replaceState(null, '', '/?graph=g1&viz=ghost')
+    vi.useFakeTimers()
+    const client = fakeClient({ name: 'fallback-9' })
+    const spy = vi.spyOn(window.history, 'replaceState')
+    render(<GraphEditor client={client} graphId="g1" styles={{}} initialVizName="ghost" />)
+    await settle()
+    expect(client.getVisualization).toHaveBeenCalledWith('g1', 'ghost')
+    expect(client.getDefaultVisualization).toHaveBeenCalledWith('g1')
+    expect(spy).toHaveBeenCalledWith(null, '', '?graph=g1&viz=fallback-9')
   })
 
   it('wires viz name into the URL once resolved', async () => {

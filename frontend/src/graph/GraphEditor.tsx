@@ -44,7 +44,15 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   const [fitView, setFitView] = useState(true)
   const [notice, setNotice] = useState<string | null>(null)
   const dirty = useRef(false)
+  // bumped on every state change that dirties the editor — lets a save that was
+  // in flight when newer edits happened refuse to declare the state clean
+  const revision = useRef(0)
   const viewportRef = useRef<Viewport>({ x: 0, y: 0, zoom: 1 })
+
+  const markDirty = useCallback(() => {
+    revision.current += 1
+    dirty.current = true
+  }, [])
 
   // Snapshot of the state the autosave needs — refreshed every render so the
   // 10s interval keeps a stable identity and never resets mid-session.
@@ -74,7 +82,8 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       viewportRef.current = viz.viewport
       setApplyViewport(viz.viewport)
       const params = new URLSearchParams(window.location.search)
-      if (!params.has('viz')) {
+      if (params.get('viz') !== viz.name) {
+        // add the resolved name, or replace a dead ?viz= the fallback rescued us from
         params.set('viz', viz.name)
         window.history.replaceState(null, '', `?${params.toString()}`)
       }
@@ -94,37 +103,40 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   // Dirty tracking: node position changes, filter changes, viewport moves.
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
-      if (changes.some((c) => c.type === 'position')) dirty.current = true
+      if (changes.some((c) => c.type === 'position')) markDirty()
       onNodesChange(changes)
     },
-    [onNodesChange],
+    [onNodesChange, markDirty],
   )
 
   const changeVisibleTypes = useCallback(
     (next: Set<string> | null) => {
-      dirty.current = true
+      markDirty()
       setVisibleTypes(next)
     },
-    [setVisibleTypes],
+    [setVisibleTypes, markDirty],
   )
 
   const changeVisibleEdgeTypes = useCallback(
     (next: Set<string> | null) => {
-      dirty.current = true
+      markDirty()
       setVisibleEdgeTypes(next)
     },
-    [setVisibleEdgeTypes],
+    [setVisibleEdgeTypes, markDirty],
   )
 
   const toggleHideOrphans = useCallback(() => {
-    dirty.current = true
+    markDirty()
     setHideOrphans((v) => !v)
-  }, [setHideOrphans])
+  }, [setHideOrphans, markDirty])
 
-  const handleMove = useCallback((vp: Viewport) => {
-    viewportRef.current = vp
-    dirty.current = true
-  }, [])
+  const handleMove = useCallback(
+    (vp: Viewport) => {
+      viewportRef.current = vp
+      markDirty()
+    },
+    [markDirty],
+  )
 
   // Autosave every 10s while dirty (last-write-wins PUT of the whole state) +
   // a best-effort save on tab close (the client's PUT is keepalive).
@@ -138,11 +150,16 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     }
     const save = () => {
       if (!dirty.current) return
+      const revAtSaveStart = revision.current
       void client
         .saveVisualization(...saveArgs())
         .then(() => {
-          dirty.current = false
-          setNotice(null)
+          // edits may have happened while this PUT was in flight — only declare
+          // the state clean if nothing changed since the save started
+          if (revision.current === revAtSaveStart) {
+            dirty.current = false
+            setNotice(null)
+          }
         })
         .catch(() => setNotice('autosave failed — retrying'))
     }
