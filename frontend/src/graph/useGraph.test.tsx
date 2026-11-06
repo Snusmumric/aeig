@@ -97,6 +97,8 @@ describe('useGraph', () => {
     })
     expect(result.current.edges.map((e) => e.id)).toEqual(['e2'])
     expect(result.current.nodes).toHaveLength(3)
+    // allEdges stays the unfiltered superset the manifest sync builds from
+    expect(result.current.allEdges.map((e) => e.id)).toEqual(['e1', 'e2'])
   })
 
   it('hideOrphans drops nodes whose edges are all hidden by the edge filter', async () => {

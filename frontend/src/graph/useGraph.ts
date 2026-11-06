@@ -12,6 +12,8 @@ export interface UseGraph {
   nodes: Node<TypedNodeData>[]
   allNodes: Node<TypedNodeData>[]
   edges: Edge<TypedEdgeData>[]
+  /** unfiltered edge set (manifest sync builds from these) */
+  allEdges: Edge<TypedEdgeData>[]
   types: string[]
   visibleTypes: Set<string> | null
   setVisibleTypes: Dispatch<SetStateAction<Set<string> | null>>
@@ -117,6 +119,7 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
     nodes,
     allNodes,
     edges,
+    allEdges,
     types,
     visibleTypes,
     setVisibleTypes,
