@@ -1,16 +1,16 @@
 # Graph Report - AEiG  (2026-11-06)
 
 ## Corpus Check
-- 65 files · ~12,948 words
+- 66 files · ~16,006 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 314 nodes · 613 edges · 19 communities (16 shown, 3 thin omitted)
-- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 72 edges (avg confidence: 0.8)
+- 334 nodes · 686 edges · 20 communities (17 shown, 3 thin omitted)
+- Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 97 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3d582cf0`
+- Built from commit: `a84b7686`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -25,26 +25,27 @@
 - stubAPI
 - devDependencies
 - compilerOptions
-- stubLayoutAPI
-- Mutations
 - client.ts
 - plugins
 - errors.go
 - github.com/aeig/backend
 - ResizeObserverMock
 - toFlow.ts
+- App.tsx
+- T
+- Load
 
 ## God Nodes (most connected - your core abstractions)
 1. `NewRouter()` - 19 edges
-2. `doReq()` - 16 edges
-3. `useGraph` - 13 edges
-4. `main()` - 11 edges
-5. `TypeStyleMap` - 11 edges
-6. `routerWithLayouts()` - 10 edges
-7. `writeJSON()` - 10 edges
-8. `writeError()` - 10 edges
-9. `NewGraphService()` - 10 edges
-10. `ApiClient` - 10 edges
+2. `doReq()` - 18 edges
+3. `NewVisualizationService()` - 15 edges
+4. `useGraph` - 13 edges
+5. `routerWithVisualizations()` - 12 edges
+6. `main()` - 11 edges
+7. `TypeStyleMap` - 11 edges
+8. `writeJSON()` - 10 edges
+9. `writeError()` - 10 edges
+10. `NewGraphService()` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `main()` --calls--> `Load()`  [INFERRED]
@@ -53,35 +54,35 @@
   backend/cmd/server/main.go → backend/internal/httpapi/router.go
 - `main()` --calls--> `NewGraphService()`  [INFERRED]
   backend/cmd/server/main.go → backend/internal/service/graph.go
-- `main()` --calls--> `NewLayoutService()`  [INFERRED]
-  backend/cmd/server/main.go → backend/internal/service/layout.go
+- `main()` --calls--> `NewVisualizationService()`  [INFERRED]
+  backend/cmd/server/main.go → backend/internal/service/visualization.go
 - `main()` --calls--> `NewDriver()`  [INFERRED]
   backend/cmd/server/main.go → backend/internal/storage/neo4j/driver.go
 
 ## Import Cycles
 - None detected.
 
-## Communities (19 total, 3 thin omitted)
+## Communities (20 total, 3 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.08
-Nodes (30): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Layout (+22 more)
+Cohesion: 0.10
+Nodes (23): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Mutations (+15 more)
 
 ### Community 1 - "ElementRepo"
 Cohesion: 0.10
 Nodes (25): Context, Graph, Mutations, Subgraph, NewGraphService(), edgeIDs(), Context, Graph (+17 more)
 
 ### Community 2 - "GraphRepo"
-Cohesion: 0.13
-Nodes (20): Context, Layout, Position, Viewport, NewLayoutService(), Context, Graph, Layout (+12 more)
+Cohesion: 0.17
+Nodes (11): Rand, NewVizName(), Context, Position, Rand, Viewport, Visualization, Mutex (+3 more)
 
 ### Community 3 - "TestGraphRepo_CreateGetBump"
-Cohesion: 0.14
-Nodes (16): main(), Context, Graph, Pool, T, startPostgres(), TestGraphRepo_CreateGetBump(), NewGraphRepo() (+8 more)
+Cohesion: 0.15
+Nodes (22): main(), Context, Graph, Pool, T, startPostgres(), TestGraphRepo_CreateGetBump(), NewGraphRepo() (+14 more)
 
 ### Community 4 - "NewGraphService"
 Cohesion: 0.18
-Nodes (23): doReq(), Handler, T, TestApplyMutations_200(), TestApplyMutations_409OnConflict(), TestCreateGraph_201(), TestCreateGraph_400OnInvalid(), TestGetGraph_404() (+15 more)
+Nodes (25): doReq(), Handler, T, TestApplyMutations_200(), TestApplyMutations_409OnConflict(), TestCreateGraph_201(), TestCreateGraph_400OnInvalid(), TestGetGraph_404() (+17 more)
 
 ### Community 5 - "NewRouter"
 Cohesion: 0.16
@@ -89,59 +90,63 @@ Nodes (12): DriverWithContext, NewDriver(), buildProps(), Context, DriverWithCon
 
 ### Community 6 - "Load"
 Cohesion: 0.26
-Nodes (15): HandlerFunc, handleApplyMutations(), handleCreateGraph(), handleGetGraph(), handleGetSubgraph(), HandlerFunc, handleGetLayout(), handleListLayouts() (+7 more)
+Nodes (15): HandlerFunc, handleApplyMutations(), handleCreateGraph(), handleGetGraph(), handleGetSubgraph(), ResponseWriter, writeError(), writeJSON() (+7 more)
 
 ### Community 7 - "stubAPI"
-Cohesion: 0.28
-Nodes (9): Context, Layout, Pool, Position, Viewport, NewLayoutRepo(), scanLayout(), LayoutRepo (+1 more)
+Cohesion: 0.29
+Nodes (8): Context, Pool, Position, Viewport, Visualization, scanVisualization(), rowScanner, VisualizationRepo
 
 ### Community 8 - "devDependencies"
-Cohesion: 0.29
-Nodes (5): GraphCanvas(), GraphCanvasProps, nodeTypes, shapeStyle(), TypedNode()
+Cohesion: 0.43
+Nodes (5): Context, Position, Viewport, Visualization, stubVizAPI
 
 ### Community 9 - "compilerOptions"
 Cohesion: 0.42
 Nodes (5): Context, Graph, Mutations, Subgraph, stubAPI
 
-### Community 10 - "stubLayoutAPI"
-Cohesion: 0.43
-Nodes (6): Load(), T, TestLoad_DefaultsHTTPAddr(), TestLoad_MissingRequired(), TestLoad_ReadsAllVars(), Config
-
-### Community 11 - "Mutations"
-Cohesion: 0.43
-Nodes (5): Context, Layout, Position, Viewport, stubLayoutAPI
-
 ### Community 13 - "plugins"
 Cohesion: 0.60
-Nodes (4): Time, Layout, Position, Viewport
+Nodes (4): Time, Position, Viewport, Visualization
 
 ### Community 14 - "errors.go"
 Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
 ### Community 18 - "toFlow.ts"
-Cohesion: 0.11
-Nodes (21): filterFlow(), allEdges, allNodes, tEdges, addAdjacent(), applyFollowDrag(), planFollowers(), toFlowEdges() (+13 more)
+Cohesion: 0.09
+Nodes (27): filterFlow(), allEdges, allNodes, tEdges, addAdjacent(), applyFollowDrag(), planFollowers(), sg (+19 more)
+
+### Community 19 - "App.tsx"
+Cohesion: 0.29
+Nodes (5): GraphCanvas(), GraphCanvasProps, nodeTypes, shapeStyle(), TypedNode()
+
+### Community 27 - "T"
+Cohesion: 0.19
+Nodes (21): NewVisualizationService(), Context, Graph, Position, T, Viewport, Visualization, TestGetDefault_Creates() (+13 more)
+
+### Community 39 - "Load"
+Cohesion: 0.43
+Nodes (6): Load(), T, TestLoad_DefaultsHTTPAddr(), TestLoad_MissingRequired(), TestLoad_ReadsAllVars(), Config
 
 ## Knowledge Gaps
-- **22 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `GraphNode` (+17 more)
+- **21 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `GraphNode` (+16 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `main()` connect `TestGraphRepo_CreateGetBump` to `ElementRepo`, `GraphRepo`, `NewGraphService`, `NewRouter`, `stubAPI`, `stubLayoutAPI`?**
-  _High betweenness centrality (0.309) - this node is a cross-community bridge._
+- **Why does `main()` connect `TestGraphRepo_CreateGetBump` to `ElementRepo`, `NewGraphService`, `NewRouter`, `Load`, `T`?**
+  _High betweenness centrality (0.342) - this node is a cross-community bridge._
 - **Why does `NewRouter()` connect `NewGraphService` to `TestGraphRepo_CreateGetBump`, `Load`?**
-  _High betweenness centrality (0.189) - this node is a cross-community bridge._
-- **Why does `NewGraphService()` connect `ElementRepo` to `TestGraphRepo_CreateGetBump`?**
-  _High betweenness centrality (0.119) - this node is a cross-community bridge._
+  _High betweenness centrality (0.196) - this node is a cross-community bridge._
+- **Why does `NewVisualizationService()` connect `T` to `GraphRepo`, `TestGraphRepo_CreateGetBump`?**
+  _High betweenness centrality (0.144) - this node is a cross-community bridge._
 - **Are the 16 inferred relationships involving `NewRouter()` (e.g. with `main()` and `TestApplyMutations_200()`) actually correct?**
   _`NewRouter()` has 16 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 6 inferred relationships involving `doReq()` (e.g. with `TestGetLayout_404()` and `TestListLayouts_200()`) actually correct?**
-  _`doReq()` has 6 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 10 inferred relationships involving `main()` (e.g. with `Load()` and `NewRouter()`) actually correct?**
-  _`main()` has 10 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 8 inferred relationships involving `doReq()` (e.g. with `TestGetDefaultVisualization_200()` and `TestGetVisualization_200()`) actually correct?**
+  _`doReq()` has 8 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 11 inferred relationships involving `NewVisualizationService()` (e.g. with `main()` and `TestGetDefault_Creates()`) actually correct?**
+  _`NewVisualizationService()` has 11 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `github.com/aeig/backend`, `client`, `styles` to the rest of the system?**
-  _22 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _21 weakly-connected nodes found - possible documentation gaps or missing edges._
