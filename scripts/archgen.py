@@ -44,10 +44,13 @@ NODES = [
     {"id": "tbl-layouts", "type": "table", "props": {"label": "layouts", "note": "сохранённые раскладки канваса"}},
     {"id": "fld-layouts-id", "type": "field", "props": {"label": "id", "datatype": "UUID", "constraint": "PK"}},
     {"id": "fld-layouts-graph-id", "type": "field", "props": {"label": "graph_id", "datatype": "UUID", "note": "FK → graphs.id, ON DELETE CASCADE"}},
-    {"id": "fld-layouts-name", "type": "field", "props": {"label": "name", "datatype": "TEXT", "note": "UNIQUE (graph_id, name)"}},
+    {"id": "fld-layouts-name", "type": "field", "props": {"label": "name", "datatype": "TEXT", "note": "UNIQUE (graph_id, name); default зарезервировано"}},
     {"id": "fld-layouts-positions", "type": "field", "props": {"label": "positions", "datatype": "JSONB", "note": "{nodeId: {x, y}}"}},
     {"id": "fld-layouts-viewport", "type": "field", "props": {"label": "viewport", "datatype": "JSONB", "note": "{x, y, zoom}"}},
     {"id": "fld-layouts-node-types", "type": "field", "props": {"label": "node_types", "datatype": "JSONB", "note": "NULL = без фильтра; массив видимых типов вершин"}},
+    {"id": "fld-layouts-edge-types", "type": "field", "props": {"label": "edge_types", "datatype": "JSONB", "note": "NULL = без фильтра; массив видимых типов рёбер"}},
+    {"id": "fld-layouts-hide-orphans", "type": "field", "props": {"label": "hide_orphans", "datatype": "BOOLEAN", "note": "скрывать изолированные вершины"}},
+    {"id": "fld-layouts-is-default", "type": "field", "props": {"label": "is_default", "datatype": "BOOLEAN", "note": "partial unique index layouts_one_default_per_graph — ровно одна default-визуализация на граф"}},
     {"id": "fld-layouts-created-at", "type": "field", "props": {"label": "created_at", "datatype": "TIMESTAMPTZ"}},
     # ── physical layer: Neo4j labels / rel types / properties ──────────────
     {"id": "lbl-element", "type": "label", "props": {"label": ":Element", "note": "вершина пользовательского графа"}},
@@ -63,10 +66,12 @@ NODES = [
     {"id": "prp-rel-target", "type": "property", "props": {"label": "_target", "note": "id вершины-приёмника"}},
     # ── domain layer: entities (Go structs + TS mirrors) ────────────────────
     {"id": "ent-graph", "type": "entity", "props": {"label": "Graph", "note": "id, name, version, createdAt — Go domain.Graph + TS Graph"}},
-    {"id": "ent-layout", "type": "entity", "props": {"label": "Layout", "note": "Go domain.Layout + TS Layout"}},
+    {"id": "ent-layout", "type": "entity", "props": {"label": "Visualization", "note": "Go domain.Visualization + TS Visualization; эволюция Layout, таблица layouts сохранена"}},
     {"id": "ent-position", "type": "entity", "props": {"label": "Position", "note": "{x, y} — сериализуется в JSONB"}},
     {"id": "ent-viewport", "type": "entity", "props": {"label": "Viewport", "note": "{x, y, zoom}"}},
     {"id": "ent-nodetypes", "type": "entity", "props": {"label": "NodeTypes", "note": "[]string | null — видимые типы вершин"}},
+    {"id": "ent-edgetypes", "type": "entity", "props": {"label": "EdgeTypes", "note": "[]string | null — видимые типы рёбер"}},
+    {"id": "ent-hideorphans", "type": "entity", "props": {"label": "HideOrphans", "note": "bool — фильтр изолированных вершин"}},
     {"id": "ent-node", "type": "entity", "props": {"label": "Node", "note": "id, type, properties — Go domain.Node + TS GraphNode"}},
     {"id": "ent-edge", "type": "entity", "props": {"label": "Edge", "note": "id, type, source, target, properties — Go domain.Edge + TS GraphEdge"}},
     {"id": "ent-subgraph", "type": "entity", "props": {"label": "Subgraph", "transient": True, "note": "{nodes, edges} — ответ GET /subgraph; не хранится"}},
@@ -118,6 +123,16 @@ EDGES = [
     {"source": "ent-viewport", "target": "ent-layout", "type": "part_of"},
     {"source": "ent-nodetypes", "target": "ent-layout", "type": "part_of"},
     {"source": "ent-layout", "target": "ent-graph", "type": "belongs_to"},
+    # ── visualization evolution (0004) ────────────────────────────────────────
+    # Appended at the END on purpose: edge ids are positional (e0..eN), and
+    # inserting mid-list would renumber — and thus duplicate — every later edge.
+    {"source": "tbl-layouts", "target": "fld-layouts-edge-types", "type": "has_field"},
+    {"source": "tbl-layouts", "target": "fld-layouts-hide-orphans", "type": "has_field"},
+    {"source": "tbl-layouts", "target": "fld-layouts-is-default", "type": "has_field"},
+    {"source": "ent-edgetypes", "target": "fld-layouts-edge-types", "type": "serializes"},
+    {"source": "ent-hideorphans", "target": "fld-layouts-hide-orphans", "type": "serializes"},
+    {"source": "ent-edgetypes", "target": "ent-layout", "type": "part_of"},
+    {"source": "ent-hideorphans", "target": "ent-layout", "type": "part_of"},
 ]
 
 
