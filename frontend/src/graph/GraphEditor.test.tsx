@@ -628,4 +628,51 @@ describe('GraphEditor — visualization manifest', () => {
       edges: { e1: { type: 'depends_on', source: 'n1', target: 'n2' } },
     })
   })
+
+  it('save form refuses the empty snapshot on a failed graph load and recovers', async () => {
+    vi.useFakeTimers()
+    // viz row resolves but the subgraph fails: allNodes is empty — a plain
+    // save (SAME name → no confirm gate) would PUT positions {} and wipe the
+    // row. The form must refuse exactly like autosave/beforeunload/sync.
+    const bad = fakeClient({ ...boundManifest })
+    ;(bad.getSubgraph as any).mockRejectedValue(new Error('db down'))
+    const utils = render(<GraphEditor client={bad} graphId="g1" styles={{}} />)
+    await settle()
+    expect(screen.getByText('db down')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('save-viz'))
+    fireEvent.click(screen.getByTestId('save-viz-ok'))
+    await settle()
+    expect(bad.saveVisualization).not.toHaveBeenCalled()
+    // recovery: a working client re-runs the load — submitting now PUTs the
+    // real snapshot (positions of the loaded graph, binding carried as-is)
+    const good = fakeClient({ ...boundManifest })
+    utils.rerender(<GraphEditor client={good} graphId="g1" styles={{}} />)
+    await settle()
+    expect(screen.queryByText('db down')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('save-viz'))
+    fireEvent.click(screen.getByTestId('save-viz-ok'))
+    await settle()
+    expect(good.saveVisualization).toHaveBeenCalledTimes(1)
+    const args = (good.saveVisualization as any).mock.calls[0]
+    expect(args[1]).toBe('quiet-harbor-42')
+    expect(Object.keys(args[2])).toEqual(expect.arrayContaining(['n1', 'n2', 'n3']))
+    expect(args[7]).toEqual({
+      graphVersion: 4,
+      nodes: boundManifest.nodes,
+      edges: boundManifest.edges,
+    })
+  })
+
+  it('sync failure notice does not promise an automatic retry', async () => {
+    vi.useFakeTimers()
+    const client = legacyDiffClient()
+    ;(client.saveVisualization as any).mockRejectedValue(new Error('boom'))
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('sync-viz'))
+    await settle()
+    // sync is a one-shot user action — unlike autosave it never retries itself
+    expect(screen.getByText('sync failed')).toBeInTheDocument()
+    expect(screen.queryByText('sync failed — retrying')).not.toBeInTheDocument()
+  })
 })

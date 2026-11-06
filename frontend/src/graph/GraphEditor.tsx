@@ -289,7 +289,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
           setNotice(null)
         }
       })
-      .catch(() => setNotice('sync failed — retrying'))
+      .catch(() => setNotice('sync failed'))
   }
 
   // «Сохранить визуализацию» — fork / overwrite / plain save; every path carries
@@ -297,6 +297,9 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   const submitSaveForm = async () => {
     const name = saveName.trim()
     if (!name) return // blank rejected client-side
+    // viz resolved but the graph load failed/stalled: the empty snapshot would
+    // wipe the row's positions/viewport/filters — refuse like autosave/sync
+    if (saveBlocked()) return
     if (name !== vizName) {
       const exists = await client.getVisualization(graphId, name).then(
         () => true,
