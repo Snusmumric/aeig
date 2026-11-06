@@ -41,10 +41,10 @@ const styles: TypeStyleMap = {
   // architecture graph types (see scripts/archgen.py) — data layer
   store: { shape: 'diamond', color: '#0d9488' },
   table: { shape: 'rectangle', color: '#059669' },
-  field: { shape: 'rectangle', color: '#a7f3d0' },
+  field: { shape: 'rectangle', color: '#15803d' },
   label: { shape: 'rectangle', color: '#16a34a' },
   reltype: { shape: 'rectangle', color: '#4ade80' },
-  property: { shape: 'rectangle', color: '#bbf7d0' },
+  property: { shape: 'rectangle', color: '#166534' },
   entity: { shape: 'ellipse', color: '#8b5cf6' },
   stored_in: { shape: 'rectangle', color: '#0d9488' },
   has_field: { shape: 'rectangle', color: '#cbd5e1' },
