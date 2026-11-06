@@ -22,7 +22,12 @@ func NewVisualizationRepo(pool *pgxpool.Pool) *VisualizationRepo {
 	return &VisualizationRepo{pool: pool}
 }
 
-func (r *VisualizationRepo) SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool) (domain.Visualization, error) {
+// SaveVisualization upserts by (graph_id, name). The manifest binding is
+// partial: nil graphVersion/nodes/edges leave the stored values unchanged,
+// non-nil (raw JSON, including `null`) set them. Any INSERT of a row named
+// "default" self-heals into the graph's default (is_default = true); the
+// conflict-update path never flips is_default.
+func (r *VisualizationRepo) SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges []byte) (domain.Visualization, error) {
 	posJSON, err := json.Marshal(positions)
 	if err != nil {
 		return domain.Visualization{}, err
@@ -54,16 +59,28 @@ func (r *VisualizationRepo) SaveVisualization(ctx context.Context, graphID, name
 		et := edgeTypes
 		out.EdgeTypes = &et
 	}
-	// Upsert by (graph_id, name); never flips is_default.
+	// graphVersion is NOT NULL, so the INSERT path defaults nil → 0; the
+	// conflict-update path must distinguish "absent" from "set to 0", hence
+	// it re-checks the parameter instead of using EXCLUDED.
+	var nodesJSON, edgesJSON []byte
 	err = r.pool.QueryRow(ctx,
-		`INSERT INTO layouts (id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		`INSERT INTO layouts (id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, graph_version, nodes, edges)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, ($3 = 'default'), COALESCE($9, 0), $10, $11)
 		 ON CONFLICT (graph_id, name)
-		 DO UPDATE SET positions = EXCLUDED.positions, viewport = EXCLUDED.viewport, node_types = EXCLUDED.node_types, edge_types = EXCLUDED.edge_types, hide_orphans = EXCLUDED.hide_orphans
-		 RETURNING id, is_default, created_at`,
-		uuid.NewString(), graphID, name, posJSON, vpJSON, nodeTypesJSON, edgeTypesJSON, hideOrphans,
-	).Scan(&out.ID, &out.IsDefault, &out.CreatedAt)
+		 DO UPDATE SET positions = EXCLUDED.positions, viewport = EXCLUDED.viewport, node_types = EXCLUDED.node_types, edge_types = EXCLUDED.edge_types, hide_orphans = EXCLUDED.hide_orphans,
+		   graph_version = COALESCE($9, layouts.graph_version),
+		   nodes = COALESCE($10, layouts.nodes),
+		   edges = COALESCE($11, layouts.edges)
+		 RETURNING id, is_default, created_at, graph_version, nodes, edges`,
+		uuid.NewString(), graphID, name, posJSON, vpJSON, nodeTypesJSON, edgeTypesJSON, hideOrphans, graphVersion, nodes, edges,
+	).Scan(&out.ID, &out.IsDefault, &out.CreatedAt, &out.GraphVersion, &nodesJSON, &edgesJSON)
 	if err != nil {
+		return domain.Visualization{}, err
+	}
+	if out.Nodes, err = decodeManifest[domain.ManifestNode](nodesJSON); err != nil {
+		return domain.Visualization{}, err
+	}
+	if out.Edges, err = decodeManifest[domain.ManifestEdge](edgesJSON); err != nil {
 		return domain.Visualization{}, err
 	}
 	return out, nil
@@ -71,7 +88,7 @@ func (r *VisualizationRepo) SaveVisualization(ctx context.Context, graphID, name
 
 func (r *VisualizationRepo) GetVisualizationByName(ctx context.Context, graphID, name string) (domain.Visualization, error) {
 	row := r.pool.QueryRow(ctx,
-		`SELECT id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, created_at
+		`SELECT id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, graph_version, nodes, edges, created_at
 		 FROM layouts WHERE graph_id = $1 AND name = $2`, graphID, name)
 	v, err := scanVisualization(row)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -85,7 +102,7 @@ func (r *VisualizationRepo) GetVisualizationByName(ctx context.Context, graphID,
 
 func (r *VisualizationRepo) GetDefaultVisualization(ctx context.Context, graphID string) (domain.Visualization, error) {
 	row := r.pool.QueryRow(ctx,
-		`SELECT id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, created_at
+		`SELECT id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, graph_version, nodes, edges, created_at
 		 FROM layouts WHERE graph_id = $1 AND is_default`, graphID)
 	v, err := scanVisualization(row)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -98,19 +115,18 @@ func (r *VisualizationRepo) GetDefaultVisualization(ctx context.Context, graphID
 }
 
 // TryCreateDefaultVisualization attempts to insert the graph's default
-// visualization under the given candidate name. ON CONFLICT DO NOTHING catches
-// both unique constraints (one default per graph, and (graph_id, name)), so
-// when no row comes back the outcome is decided by GetDefaultVisualization:
-// found → the race was lost, return the existing default (created=false);
-// ErrNotFound → the name collided with a non-default row, the caller should
-// retry with another name.
-func (r *VisualizationRepo) TryCreateDefaultVisualization(ctx context.Context, graphID, name string) (domain.Visualization, bool, error) {
+// visualization under the fixed name "default" (unbound: graph_version 0,
+// no manifests). ON CONFLICT DO NOTHING catches both unique constraints
+// (one default per graph, and (graph_id, name)); when no row comes back the
+// race was lost and the existing default is returned via
+// GetDefaultVisualization (created=false).
+func (r *VisualizationRepo) TryCreateDefaultVisualization(ctx context.Context, graphID string) (domain.Visualization, bool, error) {
 	row := r.pool.QueryRow(ctx,
-		`INSERT INTO layouts (id, graph_id, name, positions, viewport, is_default)
-		 VALUES ($1, $2, $3, '{}'::jsonb, $4, true)
+		`INSERT INTO layouts (id, graph_id, name, positions, viewport, is_default, graph_version)
+		 VALUES ($1, $2, 'default', '{}'::jsonb, $3, true, 0)
 		 ON CONFLICT DO NOTHING
 		 RETURNING id, created_at`,
-		uuid.NewString(), graphID, name, `{"x":0,"y":0,"zoom":1}`)
+		uuid.NewString(), graphID, `{"x":0,"y":0,"zoom":1}`)
 	var id string
 	var createdAt time.Time
 	if err := row.Scan(&id, &createdAt); err != nil {
@@ -126,7 +142,7 @@ func (r *VisualizationRepo) TryCreateDefaultVisualization(ctx context.Context, g
 	return domain.Visualization{
 		ID:        id,
 		GraphID:   graphID,
-		Name:      name,
+		Name:      "default",
 		Positions: map[string]domain.Position{},
 		Viewport:  domain.Viewport{X: 0, Y: 0, Zoom: 1},
 		IsDefault: true,
@@ -139,10 +155,23 @@ type rowScanner interface {
 	Scan(dest ...any) error
 }
 
+// decodeManifest turns a stored JSONB manifest (nodes/edges) into the typed
+// map pointer: NULL column → nil (legacy row), non-NULL → present map.
+func decodeManifest[T any](b []byte) (*map[string]T, error) {
+	if len(b) == 0 {
+		return nil, nil
+	}
+	var m map[string]T
+	if err := json.Unmarshal(b, &m); err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
 func scanVisualization(row rowScanner) (domain.Visualization, error) {
 	var v domain.Visualization
-	var posJSON, vpJSON, nodeTypesJSON, edgeTypesJSON []byte
-	if err := row.Scan(&v.ID, &v.GraphID, &v.Name, &posJSON, &vpJSON, &nodeTypesJSON, &edgeTypesJSON, &v.HideOrphans, &v.IsDefault, &v.CreatedAt); err != nil {
+	var posJSON, vpJSON, nodeTypesJSON, edgeTypesJSON, nodesJSON, edgesJSON []byte
+	if err := row.Scan(&v.ID, &v.GraphID, &v.Name, &posJSON, &vpJSON, &nodeTypesJSON, &edgeTypesJSON, &v.HideOrphans, &v.IsDefault, &v.GraphVersion, &nodesJSON, &edgesJSON, &v.CreatedAt); err != nil {
 		return domain.Visualization{}, err
 	}
 	if err := json.Unmarshal(posJSON, &v.Positions); err != nil {
@@ -164,6 +193,13 @@ func scanVisualization(row rowScanner) (domain.Visualization, error) {
 			return domain.Visualization{}, err
 		}
 		v.EdgeTypes = &et
+	}
+	var err error
+	if v.Nodes, err = decodeManifest[domain.ManifestNode](nodesJSON); err != nil {
+		return domain.Visualization{}, err
+	}
+	if v.Edges, err = decodeManifest[domain.ManifestEdge](edgesJSON); err != nil {
+		return domain.Visualization{}, err
 	}
 	return v, nil
 }
