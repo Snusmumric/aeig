@@ -1,7 +1,7 @@
 PGPW ?= devpass
 NEO4J_PW ?= password123
 
-.PHONY: setup graph graph-refresh test test-integration dev down seed-regen roadmap-regen
+.PHONY: setup graph graph-refresh test test-integration dev down seed-regen roadmap-regen arch-regen
 
 dev: ## run the full dev stack in one command (databases + backend + frontend)
 	./scripts/dev.sh
@@ -20,6 +20,18 @@ roadmap-regen: ## regenerate the roadmap seed; apply it to a running dev stack, 
 		docker compose exec -T -e PGPASSWORD=$(PGPW) postgres psql -q -U aeig -d aeig < seed/roadmap-graph.sql; \
 		docker compose exec -T neo4j cypher-shell -u neo4j -p $(NEO4J_PW) < seed/roadmap-graph.cypher >/dev/null; \
 		echo "    roadmap graph updated in the running databases"; \
+	else \
+		echo "==> no local dev DB found — seed files only (applied on the next 'make dev')"; \
+	fi
+
+arch-regen: ## regenerate the architecture graph seed; apply it to a running dev stack, seed-files-only otherwise
+	python3 scripts/archgen.py
+	@RUNNING=$$(docker compose ps --services --filter status=running 2>/dev/null); \
+	if echo "$$RUNNING" | grep -qx postgres && echo "$$RUNNING" | grep -qx neo4j; then \
+		echo "==> local dev DB is up — applying the architecture seed"; \
+		docker compose exec -T -e PGPASSWORD=$(PGPW) postgres psql -q -U aeig -d aeig < seed/aeig-arch-graph.sql; \
+		docker compose exec -T neo4j cypher-shell -u neo4j -p $(NEO4J_PW) < seed/aeig-arch-graph.cypher >/dev/null; \
+		echo "    architecture graph updated in the running databases"; \
 	else \
 		echo "==> no local dev DB found — seed files only (applied on the next 'make dev')"; \
 	fi

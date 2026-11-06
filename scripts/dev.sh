@@ -94,6 +94,13 @@ docker compose exec -T -e PGPASSWORD="$PGPW" postgres psql -q -U aeig -d aeig < 
 docker compose exec -T neo4j cypher-shell -u neo4j -p "$NEO4J_PW" < seed/roadmap-graph.cypher >/dev/null
 echo "==> OPEN roadmap:  http://localhost:5173/?graph=$GID_ROADMAP"
 
+# --- seed the AEiG architecture graph (self-description; stage 1: data layer) ---
+GID_ARCH="c0de0000-0000-4000-8000-000000000003"
+echo "==> seeding the AEiG architecture graph (data layer)"
+docker compose exec -T -e PGPASSWORD="$PGPW" postgres psql -q -U aeig -d aeig < seed/aeig-arch-graph.sql
+docker compose exec -T neo4j cypher-shell -u neo4j -p "$NEO4J_PW" < seed/aeig-arch-graph.cypher >/dev/null
+echo "==> OPEN architecture:  http://localhost:5173/?graph=$GID_ARCH"
+
 # --- frontend (foreground; Ctrl+C stops everything via the trap) ---
 echo "==> starting frontend (Vite :5173) — press Ctrl+C to stop the whole stack"
 ( cd frontend && npm run dev )

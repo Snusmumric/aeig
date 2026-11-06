@@ -2374,7 +2374,7 @@
       "label": "params",
       "file_type": "code",
       "source_file": "frontend/src/App.tsx",
-      "source_location": "L47",
+      "source_location": "L64",
       "_origin": "ast",
       "id": "frontend_src_app_params",
       "community": 0,
@@ -2385,7 +2385,7 @@
       "label": "App()",
       "file_type": "code",
       "source_file": "frontend/src/App.tsx",
-      "source_location": "L53",
+      "source_location": "L70",
       "_origin": "ast",
       "id": "frontend_src_app_app",
       "community": 0,
@@ -8213,7 +8213,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/App.tsx",
-      "source_location": "L53",
+      "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app",
@@ -8235,7 +8235,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/App.tsx",
-      "source_location": "L47",
+      "source_location": "L64",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_app",
@@ -10622,5 +10622,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "224a3605c57760dc5941f6ae39f82786f4304c4a"
+  "built_at_commit": "defaef6dc00e6bbd2810d9a4bc286dc30debe6c5"
 }
