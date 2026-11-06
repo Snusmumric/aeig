@@ -340,3 +340,255 @@ describe('GraphEditor — visualizations', () => {
     expect(spy).toHaveBeenCalledWith(null, '', '?graph=g1&viz=quiet-harbor-42')
   })
 })
+
+describe('GraphEditor — visualization manifest', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  // the …0003 acceptance shape in miniature: 3 saved positions, graph grew to 5
+  function legacyDiffClient(def: Partial<Visualization> = {}) {
+    const client = fakeClient({
+      positions: { n1: { x: 10, y: 10 }, n2: { x: 20, y: 10 }, n3: { x: 30, y: 10 } },
+      ...def,
+    })
+    ;(client.getSubgraph as any).mockResolvedValue({
+      nodes: [
+        { id: 'n1', type: 'Task', properties: {} },
+        { id: 'n2', type: 'Milestone', properties: {} },
+        { id: 'n3', type: 'Task', properties: {} },
+        { id: 'n4', type: 'Task', properties: {} },
+        { id: 'n5', type: 'Task', properties: {} },
+      ],
+      edges: [{ id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} }],
+    })
+    return client
+  }
+
+  const boundManifest = {
+    graphVersion: 4,
+    nodes: {
+      n1: { type: 'Task', label: 'n1', x: 1, y: 2 },
+      n2: { type: 'Milestone', label: 'n2', x: 3, y: 4 },
+    },
+    edges: { e1: { type: 'depends_on', source: 'n1', target: 'n2' } },
+  }
+
+  it('stale legacy viz shows diff bar with counts and highlighted additions visible by default', async () => {
+    vi.useFakeTimers()
+    render(<GraphEditor client={legacyDiffClient()} graphId="g1" styles={{}} />)
+    await settle()
+    expect(screen.getByTestId('viz-diff-bar')).toBeInTheDocument()
+    expect(screen.getByTestId('toggle-added').textContent).toBe('Новое (2)')
+    expect(screen.getByTestId('toggle-deleted').textContent).toBe('Удалённое (0)')
+    // additions highlighted immediately (both toggles ON by default)
+    const n4 = document.querySelector('.react-flow__node[data-id="n4"]') as HTMLElement
+    expect(n4).not.toBeNull()
+    expect(n4.classList.contains('added')).toBe(true)
+    const n1 = document.querySelector('.react-flow__node[data-id="n1"]') as HTMLElement
+    expect(n1.classList.contains('added')).toBe(false)
+  })
+
+  it('renders a ghost for a dead position key and the «Удалённое» toggle hides it', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient({ positions: { n1: { x: 1, y: 1 }, dead: { x: 99, y: 99 } } })
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    const ghost = document.querySelector('.react-flow__node[data-id="dead"]') as HTMLElement
+    expect(ghost).not.toBeNull()
+    expect(ghost.classList.contains('ghost')).toBe(true)
+    expect(screen.getByText('dead')).toBeInTheDocument()
+    expect(screen.getByTestId('toggle-deleted').textContent).toBe('Удалённое (1)')
+    fireEvent.click(screen.getByTestId('toggle-deleted'))
+    expect(screen.getByTestId('toggle-deleted')).toHaveAttribute('aria-pressed', 'false')
+    expect(document.querySelector('.react-flow__node[data-id="dead"]')).toBeNull()
+    fireEvent.click(screen.getByTestId('toggle-deleted'))
+    expect(document.querySelector('.react-flow__node[data-id="dead"]')).not.toBeNull()
+  })
+
+  it('toggles hide and show the added layer', async () => {
+    vi.useFakeTimers()
+    render(<GraphEditor client={legacyDiffClient()} graphId="g1" styles={{}} />)
+    await settle()
+    expect(screen.getByTestId('toggle-deleted')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('toggle-added')).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByTestId('toggle-added'))
+    expect(screen.getByTestId('toggle-added')).toHaveAttribute('aria-pressed', 'false')
+    expect(document.querySelector('.react-flow__node[data-id="n4"]')).toBeNull()
+    expect(document.querySelector('.react-flow__node[data-id="n5"]')).toBeNull()
+    // manifest members stay visible
+    expect(document.querySelector('.react-flow__node[data-id="n1"]')).not.toBeNull()
+    fireEvent.click(screen.getByTestId('toggle-added'))
+    expect(document.querySelector('.react-flow__node[data-id="n4"]')).not.toBeNull()
+  })
+
+  it('save-as free name forks with binding carried', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient({ name: 'bound-1', ...boundManifest })
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('save-viz'))
+    const input = screen.getByTestId('save-viz-input') as HTMLInputElement
+    expect(input.value).toBe('bound-1')
+    fireEvent.change(input, { target: { value: 'fork-1' } })
+    fireEvent.click(screen.getByTestId('save-viz-ok'))
+    await settle()
+    // existence probe for the new name happened and found nothing
+    expect(client.getVisualization).toHaveBeenCalledWith('g1', 'fork-1')
+    const args = (client.saveVisualization as any).mock.calls[0]
+    expect(args[1]).toBe('fork-1')
+    // binding carried as-is: manifest fields equal to the loaded viz
+    expect(args[7]).toEqual({
+      graphVersion: 4,
+      nodes: boundManifest.nodes,
+      edges: boundManifest.edges,
+    })
+    // the editor switched to the fork
+    expect(screen.getByTestId('viz-badge').textContent).toBe('fork-1')
+    expect(new URLSearchParams(window.location.search).get('viz')).toBe('fork-1')
+    expect(screen.queryByTestId('save-viz-input')).not.toBeInTheDocument()
+  })
+
+  it('plain save under the same name PUTs with the copied manifest', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient({ ...boundManifest })
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('save-viz'))
+    fireEvent.click(screen.getByTestId('save-viz-ok'))
+    await settle()
+    // same name → no existence probe, no confirm
+    expect(client.getVisualization).not.toHaveBeenCalled()
+    expect(confirmSpy).not.toHaveBeenCalled()
+    const args = (client.saveVisualization as any).mock.calls[0]
+    expect(args[1]).toBe('quiet-harbor-42')
+    expect(args[7]).toEqual({
+      graphVersion: 4,
+      nodes: boundManifest.nodes,
+      edges: boundManifest.edges,
+    })
+  })
+
+  it('save-as existing name confirms overwrite and PUTs on ok', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient({ ...boundManifest })
+    ;(client.getVisualization as any).mockResolvedValue(viz({ name: 'busy' }))
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('save-viz'))
+    fireEvent.change(screen.getByTestId('save-viz-input'), { target: { value: 'busy' } })
+    fireEvent.click(screen.getByTestId('save-viz-ok'))
+    await settle()
+    expect(confirmSpy).toHaveBeenCalledWith('Перезаписать?')
+    const args = (client.saveVisualization as any).mock.calls[0]
+    expect(args[1]).toBe('busy')
+    expect(args[7]).toEqual({
+      graphVersion: 4,
+      nodes: boundManifest.nodes,
+      edges: boundManifest.edges,
+    })
+  })
+
+  it('save-as existing name cancelled does no PUT', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient({ ...boundManifest })
+    ;(client.getVisualization as any).mockResolvedValue(viz({ name: 'busy' }))
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('save-viz'))
+    fireEvent.change(screen.getByTestId('save-viz-input'), { target: { value: 'busy' } })
+    fireEvent.click(screen.getByTestId('save-viz-ok'))
+    await settle()
+    expect(client.saveVisualization).not.toHaveBeenCalled()
+    // cancelled → the form stays open for another try
+    expect(screen.getByTestId('save-viz-input')).toBeInTheDocument()
+  })
+
+  it('autosave payload omits manifest fields', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient({ ...boundManifest })
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('type-Milestone'))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(client.saveVisualization).toHaveBeenCalledTimes(1)
+    const args = (client.saveVisualization as any).mock.calls[0]
+    expect(args[7]).toBeUndefined()
+  })
+
+  it('sync PUTs manifest := subgraph and version := current', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient({
+      positions: { n1: { x: 5, y: 5 }, n2: { x: 6, y: 6 }, n3: { x: 7, y: 7 }, dead: { x: 99, y: 99 } },
+    })
+    ;(client.getSubgraph as any).mockResolvedValue({
+      nodes: [
+        { id: 'n1', type: 'Task', properties: {} },
+        { id: 'n2', type: 'Milestone', properties: {} },
+        { id: 'n3', type: 'Task', properties: {} },
+      ],
+      edges: [
+        { id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} },
+        { id: 'e2', type: 'blocks', source: 'n2', target: 'n3', properties: {} },
+      ],
+    })
+    // echo the PUT back so the editor's local binding adopts the synced manifest
+    // (later 7-arg autosaves must not blow up the echo — manifest optional)
+    ;(client.saveVisualization as any).mockImplementation(
+      (_gid: string, name: string, positions: unknown, viewport: unknown, nodeTypes: unknown, edgeTypes: unknown, hideOrphans: unknown, manifest?: any) =>
+        Promise.resolve(
+          viz({
+            name,
+            positions: positions as Visualization['positions'],
+            viewport: viewport as Visualization['viewport'],
+            nodeTypes: nodeTypes as string[] | undefined,
+            edgeTypes: edgeTypes as string[] | null | undefined,
+            hideOrphans: hideOrphans as boolean,
+            graphVersion: manifest?.graphVersion ?? 0,
+            nodes: manifest?.nodes,
+            edges: manifest?.edges,
+          }),
+        ),
+    )
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    // legacy row: 1 dead position key → ghost → the bar is up
+    expect(screen.getByTestId('viz-diff-bar')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('sync-viz'))
+    await settle()
+    expect(client.saveVisualization).toHaveBeenCalledTimes(1)
+    const args = (client.saveVisualization as any).mock.calls[0]
+    expect(args[7]).toEqual({
+      graphVersion: 1,
+      nodes: {
+        n1: { type: 'Task', label: 'n1', x: 5, y: 5 },
+        n2: { type: 'Milestone', label: 'n2', x: 6, y: 6 },
+        n3: { type: 'Task', label: 'n3', x: 7, y: 7 },
+      },
+      edges: {
+        e1: { type: 'depends_on', source: 'n1', target: 'n2' },
+        e2: { type: 'blocks', source: 'n2', target: 'n3' },
+      },
+    })
+    // positions := current alive nodes — the dead key is pruned for good
+    expect(args[2]).not.toHaveProperty('dead')
+    // the diff cleared: manifest == graph after the binding refresh
+    expect(screen.queryByTestId('viz-diff-bar')).not.toBeInTheDocument()
+    // and a later autosave keeps the row pruned
+    fireEvent.click(screen.getByTestId('type-Milestone'))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    const later = (client.saveVisualization as any).mock.calls[1]
+    expect(later[2]).not.toHaveProperty('dead')
+  })
+})

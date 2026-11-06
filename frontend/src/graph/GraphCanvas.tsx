@@ -3,18 +3,35 @@ import {
   ReactFlow,
   Background,
   Controls,
+  Handle,
+  Position,
   type Node,
   type Edge,
   type NodeChange,
+  type NodeProps,
   type OnNodeDrag,
   type OnMove,
   type ReactFlowInstance,
   type Viewport,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import '../App.css'
 import { TypedNode } from './TypedNode'
 
-const nodeTypes = { typed: TypedNode }
+/** Read-only ghost of a node remembered by the visualization but gone from
+ *  the graph — styled by `.react-flow__node.ghost` in App.css. */
+function GhostNode(props: NodeProps) {
+  const data = props.data as { label: string }
+  return (
+    <div data-testid="ghost-node" style={{ padding: 10, minWidth: 80, textAlign: 'center', background: '#6b7280', color: '#fff', borderRadius: 4, border: '1px dashed #ef4444' }}>
+      <Handle type="target" position={Position.Left} isConnectable={false} />
+      <div>{data.label}</div>
+      <Handle type="source" position={Position.Right} isConnectable={false} />
+    </div>
+  )
+}
+
+const nodeTypes = { typed: TypedNode, ghost: GhostNode }
 
 export interface GraphCanvasProps {
   nodes: Node[]

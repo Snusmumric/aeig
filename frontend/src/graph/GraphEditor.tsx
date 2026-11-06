@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { NodeChange } from '@xyflow/react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { Edge, Node, NodeChange } from '@xyflow/react'
 import type { ApiClient } from '../api/client'
-import type { Visualization, Viewport } from '../api/types'
+import type { GraphEdge, GraphNode, Visualization, VisualizationManifest, Viewport } from '../api/types'
 import { GraphCanvas } from './GraphCanvas'
 import { TypeFilterPanel } from './TypeFilterPanel'
+import { VizDiffBar } from './VizDiffBar'
 import { useGraph } from './useGraph'
+import { computeVizDiff } from './vizDiff'
 import { extractPositions } from './layout'
 import type { TypeStyleMap } from './typeStyle'
 
@@ -23,6 +25,8 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     nodes,
     edges,
     allNodes,
+    allEdges,
+    version,
     error,
     reload,
     onNodesChange,
@@ -40,9 +44,16 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   } = useGraph(client, graphId, styles)
 
   const [vizName, setVizName] = useState<string | null>(null)
+  /** the loaded visualization row — the binding is copied from it on saves */
+  const [viz, setViz] = useState<Visualization | null>(null)
   const [applyViewport, setApplyViewport] = useState<Viewport | null>(null)
   const [fitView, setFitView] = useState(true)
   const [notice, setNotice] = useState<string | null>(null)
+  // diff layer visibility — both ON by default: the drift shows immediately
+  const [showDeleted, setShowDeleted] = useState(true)
+  const [showAdded, setShowAdded] = useState(true)
+  const [saveFormOpen, setSaveFormOpen] = useState(false)
+  const [saveName, setSaveName] = useState('')
   const dirty = useRef(false)
   // bumped on every state change that dirties the editor — lets a save that was
   // in flight when newer edits happened refuse to declare the state clean
@@ -77,6 +88,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         await reload()
         return
       }
+      setViz(viz)
       setVizName(viz.name)
       setFitView(Object.keys(viz.positions).length === 0)
       viewportRef.current = viz.viewport
@@ -138,18 +150,174 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     [markDirty],
   )
 
-  // Autosave every 10s while dirty (last-write-wins PUT of the whole state) +
-  // a best-effort save on tab close (the client's PUT is keepalive).
-  useEffect(() => {
-    if (!vizName) return
-    const saveArgs = () => {
+  // ── visualization binding: staleness diff + display layers ──────────────
+  // computeVizDiff speaks API types — adapt the unfiltered flow arrays to it
+  const graphNodes = useMemo<GraphNode[]>(
+    () => allNodes.map((n) => ({ id: n.id, type: n.data.nodeType, properties: n.data.properties })),
+    [allNodes],
+  )
+  const graphEdges = useMemo<GraphEdge[]>(
+    () =>
+      allEdges.map((e) => ({
+        id: e.id,
+        type: e.data?.edgeType ?? '',
+        source: e.source,
+        target: e.target,
+        properties: {},
+      })),
+    [allEdges],
+  )
+  const diff = useMemo(() => computeVizDiff(viz, graphNodes, graphEdges), [viz, graphNodes, graphEdges])
+
+  const deletedCount = diff.deletedNodes.length + diff.deletedEdges.length
+  const addedCount = diff.addedNodeIds.size + diff.addedEdgeIds.size
+  const hasDiff = deletedCount + addedCount > 0
+  // stale with an empty diff (version bumped by property-only changes):
+  // informational badge «v→v'», no toggles — sync still available
+  const staleEmpty = !hasDiff && viz !== null && viz.graphVersion > 0 && viz.graphVersion < version
+
+  // visible nodes = filtered graph nodes (additions highlighted while shown)
+  // plus ghost nodes remembered by the manifest (bypass type filters)
+  const displayNodes = useMemo<Node[]>(() => {
+    if (diff.mode === 'unbound') return nodes
+    const alive = showAdded ? nodes : nodes.filter((n) => !diff.addedNodeIds.has(n.id))
+    const styled = alive.map((n) => (diff.addedNodeIds.has(n.id) ? { ...n, className: 'added' } : n))
+    if (!showDeleted) return styled
+    const graphIds = new Set(graphNodes.map((n) => n.id))
+    const ghosts = Object.entries(diff.manifestNodes)
+      .filter(([id]) => !graphIds.has(id))
+      .map(([id, m]) => ({
+        id,
+        type: 'ghost',
+        position: { x: m.x, y: m.y },
+        draggable: false,
+        deletable: false,
+        data: { label: m.label },
+        className: 'ghost',
+      }))
+    return [...styled, ...ghosts]
+  }, [diff, nodes, graphNodes, showAdded, showDeleted])
+
+  const displayEdges = useMemo<Edge[]>(() => {
+    if (diff.mode === 'unbound') return edges
+    const alive = showAdded ? edges : edges.filter((e) => !diff.addedEdgeIds.has(e.id))
+    const styled = alive.map((e) =>
+      diff.addedEdgeIds.has(e.id)
+        ? { ...e, className: 'added', animated: true, style: { stroke: '#22c55e', strokeWidth: 2 } }
+        : e,
+    )
+    if (!showDeleted) return styled
+    const graphIds = new Set(graphEdges.map((e) => e.id))
+    const ghosts = Object.entries(diff.manifestEdges)
+      .filter(([id]) => !graphIds.has(id))
+      .map(([id, m]) => ({
+        id,
+        source: m.source,
+        target: m.target,
+        label: m.type,
+        className: 'ghost',
+        style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '5 3' },
+      }))
+    return [...styled, ...ghosts]
+  }, [diff, edges, graphEdges, showAdded, showDeleted])
+
+  // the autosave PUT args — reads refs so its identity stays stable
+  const buildSaveArgs = useCallback(
+    (name: string) => {
       const { allNodes: an, visibleTypes: vt, visibleEdgeTypes: vet, hideOrphans: ho } = latest.current
       // an existing Set always serializes — even empty («Ни одного» = show none,
       // distinct from null = filter inactive)
       const nodeTypes = vt ? [...vt] : undefined
       const edgeTypes = vet ? [...vet] : undefined
-      return [graphId, vizName, extractPositions(an), viewportRef.current, nodeTypes, edgeTypes, ho] as const
+      return [graphId, name, extractPositions(an), viewportRef.current, nodeTypes, edgeTypes, ho] as const
+    },
+    [graphId],
+  )
+
+  // binding as-is: only a bound row carries a manifest to copy; unbound/legacy
+  // rows save without the manifest fields (server keeps them NULL → mode kept)
+  const manifestOfViz = (): VisualizationManifest | undefined =>
+    viz && viz.nodes != null
+      ? { graphVersion: viz.graphVersion, nodes: viz.nodes ?? {}, edges: viz.edges ?? {} }
+      : undefined
+
+  // «Синхронизировать» — the ONLY act that adopts the current graph: manifest
+  // := current subgraph (all nodes/edges, unfiltered), graphVersion := current,
+  // positions := current on-screen positions (dead ids pruned for good)
+  const handleSync = () => {
+    if (!vizName) return
+    const { visibleTypes: vt, visibleEdgeTypes: vet, hideOrphans: ho } = latest.current
+    const manifest: VisualizationManifest = {
+      graphVersion: version,
+      nodes: Object.fromEntries(
+        allNodes.map((n) => [
+          n.id,
+          { type: n.data.nodeType, label: n.data.label, x: n.position.x, y: n.position.y },
+        ]),
+      ),
+      edges: Object.fromEntries(
+        allEdges.map((e) => [e.id, { type: e.data?.edgeType ?? '', source: e.source, target: e.target }]),
+      ),
     }
+    const revAtSaveStart = revision.current
+    void client
+      .saveVisualization(
+        graphId,
+        vizName,
+        extractPositions(allNodes),
+        viewportRef.current,
+        vt ? [...vt] : undefined,
+        vet ? [...vet] : undefined,
+        ho,
+        manifest,
+      )
+      .then((saved) => {
+        setViz(saved)
+        if (revision.current === revAtSaveStart) {
+          dirty.current = false
+          setNotice(null)
+        }
+      })
+      .catch(() => setNotice('sync failed — retrying'))
+  }
+
+  // «Сохранить визуализацию» — fork / overwrite / plain save; every path carries
+  // the binding as-is (copied from the loaded viz, never refreshed)
+  const submitSaveForm = async () => {
+    const name = saveName.trim()
+    if (!name) return // blank rejected client-side
+    if (name !== vizName) {
+      const exists = await client.getVisualization(graphId, name).then(
+        () => true,
+        () => false,
+      )
+      if (exists && !window.confirm('Перезаписать?')) return
+    }
+    const revAtSaveStart = revision.current
+    try {
+      const saved = await client.saveVisualization(...buildSaveArgs(name), manifestOfViz())
+      if (revision.current === revAtSaveStart) {
+        dirty.current = false
+        setNotice(null)
+      }
+      setViz(saved)
+      if (name !== vizName) {
+        setVizName(name)
+        const params = new URLSearchParams(window.location.search)
+        params.set('viz', name)
+        window.history.replaceState(null, '', `?${params.toString()}`)
+      }
+      setSaveFormOpen(false)
+    } catch {
+      setNotice('save failed — retrying')
+    }
+  }
+
+  // Autosave every 10s while dirty (last-write-wins PUT of the whole state) +
+  // a best-effort save on tab close (the client's PUT is keepalive).
+  // Never sends the manifest fields — the binding refreshes only via sync.
+  useEffect(() => {
+    if (!vizName) return
     const saveBlocked = () => {
       const { allNodes: an, error: err } = latest.current
       // a failed or still-in-flight load means allNodes is empty — PUTting that
@@ -161,7 +329,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       if (saveBlocked()) return
       const revAtSaveStart = revision.current
       void client
-        .saveVisualization(...saveArgs())
+        .saveVisualization(...buildSaveArgs(vizName))
         .then(() => {
           // edits may have happened while this PUT was in flight — only declare
           // the state clean if nothing changed since the save started
@@ -173,7 +341,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         .catch(() => setNotice('autosave failed — retrying'))
     }
     const onBeforeUnload = () => {
-      if (dirty.current && !saveBlocked()) void client.saveVisualization(...saveArgs())
+      if (dirty.current && !saveBlocked()) void client.saveVisualization(...buildSaveArgs(vizName))
     }
     const id = setInterval(save, AUTOSAVE_INTERVAL_MS)
     window.addEventListener('beforeunload', onBeforeUnload)
@@ -181,19 +349,46 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       clearInterval(id)
       window.removeEventListener('beforeunload', onBeforeUnload)
     }
-  }, [vizName, client, graphId])
+  }, [vizName, client, graphId, buildSaveArgs])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', borderBottom: '1px solid #ddd' }}>
-        {vizName && (
-          <span
-            data-testid="viz-badge"
-            style={{ padding: '4px 8px', background: '#eef1f5', borderRadius: 4 }}
-          >
-            {vizName}
+        {saveFormOpen ? (
+          <span data-testid="save-viz-form" style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <input
+              data-testid="save-viz-input"
+              value={saveName}
+              onChange={(e) => setSaveName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  void submitSaveForm()
+                } else if (e.key === 'Escape') {
+                  setSaveFormOpen(false)
+                }
+              }}
+            />
+            <button data-testid="save-viz-ok" onClick={() => void submitSaveForm()}>
+              ОК
+            </button>
+            <button data-testid="save-viz-cancel" onClick={() => setSaveFormOpen(false)}>
+              Отмена
+            </button>
           </span>
+        ) : (
+          vizName && (
+            <span
+              data-testid="viz-badge"
+              style={{ padding: '4px 8px', background: '#eef1f5', borderRadius: 4 }}
+            >
+              {vizName}
+            </span>
+          )
         )}
+        <button data-testid="save-viz" onClick={() => { setSaveName(vizName ?? ''); setSaveFormOpen(true) }}>
+          Сохранить визуализацию
+        </button>
         <TypeFilterPanel
           types={types}
           visibleTypes={visibleTypes}
@@ -215,13 +410,32 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         >
           Скрыть сироты
         </button>
+        {hasDiff && (
+          <VizDiffBar
+            deletedCount={deletedCount}
+            addedCount={addedCount}
+            showDeleted={showDeleted}
+            showAdded={showAdded}
+            onToggleDeleted={() => setShowDeleted((v) => !v)}
+            onToggleAdded={() => setShowAdded((v) => !v)}
+            onSync={handleSync}
+          />
+        )}
+        {staleEmpty && (
+          <span data-testid="viz-stale-badge" style={{ display: 'flex', gap: 4, alignItems: 'center', color: '#b45309' }}>
+            v{viz?.graphVersion}→v{version}
+            <button data-testid="sync-viz" onClick={handleSync}>
+              Синхронизировать
+            </button>
+          </span>
+        )}
         {error && <span style={{ color: 'red' }}>{error}</span>}
         {notice && <span style={{ color: '#b45309' }}>{notice}</span>}
       </div>
       <div style={{ flex: 1 }}>
         <GraphCanvas
-          nodes={nodes}
-          edges={edges}
+          nodes={displayNodes}
+          edges={displayEdges}
           onNodesChange={handleNodesChange}
           onNodeDragStart={onNodeDragStart}
           onNodeDrag={onNodeDrag}

@@ -182,3 +182,14 @@
     border-right-color: var(--border);
   }
 }
+
+/* ── visualization diff layers (GraphEditor ghosts / additions) ─────────── */
+
+.react-flow__node.ghost {
+  opacity: 0.45;
+  outline: 2px dashed #ef4444;
+}
+
+.react-flow__node.added {
+  outline: 2px dashed #22c55e;
+}
