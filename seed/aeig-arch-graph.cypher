@@ -11,7 +11,7 @@ UNWIND [
   {id: 'tbl-layouts', type: 'table', props: {label: 'layouts', note: 'сохранённые раскладки канваса'}},
   {id: 'fld-layouts-id', type: 'field', props: {label: 'id', datatype: 'UUID', constraint: 'PK'}},
   {id: 'fld-layouts-graph-id', type: 'field', props: {label: 'graph_id', datatype: 'UUID', note: 'FK → graphs.id, ON DELETE CASCADE'}},
-  {id: 'fld-layouts-name', type: 'field', props: {label: 'name', datatype: 'TEXT', note: 'UNIQUE (graph_id, name); default зарезервировано'}},
+  {id: 'fld-layouts-name', type: 'field', props: {label: 'name', datatype: 'TEXT', note: 'UNIQUE (graph_id, name); default — имя дефолтной визуализации'}},
   {id: 'fld-layouts-positions', type: 'field', props: {label: 'positions', datatype: 'JSONB', note: '{nodeId: {x, y}}'}},
   {id: 'fld-layouts-viewport', type: 'field', props: {label: 'viewport', datatype: 'JSONB', note: '{x, y, zoom}'}},
   {id: 'fld-layouts-node-types', type: 'field', props: {label: 'node_types', datatype: 'JSONB', note: 'NULL = без фильтра; массив видимых типов вершин'}},
@@ -31,7 +31,7 @@ UNWIND [
   {id: 'prp-rel-source', type: 'property', props: {label: '_source', note: 'id вершины-источника'}},
   {id: 'prp-rel-target', type: 'property', props: {label: '_target', note: 'id вершины-приёмника'}},
   {id: 'ent-graph', type: 'entity', props: {label: 'Graph', note: 'id, name, version, createdAt — Go domain.Graph + TS Graph'}},
-  {id: 'ent-layout', type: 'entity', props: {label: 'Visualization', note: 'Go domain.Visualization + TS Visualization; эволюция Layout, таблица layouts сохранена'}},
+  {id: 'ent-layout', type: 'entity', props: {label: 'Visualization (manifest)', note: 'Go domain.Visualization + TS Visualization; эволюция Layout, таблица layouts сохранена; nodes/edges — манифест состава (память о элементах)'}},
   {id: 'ent-position', type: 'entity', props: {label: 'Position', note: '{x, y} — сериализуется в JSONB'}},
   {id: 'ent-viewport', type: 'entity', props: {label: 'Viewport', note: '{x, y, zoom}'}},
   {id: 'ent-nodetypes', type: 'entity', props: {label: 'NodeTypes', note: '[]string | null — видимые типы вершин'}},
@@ -40,7 +40,12 @@ UNWIND [
   {id: 'ent-node', type: 'entity', props: {label: 'Node', note: 'id, type, properties — Go domain.Node + TS GraphNode'}},
   {id: 'ent-edge', type: 'entity', props: {label: 'Edge', note: 'id, type, source, target, properties — Go domain.Edge + TS GraphEdge'}},
   {id: 'ent-subgraph', type: 'entity', props: {label: 'Subgraph', transient: true, note: '{nodes, edges} — ответ GET /subgraph; не хранится'}},
-  {id: 'ent-mutations', type: 'entity', props: {label: 'Mutations', transient: true, note: 'тело POST /mutations; не хранится'}}
+  {id: 'ent-mutations', type: 'entity', props: {label: 'Mutations', transient: true, note: 'тело POST /mutations; не хранится'}},
+  {id: 'fld-layouts-graph-version', type: 'field', props: {label: 'graph_version', datatype: 'BIGINT', note: 'версия графа последнего sync'}},
+  {id: 'fld-layouts-nodes', type: 'field', props: {label: 'nodes', datatype: 'JSONB', note: 'манифест узлов — {id: {type, label, x, y}}; NULL = legacy'}},
+  {id: 'fld-layouts-edges', type: 'field', props: {label: 'edges', datatype: 'JSONB', note: 'манифест рёбер — {id: {type, source, target}}; NULL = legacy'}},
+  {id: 'ent-manifest-nodes', type: 'entity', props: {label: 'ManifestNodes', note: 'map[string]ManifestNode — память визуализации о составе узлов'}},
+  {id: 'ent-manifest-edges', type: 'entity', props: {label: 'ManifestEdges', note: 'map[string]ManifestEdge — память визуализации о составе рёбер'}}
 ] AS n
 MERGE (x:Element {graphId: 'c0de0000-0000-4000-8000-000000000003', id: n.id})
 SET x.type = n.type, x += n.props;
@@ -91,7 +96,14 @@ UNWIND [
   {id: 'e41', type: 'serializes', source: 'ent-edgetypes', target: 'fld-layouts-edge-types', props: {}},
   {id: 'e42', type: 'serializes', source: 'ent-hideorphans', target: 'fld-layouts-hide-orphans', props: {}},
   {id: 'e43', type: 'part_of', source: 'ent-edgetypes', target: 'ent-layout', props: {}},
-  {id: 'e44', type: 'part_of', source: 'ent-hideorphans', target: 'ent-layout', props: {}}
+  {id: 'e44', type: 'part_of', source: 'ent-hideorphans', target: 'ent-layout', props: {}},
+  {id: 'e45', type: 'has_field', source: 'tbl-layouts', target: 'fld-layouts-graph-version', props: {}},
+  {id: 'e46', type: 'has_field', source: 'tbl-layouts', target: 'fld-layouts-nodes', props: {}},
+  {id: 'e47', type: 'has_field', source: 'tbl-layouts', target: 'fld-layouts-edges', props: {}},
+  {id: 'e48', type: 'serializes', source: 'ent-manifest-nodes', target: 'fld-layouts-nodes', props: {}},
+  {id: 'e49', type: 'serializes', source: 'ent-manifest-edges', target: 'fld-layouts-edges', props: {}},
+  {id: 'e50', type: 'part_of', source: 'ent-manifest-nodes', target: 'ent-layout', props: {}},
+  {id: 'e51', type: 'part_of', source: 'ent-manifest-edges', target: 'ent-layout', props: {}}
 ] AS e
 MATCH (s:Element {graphId: 'c0de0000-0000-4000-8000-000000000003', id: e.source})
 MATCH (t:Element {graphId: 'c0de0000-0000-4000-8000-000000000003', id: e.target})

@@ -44,7 +44,7 @@ NODES = [
     {"id": "tbl-layouts", "type": "table", "props": {"label": "layouts", "note": "сохранённые раскладки канваса"}},
     {"id": "fld-layouts-id", "type": "field", "props": {"label": "id", "datatype": "UUID", "constraint": "PK"}},
     {"id": "fld-layouts-graph-id", "type": "field", "props": {"label": "graph_id", "datatype": "UUID", "note": "FK → graphs.id, ON DELETE CASCADE"}},
-    {"id": "fld-layouts-name", "type": "field", "props": {"label": "name", "datatype": "TEXT", "note": "UNIQUE (graph_id, name); default зарезервировано"}},
+    {"id": "fld-layouts-name", "type": "field", "props": {"label": "name", "datatype": "TEXT", "note": "UNIQUE (graph_id, name); default — имя дефолтной визуализации"}},
     {"id": "fld-layouts-positions", "type": "field", "props": {"label": "positions", "datatype": "JSONB", "note": "{nodeId: {x, y}}"}},
     {"id": "fld-layouts-viewport", "type": "field", "props": {"label": "viewport", "datatype": "JSONB", "note": "{x, y, zoom}"}},
     {"id": "fld-layouts-node-types", "type": "field", "props": {"label": "node_types", "datatype": "JSONB", "note": "NULL = без фильтра; массив видимых типов вершин"}},
@@ -66,7 +66,7 @@ NODES = [
     {"id": "prp-rel-target", "type": "property", "props": {"label": "_target", "note": "id вершины-приёмника"}},
     # ── domain layer: entities (Go structs + TS mirrors) ────────────────────
     {"id": "ent-graph", "type": "entity", "props": {"label": "Graph", "note": "id, name, version, createdAt — Go domain.Graph + TS Graph"}},
-    {"id": "ent-layout", "type": "entity", "props": {"label": "Visualization", "note": "Go domain.Visualization + TS Visualization; эволюция Layout, таблица layouts сохранена"}},
+    {"id": "ent-layout", "type": "entity", "props": {"label": "Visualization (manifest)", "note": "Go domain.Visualization + TS Visualization; эволюция Layout, таблица layouts сохранена; nodes/edges — манифест состава (память о элементах)"}},
     {"id": "ent-position", "type": "entity", "props": {"label": "Position", "note": "{x, y} — сериализуется в JSONB"}},
     {"id": "ent-viewport", "type": "entity", "props": {"label": "Viewport", "note": "{x, y, zoom}"}},
     {"id": "ent-nodetypes", "type": "entity", "props": {"label": "NodeTypes", "note": "[]string | null — видимые типы вершин"}},
@@ -76,6 +76,13 @@ NODES = [
     {"id": "ent-edge", "type": "entity", "props": {"label": "Edge", "note": "id, type, source, target, properties — Go domain.Edge + TS GraphEdge"}},
     {"id": "ent-subgraph", "type": "entity", "props": {"label": "Subgraph", "transient": True, "note": "{nodes, edges} — ответ GET /subgraph; не хранится"}},
     {"id": "ent-mutations", "type": "entity", "props": {"label": "Mutations", "transient": True, "note": "тело POST /mutations; не хранится"}},
+    # ── visualization manifest (0005) — appended at the END: node/edge ids are
+    # positional in the seed, inserting mid-list would renumber existing ids ──
+    {"id": "fld-layouts-graph-version", "type": "field", "props": {"label": "graph_version", "datatype": "BIGINT", "note": "версия графа последнего sync"}},
+    {"id": "fld-layouts-nodes", "type": "field", "props": {"label": "nodes", "datatype": "JSONB", "note": "манифест узлов — {id: {type, label, x, y}}; NULL = legacy"}},
+    {"id": "fld-layouts-edges", "type": "field", "props": {"label": "edges", "datatype": "JSONB", "note": "манифест рёбер — {id: {type, source, target}}; NULL = legacy"}},
+    {"id": "ent-manifest-nodes", "type": "entity", "props": {"label": "ManifestNodes", "note": "map[string]ManifestNode — память визуализации о составе узлов"}},
+    {"id": "ent-manifest-edges", "type": "entity", "props": {"label": "ManifestEdges", "note": "map[string]ManifestEdge — память визуализации о составе рёбер"}},
 ]
 
 EDGES = [
@@ -133,6 +140,16 @@ EDGES = [
     {"source": "ent-hideorphans", "target": "fld-layouts-hide-orphans", "type": "serializes"},
     {"source": "ent-edgetypes", "target": "ent-layout", "type": "part_of"},
     {"source": "ent-hideorphans", "target": "ent-layout", "type": "part_of"},
+    # ── visualization manifest (0005) — appended at the END on purpose: edge
+    # ids are positional (e0..eN), inserting mid-list would renumber every
+    # later edge and duplicate it in Neo4j (MERGE is by id). ─────────────────
+    {"source": "tbl-layouts", "target": "fld-layouts-graph-version", "type": "has_field"},
+    {"source": "tbl-layouts", "target": "fld-layouts-nodes", "type": "has_field"},
+    {"source": "tbl-layouts", "target": "fld-layouts-edges", "type": "has_field"},
+    {"source": "ent-manifest-nodes", "target": "fld-layouts-nodes", "type": "serializes"},
+    {"source": "ent-manifest-edges", "target": "fld-layouts-edges", "type": "serializes"},
+    {"source": "ent-manifest-nodes", "target": "ent-layout", "type": "part_of"},
+    {"source": "ent-manifest-edges", "target": "ent-layout", "type": "part_of"},
 ]
 
 
