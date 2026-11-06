@@ -6,6 +6,8 @@ services:
     ports:
       - "7474:7474"
       - "7687:7687"
+    volumes:
+      - aeig-neo4j-data:/data
   postgres:
     image: postgres:16
     environment:
@@ -14,3 +16,17 @@ services:
       POSTGRES_DB: aeig
     ports:
       - "${PG_PORT:-5432}:5432"
+    volumes:
+      - aeig-pgdata:/var/lib/postgresql/data
+
+# Recovered (2026-11-06) from the orphaned anonymous volumes of the previous stack —
+# the original compose had no named volumes, so `docker compose down` orphaned the data.
+# External + fixed names survive container recreation; to reset the dev DB from scratch,
+# `docker volume rm` both and recreate as plain local volumes.
+volumes:
+  aeig-pgdata:
+    external: true
+    name: 316f648ccb0b71ceabed174092bffce936b1dce662a14e6a9110a3e4b2e9f90f
+  aeig-neo4j-data:
+    external: true
+    name: 4a7369462b321f8774469ab259901c4ac5bcef07abdce426b86339780c717784
