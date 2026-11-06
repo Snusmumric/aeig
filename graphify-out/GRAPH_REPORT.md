@@ -1,16 +1,16 @@
 # Graph Report - AEiG  (2026-11-06)
 
 ## Corpus Check
-- 66 files · ~16,006 words
+- 66 files · ~16,409 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 334 nodes · 686 edges · 20 communities (17 shown, 3 thin omitted)
-- Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 97 edges (avg confidence: 0.8)
+- 335 nodes · 693 edges · 20 communities (17 shown, 3 thin omitted)
+- Extraction: 85% EXTRACTED · 15% INFERRED · 0% AMBIGUOUS · INFERRED: 102 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a84b7686`
+- Built from commit: `0faccd99`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -42,10 +42,10 @@
 4. `useGraph` - 13 edges
 5. `routerWithVisualizations()` - 12 edges
 6. `main()` - 11 edges
-7. `TypeStyleMap` - 11 edges
-8. `writeJSON()` - 10 edges
-9. `writeError()` - 10 edges
-10. `NewGraphService()` - 10 edges
+7. `NewGraphRepo()` - 11 edges
+8. `NewPool()` - 11 edges
+9. `TypeStyleMap` - 11 edges
+10. `writeJSON()` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `main()` --calls--> `Load()`  [INFERRED]
@@ -65,8 +65,8 @@
 ## Communities (20 total, 3 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.10
-Nodes (23): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Mutations (+15 more)
+Cohesion: 0.11
+Nodes (21): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Mutations (+13 more)
 
 ### Community 1 - "ElementRepo"
 Cohesion: 0.10
@@ -77,8 +77,8 @@ Cohesion: 0.17
 Nodes (11): Rand, NewVizName(), Context, Position, Rand, Viewport, Visualization, Mutex (+3 more)
 
 ### Community 3 - "TestGraphRepo_CreateGetBump"
-Cohesion: 0.15
-Nodes (22): main(), Context, Graph, Pool, T, startPostgres(), TestGraphRepo_CreateGetBump(), NewGraphRepo() (+14 more)
+Cohesion: 0.16
+Nodes (23): main(), Context, Graph, Pool, T, startPostgres(), TestGraphRepo_CreateGetBump(), NewGraphRepo() (+15 more)
 
 ### Community 4 - "NewGraphService"
 Cohesion: 0.18
@@ -114,7 +114,7 @@ Nodes (3): ResponseWriter, handleHealth(), Request
 
 ### Community 18 - "toFlow.ts"
 Cohesion: 0.09
-Nodes (27): filterFlow(), allEdges, allNodes, tEdges, addAdjacent(), applyFollowDrag(), planFollowers(), sg (+19 more)
+Nodes (29): Subgraph, filterFlow(), allEdges, allNodes, tEdges, addAdjacent(), applyFollowDrag(), planFollowers() (+21 more)
 
 ### Community 19 - "App.tsx"
 Cohesion: 0.29
@@ -137,7 +137,7 @@ Nodes (6): Load(), T, TestLoad_DefaultsHTTPAddr(), TestLoad_MissingRequired(), T
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `main()` connect `TestGraphRepo_CreateGetBump` to `ElementRepo`, `NewGraphService`, `NewRouter`, `Load`, `T`?**
-  _High betweenness centrality (0.342) - this node is a cross-community bridge._
+  _High betweenness centrality (0.343) - this node is a cross-community bridge._
 - **Why does `NewRouter()` connect `NewGraphService` to `TestGraphRepo_CreateGetBump`, `Load`?**
   _High betweenness centrality (0.196) - this node is a cross-community bridge._
 - **Why does `NewVisualizationService()` connect `T` to `GraphRepo`, `TestGraphRepo_CreateGetBump`?**
