@@ -15,6 +15,7 @@ function viz(overrides: Partial<Visualization> = {}): Visualization {
     hideOrphans: false,
     isDefault: true,
     createdAt: '',
+    graphVersion: 0,
     ...overrides,
   }
 }

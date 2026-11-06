@@ -105,4 +105,43 @@ describe('visualizations', () => {
     expect(body).not.toHaveProperty('edgeTypes')
     expect(body.hideOrphans).toBe(false)
   })
+
+  it('saveVisualization without manifest omits the binding fields', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    await c.saveVisualization('g1', 'default', {}, { x: 0, y: 0, zoom: 1 }, ['Task'], null, true)
+    const [, opts] = (fetch as any).mock.calls[0]
+    const body = JSON.parse(opts.body)
+    expect(body).not.toHaveProperty('graphVersion')
+    expect(body).not.toHaveProperty('nodes')
+    expect(body).not.toHaveProperty('edges')
+  })
+
+  it('saveVisualization with manifest carries graphVersion/nodes/edges verbatim', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    const manifest = {
+      graphVersion: 7,
+      nodes: { n1: { type: 'Task', label: 'T1', x: 1, y: 2 } },
+      edges: { e1: { type: 'depends_on', source: 'n1', target: 'n2' } },
+    }
+    await c.saveVisualization(
+      'g1',
+      'default',
+      { n1: { x: 1, y: 2 } },
+      { x: 0, y: 0, zoom: 1 },
+      undefined,
+      undefined,
+      false,
+      manifest,
+    )
+    const [, opts] = (fetch as any).mock.calls[0]
+    const body = JSON.parse(opts.body)
+    expect(body.graphVersion).toBe(7)
+    expect(body.nodes).toEqual({ n1: { type: 'Task', label: 'T1', x: 1, y: 2 } })
+    expect(body.edges).toEqual({ e1: { type: 'depends_on', source: 'n1', target: 'n2' } })
+    // the rest of the payload is untouched
+    expect(body.positions).toEqual({ n1: { x: 1, y: 2 } })
+    expect(body.hideOrphans).toBe(false)
+  })
 })

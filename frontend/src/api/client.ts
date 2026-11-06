@@ -1,4 +1,12 @@
-import type { Graph, Subgraph, Mutations, Visualization, Position, Viewport } from './types'
+import type {
+  Graph,
+  Subgraph,
+  Mutations,
+  Visualization,
+  VisualizationManifest,
+  Position,
+  Viewport,
+} from './types'
 
 export class ApiError extends Error {
   status: number
@@ -48,6 +56,8 @@ export function createClient(baseURL: string) {
       nodeTypes: string[] | undefined,
       edgeTypes: string[] | null | undefined,
       hideOrphans: boolean,
+      // binding refreshes ONLY via sync — autosave/plains saves omit it entirely
+      manifest?: VisualizationManifest,
     ) =>
       request<Visualization>(`${baseURL}/graphs/${id}/visualizations/${encodeURIComponent(name)}`, {
         method: 'PUT',
@@ -58,6 +68,9 @@ export function createClient(baseURL: string) {
           ...(nodeTypes !== undefined ? { nodeTypes } : {}),
           ...(edgeTypes !== undefined ? { edgeTypes } : {}),
           hideOrphans,
+          ...(manifest !== undefined
+            ? { graphVersion: manifest.graphVersion, nodes: manifest.nodes, edges: manifest.edges }
+            : {}),
         }),
       }),
   }
