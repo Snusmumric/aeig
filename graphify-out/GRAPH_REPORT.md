@@ -1,23 +1,22 @@
 # Graph Report - AEiG  (2026-11-06)
 
 ## Corpus Check
-- 66 files · ~16,409 words
+- 71 files · ~21,860 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 335 nodes · 693 edges · 20 communities (17 shown, 3 thin omitted)
-- Extraction: 85% EXTRACTED · 15% INFERRED · 0% AMBIGUOUS · INFERRED: 102 edges (avg confidence: 0.8)
+- 359 nodes · 774 edges · 19 communities (16 shown, 3 thin omitted)
+- Extraction: 84% EXTRACTED · 16% INFERRED · 0% AMBIGUOUS · INFERRED: 123 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0faccd99`
+- Built from commit: `b9a34fdf`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией
 - ElementRepo
-- GraphRepo
 - TestGraphRepo_CreateGetBump
 - NewGraphService
 - NewRouter
@@ -30,22 +29,22 @@
 - errors.go
 - github.com/aeig/backend
 - ResizeObserverMock
-- toFlow.ts
 - App.tsx
 - T
 - Load
+- GraphCanvas.tsx
 
 ## God Nodes (most connected - your core abstractions)
-1. `NewRouter()` - 19 edges
-2. `doReq()` - 18 edges
+1. `doReq()` - 20 edges
+2. `NewRouter()` - 19 edges
 3. `NewVisualizationService()` - 15 edges
-4. `useGraph` - 13 edges
-5. `routerWithVisualizations()` - 12 edges
-6. `main()` - 11 edges
-7. `NewGraphRepo()` - 11 edges
-8. `NewPool()` - 11 edges
-9. `TypeStyleMap` - 11 edges
-10. `writeJSON()` - 10 edges
+4. `NewGraphRepo()` - 15 edges
+5. `NewPool()` - 15 edges
+6. `routerWithVisualizations()` - 14 edges
+7. `NewVisualizationRepo()` - 14 edges
+8. `startPostgres()` - 13 edges
+9. `RunMigrations()` - 13 edges
+10. `useGraph` - 13 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `main()` --calls--> `Load()`  [INFERRED]
@@ -62,27 +61,23 @@
 ## Import Cycles
 - None detected.
 
-## Communities (20 total, 3 thin omitted)
+## Communities (19 total, 3 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.11
-Nodes (21): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, Mutations (+13 more)
+Cohesion: 0.07
+Nodes (32): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, ManifestEdge (+24 more)
 
 ### Community 1 - "ElementRepo"
 Cohesion: 0.10
 Nodes (25): Context, Graph, Mutations, Subgraph, NewGraphService(), edgeIDs(), Context, Graph (+17 more)
 
-### Community 2 - "GraphRepo"
-Cohesion: 0.17
-Nodes (11): Rand, NewVizName(), Context, Position, Rand, Viewport, Visualization, Mutex (+3 more)
-
 ### Community 3 - "TestGraphRepo_CreateGetBump"
-Cohesion: 0.16
-Nodes (23): main(), Context, Graph, Pool, T, startPostgres(), TestGraphRepo_CreateGetBump(), NewGraphRepo() (+15 more)
+Cohesion: 0.17
+Nodes (28): main(), Context, Graph, Pool, T, startPostgres(), TestGraphRepo_CreateGetBump(), NewGraphRepo() (+20 more)
 
 ### Community 4 - "NewGraphService"
-Cohesion: 0.18
-Nodes (25): doReq(), Handler, T, TestApplyMutations_200(), TestApplyMutations_409OnConflict(), TestCreateGraph_201(), TestCreateGraph_400OnInvalid(), TestGetGraph_404() (+17 more)
+Cohesion: 0.17
+Nodes (27): doReq(), Handler, T, TestApplyMutations_200(), TestApplyMutations_409OnConflict(), TestCreateGraph_201(), TestCreateGraph_400OnInvalid(), TestGetGraph_404() (+19 more)
 
 ### Community 5 - "NewRouter"
 Cohesion: 0.16
@@ -93,8 +88,8 @@ Cohesion: 0.26
 Nodes (15): HandlerFunc, handleApplyMutations(), handleCreateGraph(), handleGetGraph(), handleGetSubgraph(), ResponseWriter, writeError(), writeJSON() (+7 more)
 
 ### Community 7 - "stubAPI"
-Cohesion: 0.29
-Nodes (8): Context, Pool, Position, Viewport, Visualization, scanVisualization(), rowScanner, VisualizationRepo
+Cohesion: 0.26
+Nodes (9): decodeManifest(), Context, Position, T, Viewport, Visualization, scanVisualization(), rowScanner (+1 more)
 
 ### Community 8 - "devDependencies"
 Cohesion: 0.43
@@ -105,48 +100,48 @@ Cohesion: 0.42
 Nodes (5): Context, Graph, Mutations, Subgraph, stubAPI
 
 ### Community 13 - "plugins"
-Cohesion: 0.60
-Nodes (4): Time, Position, Viewport, Visualization
+Cohesion: 0.48
+Nodes (6): Time, ManifestEdge, ManifestNode, Position, Viewport, Visualization
 
 ### Community 14 - "errors.go"
 Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
-### Community 18 - "toFlow.ts"
-Cohesion: 0.09
-Nodes (29): Subgraph, filterFlow(), allEdges, allNodes, tEdges, addAdjacent(), applyFollowDrag(), planFollowers() (+21 more)
-
 ### Community 19 - "App.tsx"
-Cohesion: 0.29
-Nodes (5): GraphCanvas(), GraphCanvasProps, nodeTypes, shapeStyle(), TypedNode()
+Cohesion: 0.09
+Nodes (28): Subgraph, filterFlow(), allEdges, allNodes, tEdges, addAdjacent(), applyFollowDrag(), planFollowers() (+20 more)
 
 ### Community 27 - "T"
-Cohesion: 0.19
-Nodes (21): NewVisualizationService(), Context, Graph, Position, T, Viewport, Visualization, TestGetDefault_Creates() (+13 more)
+Cohesion: 0.12
+Nodes (27): Context, Position, Viewport, Visualization, NewVisualizationService(), Context, Graph, Position (+19 more)
 
-### Community 39 - "Load"
+### Community 33 - "Load"
 Cohesion: 0.43
 Nodes (6): Load(), T, TestLoad_DefaultsHTTPAddr(), TestLoad_MissingRequired(), TestLoad_ReadsAllVars(), Config
 
+### Community 35 - "GraphCanvas.tsx"
+Cohesion: 0.25
+Nodes (5): GraphCanvas(), GraphCanvasProps, nodeTypes, shapeStyle(), TypedNode()
+
 ## Knowledge Gaps
-- **21 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `GraphNode` (+16 more)
+- **20 isolated node(s):** `github.com/aeig/backend`, `client`, `styles`, `params`, `nodeTypes` (+15 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `main()` connect `TestGraphRepo_CreateGetBump` to `ElementRepo`, `NewGraphService`, `NewRouter`, `Load`, `T`?**
-  _High betweenness centrality (0.343) - this node is a cross-community bridge._
+- **Why does `main()` connect `TestGraphRepo_CreateGetBump` to `Load`, `ElementRepo`, `NewGraphService`, `NewRouter`, `T`?**
+  _High betweenness centrality (0.300) - this node is a cross-community bridge._
 - **Why does `NewRouter()` connect `NewGraphService` to `TestGraphRepo_CreateGetBump`, `Load`?**
-  _High betweenness centrality (0.196) - this node is a cross-community bridge._
-- **Why does `NewVisualizationService()` connect `T` to `GraphRepo`, `TestGraphRepo_CreateGetBump`?**
-  _High betweenness centrality (0.144) - this node is a cross-community bridge._
+  _High betweenness centrality (0.175) - this node is a cross-community bridge._
+- **Why does `NewVisualizationService()` connect `T` to `TestGraphRepo_CreateGetBump`?**
+  _High betweenness centrality (0.109) - this node is a cross-community bridge._
+- **Are the 10 inferred relationships involving `doReq()` (e.g. with `TestGetDefaultVisualization_200()` and `TestGetVisualization_200()`) actually correct?**
+  _`doReq()` has 10 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 16 inferred relationships involving `NewRouter()` (e.g. with `main()` and `TestApplyMutations_200()`) actually correct?**
   _`NewRouter()` has 16 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 8 inferred relationships involving `doReq()` (e.g. with `TestGetDefaultVisualization_200()` and `TestGetVisualization_200()`) actually correct?**
-  _`doReq()` has 8 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 11 inferred relationships involving `NewVisualizationService()` (e.g. with `main()` and `TestGetDefault_Creates()`) actually correct?**
   _`NewVisualizationService()` has 11 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `github.com/aeig/backend`, `client`, `styles` to the rest of the system?**
-  _21 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Are the 12 inferred relationships involving `NewGraphRepo()` (e.g. with `main()` and `TestGraphRepo_CreateGetBump()`) actually correct?**
+  _`NewGraphRepo()` has 12 INFERRED edges - model-reasoned connections that need verification._
