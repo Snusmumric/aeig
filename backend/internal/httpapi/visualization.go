@@ -14,8 +14,12 @@ import (
 type VisualizationAPI interface {
 	GetDefaultVisualization(ctx context.Context, graphID string) (domain.Visualization, error)
 	GetVisualization(ctx context.Context, graphID, name string) (domain.Visualization, error)
-	SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool) (domain.Visualization, error)
+	SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges []byte) (domain.Visualization, error)
 }
+
+// maxVizBodyBytes caps PUT bodies: positions + manifests grow with graph
+// size, so the guard is generous but finite (1 MB).
+const maxVizBodyBytes = 1 << 20
 
 // handleGetDefaultVisualization resolves-or-creates the graph's default
 // visualization (the literal path segment "default" is routed here, never
@@ -44,24 +48,24 @@ func handleGetVisualization(api VisualizationAPI) http.HandlerFunc {
 
 func handleSaveVisualization(api VisualizationAPI) http.HandlerFunc {
 	type request struct {
-		Positions   map[string]domain.Position `json:"positions"`
-		Viewport    domain.Viewport            `json:"viewport"`
-		NodeTypes   []string                   `json:"nodeTypes"`
-		EdgeTypes   []string                   `json:"edgeTypes"`
-		HideOrphans bool                       `json:"hideOrphans"`
+		Positions    map[string]domain.Position `json:"positions"`
+		Viewport     domain.Viewport            `json:"viewport"`
+		NodeTypes    []string                   `json:"nodeTypes"`
+		EdgeTypes    []string                   `json:"edgeTypes"`
+		HideOrphans  bool                       `json:"hideOrphans"`
+		GraphVersion *int64                     `json:"graphVersion"`
+		Nodes        json.RawMessage            `json:"nodes"`
+		Edges        json.RawMessage            `json:"edges"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		name := chi.URLParam(r, "name")
-		if name == "default" {
-			writeError(w, service.ErrInvalidInput)
-			return
-		}
+		name := chi.URLParam(r, "name") // "default" is legal: it is the default's own name
+		r.Body = http.MaxBytesReader(w, r.Body, maxVizBodyBytes)
 		var req request
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			writeError(w, service.ErrInvalidInput)
 			return
 		}
-		v, err := api.SaveVisualization(r.Context(), chi.URLParam(r, "id"), name, req.Positions, req.Viewport, req.NodeTypes, req.EdgeTypes, req.HideOrphans)
+		v, err := api.SaveVisualization(r.Context(), chi.URLParam(r, "id"), name, req.Positions, req.Viewport, req.NodeTypes, req.EdgeTypes, req.HideOrphans, req.GraphVersion, req.Nodes, req.Edges)
 		if err != nil {
 			writeError(w, err)
 			return

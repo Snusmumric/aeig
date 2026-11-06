@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/aeig/backend/internal/domain"
@@ -13,20 +14,23 @@ import (
 )
 
 type stubVizAPI struct {
-	def       domain.Visualization
-	defErr    error
-	defCalls  int
-	gotDefID  string
-	byName    domain.Visualization
-	getErr    error
-	gotName   string
-	saved     domain.Visualization
-	saveErr   error
-	saveCalls int
-	gotPosLen int
-	gotTypes  []string
-	gotEdge   []string
-	gotHide   bool
+	def         domain.Visualization
+	defErr      error
+	defCalls    int
+	gotDefID    string
+	byName      domain.Visualization
+	getErr      error
+	gotName     string
+	saved       domain.Visualization
+	saveErr     error
+	saveCalls   int
+	gotPosLen   int
+	gotTypes    []string
+	gotEdge     []string
+	gotHide     bool
+	gotGraphVer *int64
+	gotNodes    []byte
+	gotEdges    []byte
 }
 
 func (s *stubVizAPI) GetDefaultVisualization(_ context.Context, graphID string) (domain.Visualization, error) {
@@ -43,13 +47,16 @@ func (s *stubVizAPI) GetVisualization(_ context.Context, _, name string) (domain
 	return s.byName, s.getErr
 }
 
-func (s *stubVizAPI) SaveVisualization(_ context.Context, _, name string, p map[string]domain.Position, _ domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool) (domain.Visualization, error) {
+func (s *stubVizAPI) SaveVisualization(_ context.Context, _, name string, p map[string]domain.Position, _ domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges []byte) (domain.Visualization, error) {
 	s.saveCalls++
 	s.gotName = name
 	s.gotPosLen = len(p)
 	s.gotTypes = nodeTypes
 	s.gotEdge = edgeTypes
 	s.gotHide = hideOrphans
+	s.gotGraphVer = graphVersion
+	s.gotNodes = nodes
+	s.gotEdges = edges
 	if s.saveErr != nil {
 		return domain.Visualization{}, s.saveErr
 	}
@@ -61,13 +68,16 @@ func routerWithVisualizations(v VisualizationAPI) http.Handler {
 }
 
 func TestGetDefaultVisualization_200(t *testing.T) {
-	v := &stubVizAPI{def: domain.Visualization{ID: "d1", GraphID: "g1", Name: "quiet-otter-42", IsDefault: true}}
+	v := &stubVizAPI{def: domain.Visualization{ID: "d1", GraphID: "g1", Name: "default", IsDefault: true, GraphVersion: 12}}
 	rec := doReq(t, routerWithVisualizations(v), http.MethodGet, "/graphs/g1/visualizations/default", "")
 	require.Equal(t, http.StatusOK, rec.Code)
 	var out domain.Visualization
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &out))
 	assert.Equal(t, "d1", out.ID)
 	assert.True(t, out.IsDefault)
+	assert.EqualValues(t, 12, out.GraphVersion)
+	// the response JSON carries the binding fields
+	assert.Contains(t, rec.Body.String(), `"graphVersion":12`)
 	assert.Equal(t, 1, v.defCalls)
 	assert.Equal(t, "g1", v.gotDefID)
 }
@@ -100,6 +110,20 @@ func TestPutVisualization_201(t *testing.T) {
 	assert.True(t, v.gotHide)
 }
 
+func TestPutVisualization_ManifestFields_201(t *testing.T) {
+	v := &stubVizAPI{saved: domain.Visualization{ID: "v1", Name: "mine"}}
+	body := `{"positions":{},"viewport":{"x":0,"y":0,"zoom":1},` +
+		`"graphVersion":7,` +
+		`"nodes":{"n1":{"type":"service","label":"S","x":1,"y":2}},` +
+		`"edges":{"e1":{"type":"rel","source":"n1","target":"n2"}}}`
+	rec := doReq(t, routerWithVisualizations(v), http.MethodPut, "/graphs/g1/visualizations/mine", body)
+	require.Equal(t, http.StatusCreated, rec.Code)
+	require.NotNil(t, v.gotGraphVer)
+	assert.EqualValues(t, 7, *v.gotGraphVer)
+	assert.JSONEq(t, `{"n1":{"type":"service","label":"S","x":1,"y":2}}`, string(v.gotNodes))
+	assert.JSONEq(t, `{"e1":{"type":"rel","source":"n1","target":"n2"}}`, string(v.gotEdges))
+}
+
 func TestPutVisualization_OptionalFieldsAbsent_201(t *testing.T) {
 	v := &stubVizAPI{saved: domain.Visualization{ID: "v1"}}
 	body := `{"positions":{},"viewport":{"x":0,"y":0,"zoom":1}}`
@@ -108,13 +132,27 @@ func TestPutVisualization_OptionalFieldsAbsent_201(t *testing.T) {
 	assert.Nil(t, v.gotTypes)
 	assert.Nil(t, v.gotEdge)
 	assert.False(t, v.gotHide)
+	// manifest binding absent → forwarded as nil (leave unchanged)
+	assert.Nil(t, v.gotGraphVer)
+	assert.Nil(t, v.gotNodes)
+	assert.Nil(t, v.gotEdges)
 }
 
-func TestPutVisualization_ReservedName_400(t *testing.T) {
-	v := &stubVizAPI{}
+func TestPutVisualization_DefaultName_201(t *testing.T) {
+	v := &stubVizAPI{saved: domain.Visualization{ID: "d1", Name: "default"}}
 	rec := doReq(t, routerWithVisualizations(v), http.MethodPut, "/graphs/g1/visualizations/default", `{"positions":{}}`)
+	require.Equal(t, http.StatusCreated, rec.Code)
+	assert.Equal(t, "default", v.gotName)
+	assert.Equal(t, 1, v.saveCalls) // "default" is no longer reserved
+}
+
+func TestPutVisualization_BodyTooLarge_400(t *testing.T) {
+	v := &stubVizAPI{saved: domain.Visualization{ID: "v1"}}
+	// valid JSON, just over the 1 MB guard (positions+manifests grow with graph size)
+	big := `{"positions":{},"nodeTypes":["` + strings.Repeat("a", 1<<20) + `"]}`
+	rec := doReq(t, routerWithVisualizations(v), http.MethodPut, "/graphs/g1/visualizations/mine", big)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
-	assert.Equal(t, 0, v.saveCalls)
+	assert.Equal(t, 0, v.saveCalls) // rejected before reaching the service
 }
 
 func TestPutVisualization_400OnInvalid(t *testing.T) {
