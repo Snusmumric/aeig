@@ -1,5 +1,8 @@
+/// <reference types="node" />
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
-import { render, fireEvent } from '@testing-library/react'
+import { render, fireEvent, createEvent } from '@testing-library/react'
 import { ReactFlowProvider, type EdgeProps } from '@xyflow/react'
 import { CurvyEdge, EdgeBendContext } from './CurvyEdge'
 
@@ -91,5 +94,42 @@ describe('CurvyEdge', () => {
     const { container } = renderEdge({ data: { readOnly: true } })
     expect(container.querySelectorAll('.edge-grab')).toHaveLength(0)
     expect(container.querySelector('.react-flow__edge-interaction')).toBeNull()
+  })
+})
+
+describe('CurvyEdge hit-testing affordances (RF event layer vs custom SVG)', () => {
+  it('grab circles carry nopan so d3-zoom filters skip them (no pan on drag)', () => {
+    const { getByTestId } = renderEdge()
+    for (const u of [0.25, 0.5, 0.75]) {
+      expect(getByTestId(`edge-grab-e1-${u}`)).toHaveClass('nopan')
+    }
+  })
+
+  it('interaction path carries nopan so dblclick.reset does not zoom the canvas', () => {
+    const { container } = renderEdge()
+    const interaction = container.querySelector('.react-flow__edge-interaction') as SVGPathElement
+    expect(interaction).not.toBeNull()
+    expect(interaction).toHaveClass('nopan')
+  })
+
+  it('.edge-grab CSS restores the full-disc hit area (pointer-events: all)', () => {
+    // jsdom cannot exercise real hit-testing; assert the stylesheet rule that
+    // overrides RF's `.react-flow__edge { pointer-events: visibleStroke }`
+    // (under visibleStroke the r=6 fill disc is excluded from hit tests).
+    const testPath = expect.getState().testPath as string
+    const css = readFileSync(resolve(dirname(testPath), '../App.css'), 'utf-8')
+    const rule = css
+      .replace(/\/\*[\s\S]*?\*\//g, '') // comments may contain braces/preview text
+      .match(/\.react-flow__edge \.edge-grab\s*\{[^}]*\}/)?.[0] ?? ''
+    expect(rule).toMatch(/pointer-events:\s*all/)
+  })
+
+  it('grab pointerdown calls preventDefault (suppresses compat mousedown.pan)', () => {
+    const { getByTestId } = renderEdge()
+    const grab = getByTestId('edge-grab-e1-0.5')
+    const down = createEvent.pointerDown(grab, { pointerId: 9, clientX: 50, clientY: 0 })
+    const preventDefault = vi.spyOn(down, 'preventDefault')
+    fireEvent(grab, down)
+    expect(preventDefault).toHaveBeenCalled()
   })
 })

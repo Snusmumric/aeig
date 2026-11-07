@@ -41,7 +41,10 @@ export function CurvyEdge(props: EdgeProps) {
   const startDrag =
     (u: number) =>
     (event: ReactPointerEvent<SVGCircleElement>): void => {
-      // keep the canvas pan/zoom out of this drag
+      // keep the canvas pan/zoom out of this drag: stopPropagation skips React
+      // layers, and preventDefault suppresses the compatibility mousedown that
+      // d3-zoom's native `mousedown.zoom` listener would pan the pane with
+      event.preventDefault()
       event.stopPropagation()
       dragU.current = u
       try {
@@ -80,7 +83,7 @@ export function CurvyEdge(props: EdgeProps) {
         <>
           <path
             d={path}
-            className="react-flow__edge-interaction"
+            className="react-flow__edge-interaction nopan"
             fill="none"
             stroke="transparent"
             strokeWidth={20}
@@ -94,7 +97,7 @@ export function CurvyEdge(props: EdgeProps) {
                 cx={p.x}
                 cy={p.y}
                 r={6}
-                className="edge-grab"
+                className="edge-grab nopan"
                 data-testid={`edge-grab-${id}-${u}`}
                 onPointerDown={startDrag(u)}
                 onPointerMove={dragMove}

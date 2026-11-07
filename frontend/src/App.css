@@ -212,6 +212,9 @@
   fill: transparent;
   stroke: transparent;
   cursor: grab;
+  /* RF's `.react-flow__edge { pointer-events: visibleStroke }` would shrink the
+     hit area to the ~1px stroke ring; restore the full r=6 fill disc */
+  pointer-events: all;
 }
 
 .react-flow__edge:hover .edge-grab {
