@@ -41,4 +41,17 @@ describe('toFlow', () => {
     expect(edges[0].style?.stroke).toBe('#cc3366')
     expect(edges[0].data).toEqual({ edgeType: 'depends_on' })
   })
+
+  it('directed edge types get a closed arrowhead marker', () => {
+    const directedStyles: TypeStyleMap = { depends_on: { shape: 'rectangle', color: '#cc3366', directed: true } }
+    const edges = toFlowEdges(sg, directedStyles)
+    expect(edges[0].markerEnd).toMatchObject({ type: 'arrowclosed' })
+  })
+
+  it('undirected and unstyled edge types render without a marker', () => {
+    const edges = toFlowEdges(sg, styles) // depends_on styled without `directed`
+    expect(edges[0].markerEnd).toBeUndefined()
+    const unstyled = toFlowEdges(sg, {})
+    expect(unstyled[0].markerEnd).toBeUndefined()
+  })
 })

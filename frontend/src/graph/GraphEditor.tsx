@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Edge, Node, NodeChange } from '@xyflow/react'
 import type { ApiClient } from '../api/client'
 import type { GraphEdge, GraphNode, Visualization, VisualizationManifest, Viewport } from '../api/types'
+import { MarkerType } from '@xyflow/react'
 import { GraphCanvas } from './GraphCanvas'
 import { TypeFilterPanel } from './TypeFilterPanel'
 import { VizDiffBar } from './VizDiffBar'
@@ -9,7 +10,7 @@ import { useGraph } from './useGraph'
 import { computeVizDiff } from './vizDiff'
 import { extractPositions } from './layout'
 import { EST_CENTER, pickHandles, type Bend } from './edgeGeometry'
-import type { TypeStyleMap } from './typeStyle'
+import { resolveStyle, type TypeStyleMap } from './typeStyle'
 
 const AUTOSAVE_INTERVAL_MS = 10_000
 
@@ -245,11 +246,14 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
           targetHandle: handles?.target,
           className: 'ghost',
           style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '5 3' },
+          ...(resolveStyle(styles, m.type).directed
+            ? { markerEnd: { type: MarkerType.ArrowClosed } }
+            : {}),
           data: { readOnly: true },
         }
       })
     return [...styled, ...ghosts]
-  }, [diff, edges, graphEdges, showAdded, showDeleted, posById])
+  }, [diff, edges, graphEdges, showAdded, showDeleted, posById, styles])
 
   // the autosave PUT args — reads refs so its identity stays stable
   const buildSaveArgs = useCallback(

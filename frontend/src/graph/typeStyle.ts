@@ -3,6 +3,8 @@ export type NodeShape = 'rectangle' | 'ellipse' | 'diamond'
 export interface TypeStyle {
   shape: NodeShape
   color: string
+  /** Edge types only: direction is semantically meaningful → render an arrowhead. */
+  directed?: boolean
 }
 
 export type TypeStyleMap = Record<string, TypeStyle>

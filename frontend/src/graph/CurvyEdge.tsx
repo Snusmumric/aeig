@@ -24,7 +24,7 @@ interface CurvyEdgeData {
  * double-click on the path resets the bend (back to a straight segment).
  */
 export function CurvyEdge(props: EdgeProps) {
-  const { id, sourceX, sourceY, targetX, targetY, label, style, data } = props
+  const { id, sourceX, sourceY, targetX, targetY, label, style, data, markerEnd } = props
   const edgeData = (data ?? {}) as CurvyEdgeData
   const { onEdgeBend } = useContext(EdgeBendContext)
   const { screenToFlowPosition } = useReactFlow()
@@ -77,7 +77,7 @@ export function CurvyEdge(props: EdgeProps) {
 
   return (
     <>
-      <path d={path} className="react-flow__edge-path" style={style} fill="none" />
+      <path d={path} className="react-flow__edge-path" style={style} fill="none" markerEnd={markerEnd} />
       <EdgeText x={mid.x} y={mid.y} label={label} />
       {!edgeData.readOnly && (
         <>

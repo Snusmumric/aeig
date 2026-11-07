@@ -730,6 +730,30 @@ describe('GraphEditor — edge bends', () => {
     vi.unstubAllGlobals()
   })
 
+  it('ghost and live edges of a directed type render arrowheads on their path', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient()
+    ;(client.getVisualization as any).mockResolvedValue({
+      id: 'v1', graphId: 'g1', name: 'bound', positions: { n1: { x: 0, y: 0 }, n2: { x: 100, y: 0 } },
+      viewport: { x: 0, y: 0, zoom: 1 }, graphVersion: 4,
+      nodes: { n1: { type: 'Task', label: 'n1', x: 0, y: 0 }, n2: { type: 'Milestone', label: 'n2', x: 100, y: 0 } },
+      edges: { ghostE: { type: 'depends_on', source: 'n1', target: 'n2' } },
+    })
+    render(
+      <GraphEditor
+        client={client}
+        graphId="g1"
+        styles={{ depends_on: { shape: 'rectangle', color: '#000', directed: true } }}
+        initialVizName="bound"
+      />,
+    )
+    await settle()
+    // live edge e1 (depends_on, from the subgraph) and the ghost edge both get marker-end
+    const paths = [...document.querySelectorAll('.react-flow__edge path')] as SVGPathElement[]
+    const withMarker = paths.filter((p) => p.getAttribute('marker-end'))
+    expect(withMarker.length).toBeGreaterThanOrEqual(2)
+  })
+
   /** mid-point of the rendered e1 path, read back from the DOM */
   function edgeMid(id: string): { x: number; y: number } {
     const grab = screen.getByTestId(`edge-grab-${id}-0.5`)

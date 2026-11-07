@@ -12,7 +12,7 @@ const styles: TypeStyleMap = {
   // sample metamodel types
   Task: { shape: 'rectangle', color: '#3366cc' },
   Milestone: { shape: 'diamond', color: '#cc6633' },
-  depends_on: { shape: 'rectangle', color: '#888888' },
+  depends_on: { shape: 'rectangle', color: '#888888', directed: true },
   // AEiG code-graph seed types (see scripts/seedgen.py) — backend
   service: { shape: 'rectangle', color: '#3b82f6' },
   httpapi: { shape: 'rectangle', color: '#06b6d4' },
@@ -29,15 +29,19 @@ const styles: TypeStyleMap = {
   'fe-test': { shape: 'rectangle', color: '#a855f7' },
   frontend: { shape: 'rectangle', color: '#9333ea' },
   code: { shape: 'rectangle', color: '#94a3b8' },
+  // code-graph edge types
+  calls: { shape: 'rectangle', color: '#64748b', directed: true },
+  imports: { shape: 'rectangle', color: '#94a3b8', directed: true },
+  imports_from: { shape: 'rectangle', color: '#cbd5e1', directed: true },
   // roadmap graph types (see scripts/roadmapgen.py)
   phase: { shape: 'diamond', color: '#dc2626' },
   slice: { shape: 'rectangle', color: '#f97316' },
   feature: { shape: 'rectangle', color: '#0ea5e9' },
   simplification: { shape: 'rectangle', color: '#94a3b8' },
   extension: { shape: 'ellipse', color: '#65a30d' },
-  contains: { shape: 'rectangle', color: '#cbd5e1' },
-  next: { shape: 'rectangle', color: '#dc2626' },
-  revisit: { shape: 'rectangle', color: '#64748b' },
+  contains: { shape: 'rectangle', color: '#cbd5e1', directed: true },
+  next: { shape: 'rectangle', color: '#dc2626', directed: true },
+  revisit: { shape: 'rectangle', color: '#64748b', directed: true },
   // architecture graph types (see scripts/archgen.py) — data layer
   store: { shape: 'diamond', color: '#0d9488' },
   table: { shape: 'rectangle', color: '#059669' },
@@ -46,15 +50,15 @@ const styles: TypeStyleMap = {
   reltype: { shape: 'rectangle', color: '#4ade80' },
   property: { shape: 'rectangle', color: '#166534' },
   entity: { shape: 'ellipse', color: '#8b5cf6' },
-  stored_in: { shape: 'rectangle', color: '#0d9488' },
-  has_field: { shape: 'rectangle', color: '#cbd5e1' },
-  has_property: { shape: 'rectangle', color: '#cbd5e1' },
-  references: { shape: 'rectangle', color: '#ef4444' },
-  persisted_as: { shape: 'rectangle', color: '#8b5cf6' },
-  serializes: { shape: 'rectangle', color: '#a78bfa' },
-  partitions: { shape: 'rectangle', color: '#f59e0b' },
-  part_of: { shape: 'rectangle', color: '#c4b5fd' },
-  belongs_to: { shape: 'rectangle', color: '#7c3aed' },
+  stored_in: { shape: 'rectangle', color: '#0d9488', directed: true },
+  has_field: { shape: 'rectangle', color: '#cbd5e1', directed: true },
+  has_property: { shape: 'rectangle', color: '#cbd5e1', directed: true },
+  references: { shape: 'rectangle', color: '#ef4444', directed: true },
+  persisted_as: { shape: 'rectangle', color: '#8b5cf6', directed: true },
+  serializes: { shape: 'rectangle', color: '#a78bfa', directed: true },
+  partitions: { shape: 'rectangle', color: '#f59e0b', directed: true },
+  part_of: { shape: 'rectangle', color: '#c4b5fd', directed: true },
+  belongs_to: { shape: 'rectangle', color: '#7c3aed', directed: true },
 }
 
 // Default to the roadmap graph (seeded by `make dev`, see scripts/roadmapgen.py):

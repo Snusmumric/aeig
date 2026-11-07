@@ -1,3 +1,4 @@
+import { MarkerType } from '@xyflow/react'
 import type { Node, Edge } from '@xyflow/react'
 import type { Subgraph } from '../api/types'
 import { resolveStyle, type TypeStyle, type TypeStyleMap } from './typeStyle'
@@ -42,12 +43,16 @@ export function toFlowNodes(
 }
 
 export function toFlowEdges(sg: Subgraph, styles: TypeStyleMap): Edge<TypedEdgeData>[] {
-  return sg.edges.map((e) => ({
-    id: e.id,
-    source: e.source,
-    target: e.target,
-    label: e.type,
-    style: { stroke: resolveStyle(styles, e.type).color },
-    data: { edgeType: e.type },
-  }))
+  return sg.edges.map((e) => {
+    const style = resolveStyle(styles, e.type)
+    return {
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      label: e.type,
+      style: { stroke: style.color },
+      ...(style.directed ? { markerEnd: { type: MarkerType.ArrowClosed } } : {}),
+      data: { edgeType: e.type },
+    }
+  })
 }
