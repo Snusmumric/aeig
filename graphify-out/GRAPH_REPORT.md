@@ -1,16 +1,16 @@
 # Graph Report - AEiG  (2026-11-07)
 
 ## Corpus Check
-- 77 files · ~27,238 words
+- 77 files · ~27,569 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 388 nodes · 861 edges · 20 communities (17 shown, 3 thin omitted)
+- 388 nodes · 863 edges · 20 communities (17 shown, 3 thin omitted)
 - Extraction: 85% EXTRACTED · 15% INFERRED · 0% AMBIGUOUS · INFERRED: 132 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f867de3a`
+- Built from commit: `4cf91cdc`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -66,7 +66,7 @@
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
 Cohesion: 0.07
-Nodes (35): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, ManifestEdge (+27 more)
+Nodes (30): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, ManifestEdge (+22 more)
 
 ### Community 1 - "ElementRepo"
 Cohesion: 0.10
@@ -109,8 +109,8 @@ Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
 ### Community 19 - "App.tsx"
-Cohesion: 0.09
-Nodes (28): Subgraph, filterFlow(), allEdges, allNodes, tEdges, addAdjacent(), applyFollowDrag(), planFollowers() (+20 more)
+Cohesion: 0.08
+Nodes (34): Subgraph, App(), client, params, styles, pickHandles(), filterFlow(), allEdges (+26 more)
 
 ### Community 27 - "T"
 Cohesion: 0.12
@@ -122,7 +122,7 @@ Nodes (10): decodeManifest(), Context, Pool, Position, T, Viewport, Visualizatio
 
 ### Community 35 - "GraphCanvas.tsx"
 Cohesion: 0.13
-Nodes (18): CurvyEdge(), CurvyEdgeData, EdgeBendContext, GRAB_PARAMETERS, bendFromPointer(), EST_CENTER, pickHandles(), Pt (+10 more)
+Nodes (17): CurvyEdge(), CurvyEdgeData, EdgeBendContext, GRAB_PARAMETERS, bendFromPointer(), EST_CENTER, Pt, quadControl() (+9 more)
 
 ### Community 39 - "Load"
 Cohesion: 0.43
