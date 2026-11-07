@@ -1,11 +1,11 @@
 {
   "0": "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией",
   "1": "ElementRepo",
+  "2": "NewVisualizationRepo",
   "3": "TestGraphRepo_CreateGetBump",
   "4": "NewGraphService",
   "5": "NewRouter",
   "6": "Load",
-  "7": "stubAPI",
   "8": "devDependencies",
   "9": "compilerOptions",
   "12": "client.ts",
@@ -16,6 +16,7 @@
   "17": "ResizeObserverMock",
   "19": "App.tsx",
   "27": "T",
-  "33": "Load",
-  "35": "GraphCanvas.tsx"
+  "34": "Visualization",
+  "35": "GraphCanvas.tsx",
+  "39": "Load"
 }
