@@ -447,8 +447,8 @@ describe('GraphEditor — visualization manifest', () => {
       nodes: boundManifest.nodes,
       edges: boundManifest.edges,
     })
-    // the fork carries no bends yet (Task 6 wires them)
-    expect(args[7].bends).toBeUndefined()
+    // the fork carries the current (empty) live bends map too
+    expect(args[7].bends).toEqual({})
     // the editor switched to the fork
     expect(screen.getByTestId('viz-badge').textContent).toBe('fork-1')
     expect(new URLSearchParams(window.location.search).get('viz')).toBe('fork-1')
@@ -524,7 +524,9 @@ describe('GraphEditor — visualization manifest', () => {
     })
     expect(client.saveVisualization).toHaveBeenCalledTimes(1)
     const args = (client.saveVisualization as any).mock.calls[0]
-    expect(args[7]).toBeUndefined()
+    expect(args[7].manifest).toBeUndefined()
+    // the bends map always rides along (empty here — nothing bent yet)
+    expect(args[7].bends).toEqual({})
   })
 
   it('sync PUTs manifest := subgraph and version := current', async () => {
@@ -685,5 +687,159 @@ describe('GraphEditor — visualization manifest', () => {
     // sync is a one-shot user action — unlike autosave it never retries itself
     expect(screen.getByText('sync failed')).toBeInTheDocument()
     expect(screen.queryByText('sync failed — retrying')).not.toBeInTheDocument()
+  })
+})
+
+describe('GraphEditor — edge bends', () => {
+  // ReactFlow nodes never measure in plain jsdom (no-op ResizeObserver mock +
+  // offsetWidth 0), which leaves edges unmounted. These tests need the real
+  // curvy edge components in the DOM, so: fire RO observations on observe()
+  // and give elements a deterministic 120×60 size. Handle side offsets then
+  // land at t:(60,0) r:(120,30) b:(60,60) l:(0,30) of each node.
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        private readonly cb: (entries: Array<{ target: Element; contentRect?: DOMRectReadOnly }>) => void
+        constructor(cb: (entries: Array<{ target: Element; contentRect?: DOMRectReadOnly }>) => void) {
+          this.cb = cb
+        }
+        observe = (el: Element) => {
+          // node measurement reads entry.target; XYPanZoom's extent cache reads
+          // entry.contentRect — carry both shapes. Real RO always delivers
+          // asynchronously — firing synchronously inside the observe call
+          // (a React effect) would re-enter the commit and loop forever.
+          queueMicrotask(() => {
+            this.cb([{ target: el, contentRect: { width: 120, height: 60 } as DOMRectReadOnly }])
+          })
+        }
+        unobserve = () => {}
+        disconnect = () => {}
+      },
+    )
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(120)
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(60)
+    // EdgeText measures its label via SVG getBBox — not implemented in jsdom
+    ;(SVGElement.prototype as unknown as { getBBox: () => DOMRect }).getBBox = () =>
+      ({ x: 0, y: 0, width: 0, height: 0 }) as DOMRect
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  /** mid-point of the rendered e1 path, read back from the DOM */
+  function edgeMid(id: string): { x: number; y: number } {
+    const grab = screen.getByTestId(`edge-grab-${id}-0.5`)
+    const path = grab.closest('.react-flow__edge')!.querySelector('.react-flow__edge-path')!
+    const m = path
+      .getAttribute('d')!
+      .match(/^M ([\d.-]+),([\d.-]+) Q ([\d.-]+),([\d.-]+) ([\d.-]+),([\d.-]+)$/)!
+    return { x: (Number(m[1]) + Number(m[5])) / 2, y: (Number(m[2]) + Number(m[6])) / 2 }
+  }
+
+  function bendClient(overrides: Partial<Visualization> = {}): ApiClient {
+    const client = fakeClient({
+      // non-empty positions keep fitView off → the viewport transform stays
+      // identity, so screenToFlowPosition(client) === flow position
+      positions: { n1: { x: 0, y: 0 }, n2: { x: 200, y: 0 } },
+      ...overrides,
+    })
+    return client
+  }
+
+  it('dragging a grab circle marks dirty and the autosave PUTs the live bends map', async () => {
+    vi.useFakeTimers()
+    const client = bendClient({ bends: { e1: { dx: 1, dy: 2 }, deadEdge: { dx: 9, dy: 9 } } })
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    const mid = edgeMid('e1')
+    const grab = screen.getByTestId('edge-grab-e1-0.5')
+    fireEvent.pointerDown(grab, { pointerId: 3, clientX: mid.x, clientY: mid.y })
+    fireEvent.pointerMove(grab, { pointerId: 3, clientX: mid.x + 30, clientY: mid.y + 10 })
+    fireEvent.pointerUp(grab, { pointerId: 3, clientX: mid.x + 30, clientY: mid.y + 10 })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(client.saveVisualization).toHaveBeenCalledTimes(1)
+    const args = (client.saveVisualization as any).mock.calls[0]
+    // deep-equal the live map: the drag replaced e1's entry; deadEdge (not in
+    // the graph) is pruned — the map is always built from live edge ids
+    expect(args[7].bends).toEqual({ e1: { dx: 30, dy: 10 } })
+    // autosave never touches the binding
+    expect(args[7].manifest).toBeUndefined()
+  })
+
+  it('double-click resets a bend and the next autosave omits that edge id', async () => {
+    vi.useFakeTimers()
+    const client = bendClient({ bends: { e1: { dx: 1, dy: 2 }, e2: { dx: 3, dy: 4 } } })
+    ;(client.getSubgraph as any).mockResolvedValue({
+      nodes: [
+        { id: 'n1', type: 'Task', properties: {} },
+        { id: 'n2', type: 'Milestone', properties: {} },
+        { id: 'n3', type: 'Task', properties: {} },
+      ],
+      edges: [
+        { id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} },
+        { id: 'e2', type: 'blocks', source: 'n2', target: 'n3', properties: {} },
+      ],
+    })
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    const interaction = document.querySelector(
+      '.react-flow__edge[data-id="e1"] .react-flow__edge-interaction',
+    )
+    expect(interaction).not.toBeNull()
+    fireEvent.doubleClick(interaction!)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(client.saveVisualization).toHaveBeenCalledTimes(1)
+    const args = (client.saveVisualization as any).mock.calls[0]
+    // e1 reset → straight default; e2 keeps its loaded bend
+    expect(args[7].bends).toEqual({ e2: { dx: 3, dy: 4 } })
+  })
+
+  it('viz load seeds the bends state (first autosave carries it, pruned to live edges)', async () => {
+    vi.useFakeTimers()
+    const client = bendClient({ bends: { e1: { dx: 5, dy: 6 }, ghost: { dx: 7, dy: 8 } } })
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    // dirty via a filter change — no edge interaction needed
+    fireEvent.click(screen.getByTestId('type-Milestone'))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    const args = (client.saveVisualization as any).mock.calls[0]
+    expect(args[7].bends).toEqual({ e1: { dx: 5, dy: 6 } })
+  })
+
+  it('ghost edges render curvy but read-only: no grab circles, no dblclick target', async () => {
+    vi.useFakeTimers()
+    const client = bendClient({
+      graphVersion: 1,
+      nodes: {
+        n1: { type: 'Task', label: 'n1', x: 0, y: 0 },
+        n2: { type: 'Milestone', label: 'n2', x: 200, y: 0 },
+      },
+      edges: {
+        e1: { type: 'depends_on', source: 'n1', target: 'n2' },
+        'gone-edge': { type: 'blocks', source: 'n1', target: 'n2' },
+      },
+    })
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    const ghost = document.querySelector('.react-flow__edge[data-id="gone-edge"]')
+    expect(ghost).not.toBeNull()
+    expect(ghost!.querySelectorAll('.edge-grab')).toHaveLength(0)
+    expect(ghost!.querySelector('.react-flow__edge-interaction')).toBeNull()
+    // the ghost still draws the curvy path with its remembered type label
+    expect(ghost!.querySelector('.react-flow__edge-path')).not.toBeNull()
+    // the live edge keeps its three grab circles
+    expect(
+      document.querySelectorAll('.react-flow__edge[data-id="e1"] .edge-grab'),
+    ).toHaveLength(3)
   })
 })

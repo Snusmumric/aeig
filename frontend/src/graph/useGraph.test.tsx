@@ -339,4 +339,34 @@ describe('useGraph', () => {
     expect(e9.sourceHandle).toBe('r')
     expect(e9.targetHandle).toBe('l')
   })
+
+  it('bends state flows into data.bend; self-loops default to {0,-60}', async () => {
+    const client = fakeClient()
+    ;(client.getSubgraph as any).mockResolvedValue({
+      nodes: [
+        { id: 'n1', type: 'Task', properties: {} },
+        { id: 'n2', type: 'Milestone', properties: {} },
+      ],
+      edges: [
+        { id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} },
+        { id: 'e2', type: 'loops', source: 'n1', target: 'n1', properties: {} },
+      ],
+    })
+    const { result } = renderHook(() => useGraph(client, 'g1', styles))
+    await act(async () => {
+      await result.current.reload()
+    })
+    expect(result.current.bends).toEqual({})
+    act(() => {
+      result.current.setBends({ e1: { dx: 5, dy: 6 } })
+    })
+    const e1 = result.current.edges.find((e) => e.id === 'e1')!
+    expect(e1.type).toBe('curvy')
+    expect(e1.data?.bend).toEqual({ dx: 5, dy: 6 })
+    const e2 = result.current.edges.find((e) => e.id === 'e2')!
+    expect(e2.type).toBe('curvy')
+    expect(e2.data?.selfLoop).toBe(true)
+    // implicit self-loop arc unless a user bend exists (not persisted)
+    expect(e2.data?.bend).toEqual({ dx: 0, dy: -60 })
+  })
 })

@@ -8,6 +8,7 @@ import { VizDiffBar } from './VizDiffBar'
 import { useGraph } from './useGraph'
 import { computeVizDiff } from './vizDiff'
 import { extractPositions } from './layout'
+import { EST_CENTER, pickHandles, type Bend } from './edgeGeometry'
 import type { TypeStyleMap } from './typeStyle'
 
 const AUTOSAVE_INTERVAL_MS = 10_000
@@ -38,6 +39,8 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     setVisibleEdgeTypes,
     hideOrphans,
     setHideOrphans,
+    bends,
+    setBends,
     onNodeDragStart,
     onNodeDrag,
     onNodeDragStop,
@@ -67,9 +70,9 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
 
   // Snapshot of the state the autosave needs — refreshed every render so the
   // 10s interval keeps a stable identity and never resets mid-session.
-  const latest = useRef({ allNodes, visibleTypes, visibleEdgeTypes, hideOrphans, error })
+  const latest = useRef({ allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans, bends, error })
   useEffect(() => {
-    latest.current = { allNodes, visibleTypes, visibleEdgeTypes, hideOrphans, error }
+    latest.current = { allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans, bends, error }
   })
 
   // Mount: resolve the visualization — the ?viz= name, falling back to the
@@ -104,13 +107,14 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       if (viz.edgeTypes) setVisibleEdgeTypes(new Set(viz.edgeTypes))
       else setVisibleEdgeTypes(null)
       setHideOrphans(viz.hideOrphans)
+      setBends(viz.bends ?? {})
       await reload(viz.positions)
     }
     void run()
     return () => {
       cancelled = true
     }
-  }, [client, graphId, initialVizName, reload, setVisibleTypes, setVisibleEdgeTypes, setHideOrphans])
+  }, [client, graphId, initialVizName, reload, setVisibleTypes, setVisibleEdgeTypes, setHideOrphans, setBends])
 
   // Dirty tracking: node position changes, filter changes, viewport moves.
   const handleNodesChange = useCallback(
@@ -198,6 +202,17 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     return [...styled, ...ghosts]
   }, [diff, nodes, graphNodes, showAdded, showDeleted])
 
+  // anchor positions for ghost edges: current node positions first, then the
+  // manifest's remembered coordinates for nodes gone from the graph
+  const posById = useMemo(() => {
+    const m = new Map<string, { x: number; y: number }>()
+    for (const n of allNodes) m.set(n.id, n.position)
+    for (const [id, mn] of Object.entries(diff.manifestNodes)) {
+      if (!m.has(id)) m.set(id, { x: mn.x, y: mn.y })
+    }
+    return m
+  }, [allNodes, diff])
+
   const displayEdges = useMemo<Edge[]>(() => {
     if (diff.mode === 'unbound') return edges
     const alive = showAdded ? edges : edges.filter((e) => !diff.addedEdgeIds.has(e.id))
@@ -210,16 +225,31 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     const graphIds = new Set(graphEdges.map((e) => e.id))
     const ghosts = Object.entries(diff.manifestEdges)
       .filter(([id]) => !graphIds.has(id))
-      .map(([id, m]) => ({
-        id,
-        source: m.source,
-        target: m.target,
-        label: m.type,
-        className: 'ghost',
-        style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '5 3' },
-      }))
+      .map(([id, m]) => {
+        const p1 = posById.get(m.source)
+        const p2 = posById.get(m.target)
+        const handles =
+          p1 && p2
+            ? pickHandles(
+                { x: p1.x + EST_CENTER.x, y: p1.y + EST_CENTER.y },
+                { x: p2.x + EST_CENTER.x, y: p2.y + EST_CENTER.y },
+              )
+            : null
+        return {
+          id,
+          source: m.source,
+          target: m.target,
+          type: 'curvy',
+          label: m.type,
+          sourceHandle: handles?.source,
+          targetHandle: handles?.target,
+          className: 'ghost',
+          style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '5 3' },
+          data: { readOnly: true },
+        }
+      })
     return [...styled, ...ghosts]
-  }, [diff, edges, graphEdges, showAdded, showDeleted])
+  }, [diff, edges, graphEdges, showAdded, showDeleted, posById])
 
   // the autosave PUT args — reads refs so its identity stays stable
   const buildSaveArgs = useCallback(
@@ -232,6 +262,32 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       return [graphId, name, extractPositions(an), viewportRef.current, nodeTypes, edgeTypes, ho] as const
     },
     [graphId],
+  )
+
+  // the bends map for any save: current state filtered to live edge ids —
+  // dead-edge bends (removed edges, reset drags dropping entries) vanish on
+  // the next save (self-pruning full replace)
+  const bendsForSave = useCallback(() => {
+    const { bends: bs, allEdges: aes } = latest.current
+    const live = new Set(aes.map((e) => e.id))
+    return Object.fromEntries(Object.entries(bs).filter(([id]) => live.has(id)))
+  }, [])
+
+  // bend drags/resets dirty the editor exactly like filter changes
+  const handleEdgeBend = useCallback(
+    (edgeId: string, bend: Bend | null) => {
+      markDirty()
+      setBends((prev) => {
+        if (bend === null) {
+          if (!(edgeId in prev)) return prev
+          const next = { ...prev }
+          delete next[edgeId]
+          return next
+        }
+        return { ...prev, [edgeId]: bend }
+      })
+    },
+    [markDirty, setBends],
   )
 
   // binding as-is: only a bound row carries a manifest to copy; unbound/legacy
@@ -280,7 +336,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         vt ? [...vt] : undefined,
         vet ? [...vet] : undefined,
         ho,
-        { manifest },
+        { manifest, bends: bendsForSave() },
       )
       .then((saved) => {
         setViz(saved)
@@ -309,7 +365,10 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     }
     const revAtSaveStart = revision.current
     try {
-      const saved = await client.saveVisualization(...buildSaveArgs(name), { manifest: manifestOfViz() })
+      const saved = await client.saveVisualization(...buildSaveArgs(name), {
+        manifest: manifestOfViz(),
+        bends: bendsForSave(),
+      })
       if (revision.current === revAtSaveStart) {
         dirty.current = false
         setNotice(null)
@@ -337,7 +396,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       if (saveBlocked()) return
       const revAtSaveStart = revision.current
       void client
-        .saveVisualization(...buildSaveArgs(vizName))
+        .saveVisualization(...buildSaveArgs(vizName), { bends: bendsForSave() })
         .then(() => {
           // edits may have happened while this PUT was in flight — only declare
           // the state clean if nothing changed since the save started
@@ -349,7 +408,9 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         .catch(() => setNotice('autosave failed — retrying'))
     }
     const onBeforeUnload = () => {
-      if (dirty.current && !saveBlocked()) void client.saveVisualization(...buildSaveArgs(vizName))
+      if (dirty.current && !saveBlocked()) {
+        void client.saveVisualization(...buildSaveArgs(vizName), { bends: bendsForSave() })
+      }
     }
     const id = setInterval(save, AUTOSAVE_INTERVAL_MS)
     window.addEventListener('beforeunload', onBeforeUnload)
@@ -357,7 +418,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       clearInterval(id)
       window.removeEventListener('beforeunload', onBeforeUnload)
     }
-  }, [vizName, client, graphId, buildSaveArgs, saveBlocked])
+  }, [vizName, client, graphId, buildSaveArgs, bendsForSave, saveBlocked])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh' }}>
@@ -450,6 +511,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
           onNodeDragStop={onNodeDragStop}
           applyViewport={applyViewport ?? undefined}
           onMove={handleMove}
+          onEdgeBend={handleEdgeBend}
           fitView={fitView}
         />
       </div>

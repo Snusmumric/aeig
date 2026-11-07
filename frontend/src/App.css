@@ -205,3 +205,19 @@
   border: none;
   pointer-events: none;
 }
+
+/* ── curvy edges: bend grab circles, visible on edge hover ─────────────── */
+
+.react-flow__edge .edge-grab {
+  fill: transparent;
+  stroke: transparent;
+  cursor: grab;
+}
+
+.react-flow__edge:hover .edge-grab {
+  stroke: #64748b;
+}
+
+.react-flow__edge .edge-grab:active {
+  cursor: grabbing;
+}

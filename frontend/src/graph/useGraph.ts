@@ -4,7 +4,7 @@ import type { ApiClient } from '../api/client'
 import { toFlowEdges, toFlowNodes, type TypedEdgeData, type TypedNodeData } from './toFlow'
 import { filterFlow } from './filterFlow'
 import { applyFollowDrag, planFollowers } from './followDrag'
-import { EST_CENTER, pickHandles } from './edgeGeometry'
+import { EST_CENTER, pickHandles, type Bend } from './edgeGeometry'
 import type { TypeStyleMap } from './typeStyle'
 
 export type PositionMap = Record<string, { x: number; y: number }>
@@ -23,6 +23,9 @@ export interface UseGraph {
   setVisibleEdgeTypes: Dispatch<SetStateAction<Set<string> | null>>
   hideOrphans: boolean
   setHideOrphans: Dispatch<SetStateAction<boolean>>
+  /** edge bends keyed by edgeId — seeded from the viz, dirtied by drags */
+  bends: Record<string, Bend>
+  setBends: Dispatch<SetStateAction<Record<string, Bend>>>
   version: number
   error: string | null
   reload: (positions?: PositionMap) => Promise<void>
@@ -49,6 +52,7 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
   const [visibleTypes, setVisibleTypes] = useState<Set<string> | null>(null)
   const [visibleEdgeTypes, setVisibleEdgeTypes] = useState<Set<string> | null>(null)
   const [hideOrphans, setHideOrphans] = useState(false)
+  const [bends, setBends] = useState<Record<string, Bend>>({})
   const [version, setVersion] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
@@ -86,15 +90,24 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
         { x: sp.x + EST_CENTER.x, y: sp.y + EST_CENTER.y },
         { x: tp.x + EST_CENTER.x, y: tp.y + EST_CENTER.y },
       )
+      if (edge.data === undefined) {
+        return { ...edge, type: 'curvy', sourceHandle: handles.source, targetHandle: handles.target }
+      }
       return {
         ...edge,
+        type: 'curvy',
         sourceHandle: handles.source,
         targetHandle: handles.target,
-        ...(selfLoop && edge.data !== undefined ? { data: { ...edge.data, selfLoop: true } } : {}),
+        data: {
+          ...edge.data,
+          ...(selfLoop ? { selfLoop: true } : {}),
+          // through-point offset; self-loops get an implicit arc unless bent
+          bend: bends[edge.id] ?? (selfLoop ? { dx: 0, dy: -60 } : { dx: 0, dy: 0 }),
+        },
       }
     })
     return { nodes: filtered.nodes, edges: anchored }
-  }, [allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans])
+  }, [allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans, bends])
   const types = useMemo(() => [...new Set(allNodes.map((n) => n.data.nodeType))].sort(), [allNodes])
   const edgeTypes = useMemo(
     () =>
@@ -149,6 +162,8 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
     setVisibleEdgeTypes,
     hideOrphans,
     setHideOrphans,
+    bends,
+    setBends,
     version,
     error,
     reload,
