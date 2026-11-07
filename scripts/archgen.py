@@ -58,7 +58,7 @@ NODES = [
     {"id": "prp-element-id", "type": "property", "props": {"label": "id"}},
     {"id": "prp-element-type", "type": "property", "props": {"label": "type", "note": "тип вершины (метамодель)"}},
     {"id": "prp-element-user", "type": "property", "props": {"label": "user props", "note": "произвольные свойства; ключи graphId/id/type зарезервированы"}},
-    {"id": "rel-rel", "type": "reltype", "props": {"label": ":REL", "note": "ребро пользовательского графа"}},
+    {"id": "rel-rel", "type": "reltype", "props": {"label": ":REL", "note": "ребро пользовательского графа; :REL всегда направлен (source→target), семантика направления — в метамодели типов (направленные типы рисуются со стрелкой)"}},
     {"id": "prp-rel-graphid", "type": "property", "props": {"label": "graphId", "note": "ключ партиционирования по графу"}},
     {"id": "prp-rel-id", "type": "property", "props": {"label": "id"}},
     {"id": "prp-rel-type", "type": "property", "props": {"label": "type", "note": "тип ребра (метамодель)"}},
