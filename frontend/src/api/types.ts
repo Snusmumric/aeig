@@ -1,3 +1,5 @@
+import type { Bend } from '../graph/edgeGeometry'
+
 export interface Graph {
   id: string
   name: string
@@ -59,13 +61,24 @@ export interface ManifestEdge {
 
 /**
  * Binding of a visualization to the graph state at its last explicit sync.
- * Sent as the 8th saveVisualization argument — included in the PUT body only
- * when provided (absent fields keep their stored values server-side).
+ * Carried inside the saveVisualization opts bag — included in the PUT body
+ * only when provided (absent fields keep their stored values server-side).
  */
 export interface VisualizationManifest {
   graphVersion: number
   nodes: Record<string, ManifestNode>
   edges: Record<string, ManifestEdge>
+}
+
+/**
+ * Optional save payload extensions — included in the PUT body only when
+ * provided (absent fields keep their stored values server-side).
+ */
+export interface SaveVisualizationOptions {
+  /** binding refresh — ONLY via sync; autosave/plain saves omit it */
+  manifest?: VisualizationManifest
+  /** edge bends keyed by edgeId — present = full replace of the map */
+  bends?: Record<string, Bend>
 }
 
 export interface Visualization {
@@ -84,4 +97,6 @@ export interface Visualization {
   /** Element-set manifest — null = legacy/unbound row (never synced). */
   nodes?: Record<string, ManifestNode> | null
   edges?: Record<string, ManifestEdge> | null
+  /** Edge bends {edgeId → {dx,dy}} — null = never saved. */
+  bends?: Record<string, Bend> | null
 }

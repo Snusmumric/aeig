@@ -3,7 +3,7 @@ import type {
   Subgraph,
   Mutations,
   Visualization,
-  VisualizationManifest,
+  SaveVisualizationOptions,
   Position,
   Viewport,
 } from './types'
@@ -56,8 +56,9 @@ export function createClient(baseURL: string) {
       nodeTypes: string[] | undefined,
       edgeTypes: string[] | null | undefined,
       hideOrphans: boolean,
-      // binding refreshes ONLY via sync — autosave/plains saves omit it entirely
-      manifest?: VisualizationManifest,
+      // binding refreshes ONLY via sync; bends = full live-edge map —
+      // each carried in the PUT body only when provided
+      opts?: SaveVisualizationOptions,
     ) =>
       request<Visualization>(`${baseURL}/graphs/${id}/visualizations/${encodeURIComponent(name)}`, {
         method: 'PUT',
@@ -68,9 +69,10 @@ export function createClient(baseURL: string) {
           ...(nodeTypes !== undefined ? { nodeTypes } : {}),
           ...(edgeTypes !== undefined ? { edgeTypes } : {}),
           hideOrphans,
-          ...(manifest !== undefined
-            ? { graphVersion: manifest.graphVersion, nodes: manifest.nodes, edges: manifest.edges }
+          ...(opts?.manifest !== undefined
+            ? { graphVersion: opts.manifest.graphVersion, nodes: opts.manifest.nodes, edges: opts.manifest.edges }
             : {}),
+          ...(opts?.bends !== undefined ? { bends: opts.bends } : {}),
         }),
       }),
   }

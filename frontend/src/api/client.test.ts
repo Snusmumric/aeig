@@ -133,7 +133,7 @@ describe('visualizations', () => {
       undefined,
       undefined,
       false,
-      manifest,
+      { manifest },
     )
     const [, opts] = (fetch as any).mock.calls[0]
     const body = JSON.parse(opts.body)
@@ -143,5 +143,51 @@ describe('visualizations', () => {
     // the rest of the payload is untouched
     expect(body.positions).toEqual({ n1: { x: 1, y: 2 } })
     expect(body.hideOrphans).toBe(false)
+  })
+
+  it('saveVisualization carries opts.bends verbatim', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    const bends = { e1: { dx: 5, dy: -3 }, e2: { dx: 0, dy: 10 } }
+    await c.saveVisualization(
+      'g1',
+      'default',
+      {},
+      { x: 0, y: 0, zoom: 1 },
+      undefined,
+      undefined,
+      false,
+      { bends },
+    )
+    const [, opts] = (fetch as any).mock.calls[0]
+    const body = JSON.parse(opts.body)
+    expect(body.bends).toEqual(bends)
+  })
+
+  it('saveVisualization omits bends when not provided', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    // no opts at all
+    await c.saveVisualization('g1', 'default', {}, { x: 0, y: 0, zoom: 1 }, undefined, undefined, false)
+    // opts with manifest only — bends must still be absent
+    await c.saveVisualization('g1', 'default', {}, { x: 0, y: 0, zoom: 1 }, undefined, undefined, false, {
+      manifest: { graphVersion: 7, nodes: {}, edges: {} },
+    })
+    for (const call of (fetch as any).mock.calls) {
+      expect(JSON.parse(call[1].body)).not.toHaveProperty('bends')
+    }
+  })
+
+  it('saveVisualization carries manifest and bends together in one opts bag', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    await c.saveVisualization('g1', 'default', {}, { x: 0, y: 0, zoom: 1 }, undefined, undefined, false, {
+      manifest: { graphVersion: 7, nodes: {}, edges: {} },
+      bends: { e1: { dx: 1, dy: 2 } },
+    })
+    const [, opts] = (fetch as any).mock.calls[0]
+    const body = JSON.parse(opts.body)
+    expect(body.graphVersion).toBe(7)
+    expect(body.bends).toEqual({ e1: { dx: 1, dy: 2 } })
   })
 })

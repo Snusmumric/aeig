@@ -442,11 +442,13 @@ describe('GraphEditor — visualization manifest', () => {
     const args = (client.saveVisualization as any).mock.calls[0]
     expect(args[1]).toBe('fork-1')
     // binding carried as-is: manifest fields equal to the loaded viz
-    expect(args[7]).toEqual({
+    expect(args[7].manifest).toEqual({
       graphVersion: 4,
       nodes: boundManifest.nodes,
       edges: boundManifest.edges,
     })
+    // the fork carries no bends yet (Task 6 wires them)
+    expect(args[7].bends).toBeUndefined()
     // the editor switched to the fork
     expect(screen.getByTestId('viz-badge').textContent).toBe('fork-1')
     expect(new URLSearchParams(window.location.search).get('viz')).toBe('fork-1')
@@ -467,7 +469,7 @@ describe('GraphEditor — visualization manifest', () => {
     expect(confirmSpy).not.toHaveBeenCalled()
     const args = (client.saveVisualization as any).mock.calls[0]
     expect(args[1]).toBe('quiet-harbor-42')
-    expect(args[7]).toEqual({
+    expect(args[7].manifest).toEqual({
       graphVersion: 4,
       nodes: boundManifest.nodes,
       edges: boundManifest.edges,
@@ -488,7 +490,7 @@ describe('GraphEditor — visualization manifest', () => {
     expect(confirmSpy).toHaveBeenCalledWith('Перезаписать?')
     const args = (client.saveVisualization as any).mock.calls[0]
     expect(args[1]).toBe('busy')
-    expect(args[7]).toEqual({
+    expect(args[7].manifest).toEqual({
       graphVersion: 4,
       nodes: boundManifest.nodes,
       edges: boundManifest.edges,
@@ -542,9 +544,18 @@ describe('GraphEditor — visualization manifest', () => {
       ],
     })
     // echo the PUT back so the editor's local binding adopts the synced manifest
-    // (later 7-arg autosaves must not blow up the echo — manifest optional)
+    // (later 7-arg autosaves must not blow up the echo — opts optional)
     ;(client.saveVisualization as any).mockImplementation(
-      (_gid: string, name: string, positions: unknown, viewport: unknown, nodeTypes: unknown, edgeTypes: unknown, hideOrphans: unknown, manifest?: any) =>
+      (
+        _gid: string,
+        name: string,
+        positions: unknown,
+        viewport: unknown,
+        nodeTypes: unknown,
+        edgeTypes: unknown,
+        hideOrphans: unknown,
+        opts?: any,
+      ) =>
         Promise.resolve(
           viz({
             name,
@@ -553,9 +564,9 @@ describe('GraphEditor — visualization manifest', () => {
             nodeTypes: nodeTypes as string[] | undefined,
             edgeTypes: edgeTypes as string[] | null | undefined,
             hideOrphans: hideOrphans as boolean,
-            graphVersion: manifest?.graphVersion ?? 0,
-            nodes: manifest?.nodes,
-            edges: manifest?.edges,
+            graphVersion: opts?.manifest?.graphVersion ?? 0,
+            nodes: opts?.manifest?.nodes,
+            edges: opts?.manifest?.edges,
           }),
         ),
     )
@@ -567,7 +578,7 @@ describe('GraphEditor — visualization manifest', () => {
     await settle()
     expect(client.saveVisualization).toHaveBeenCalledTimes(1)
     const args = (client.saveVisualization as any).mock.calls[0]
-    expect(args[7]).toEqual({
+    expect(args[7].manifest).toEqual({
       graphVersion: 1,
       nodes: {
         n1: { type: 'Task', label: 'n1', x: 5, y: 5 },
@@ -618,7 +629,7 @@ describe('GraphEditor — visualization manifest', () => {
     await settle()
     expect(good.saveVisualization).toHaveBeenCalledTimes(1)
     const args = (good.saveVisualization as any).mock.calls[0]
-    expect(args[7]).toEqual({
+    expect(args[7].manifest).toEqual({
       graphVersion: 1,
       nodes: {
         n1: { type: 'Task', label: 'n1', x: 0, y: 0 },
@@ -656,7 +667,7 @@ describe('GraphEditor — visualization manifest', () => {
     const args = (good.saveVisualization as any).mock.calls[0]
     expect(args[1]).toBe('quiet-harbor-42')
     expect(Object.keys(args[2])).toEqual(expect.arrayContaining(['n1', 'n2', 'n3']))
-    expect(args[7]).toEqual({
+    expect(args[7].manifest).toEqual({
       graphVersion: 4,
       nodes: boundManifest.nodes,
       edges: boundManifest.edges,

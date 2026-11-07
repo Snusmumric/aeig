@@ -280,7 +280,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         vt ? [...vt] : undefined,
         vet ? [...vet] : undefined,
         ho,
-        manifest,
+        { manifest },
       )
       .then((saved) => {
         setViz(saved)
@@ -309,7 +309,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     }
     const revAtSaveStart = revision.current
     try {
-      const saved = await client.saveVisualization(...buildSaveArgs(name), manifestOfViz())
+      const saved = await client.saveVisualization(...buildSaveArgs(name), { manifest: manifestOfViz() })
       if (revision.current === revAtSaveStart) {
         dirty.current = false
         setNotice(null)
