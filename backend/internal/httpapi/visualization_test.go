@@ -31,6 +31,7 @@ type stubVizAPI struct {
 	gotGraphVer *int64
 	gotNodes    []byte
 	gotEdges    []byte
+	gotBends    []byte
 }
 
 func (s *stubVizAPI) GetDefaultVisualization(_ context.Context, graphID string) (domain.Visualization, error) {
@@ -47,7 +48,7 @@ func (s *stubVizAPI) GetVisualization(_ context.Context, _, name string) (domain
 	return s.byName, s.getErr
 }
 
-func (s *stubVizAPI) SaveVisualization(_ context.Context, _, name string, p map[string]domain.Position, _ domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges []byte) (domain.Visualization, error) {
+func (s *stubVizAPI) SaveVisualization(_ context.Context, _, name string, p map[string]domain.Position, _ domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends []byte) (domain.Visualization, error) {
 	s.saveCalls++
 	s.gotName = name
 	s.gotPosLen = len(p)
@@ -57,6 +58,7 @@ func (s *stubVizAPI) SaveVisualization(_ context.Context, _, name string, p map[
 	s.gotGraphVer = graphVersion
 	s.gotNodes = nodes
 	s.gotEdges = edges
+	s.gotBends = bends
 	if s.saveErr != nil {
 		return domain.Visualization{}, s.saveErr
 	}
@@ -136,6 +138,40 @@ func TestPutVisualization_OptionalFieldsAbsent_201(t *testing.T) {
 	assert.Nil(t, v.gotGraphVer)
 	assert.Nil(t, v.gotNodes)
 	assert.Nil(t, v.gotEdges)
+	assert.Nil(t, v.gotBends)
+}
+
+func TestPutVisualization_BendsField_201(t *testing.T) {
+	v := &stubVizAPI{saved: domain.Visualization{ID: "v1", Name: "mine"}}
+	body := `{"positions":{},"viewport":{"x":0,"y":0,"zoom":1},` +
+		`"bends":{"e1":{"dx":30,"dy":10},"e2":{"dx":0,"dy":-60}}}`
+	rec := doReq(t, routerWithVisualizations(v), http.MethodPut, "/graphs/g1/visualizations/mine", body)
+	require.Equal(t, http.StatusCreated, rec.Code)
+	assert.JSONEq(t, `{"e1":{"dx":30,"dy":10},"e2":{"dx":0,"dy":-60}}`, string(v.gotBends))
+}
+
+func TestPutVisualization_BendsInResponse_201(t *testing.T) {
+	// the PUT response echoes the stored bends map
+	bends := map[string]domain.Bend{"e1": {Dx: 30, Dy: 10}, "e2": {Dx: 0, Dy: -60}}
+	v := &stubVizAPI{saved: domain.Visualization{ID: "v1", Name: "mine", Bends: &bends}}
+	rec := doReq(t, routerWithVisualizations(v), http.MethodPut, "/graphs/g1/visualizations/mine", `{"positions":{}}`)
+	require.Equal(t, http.StatusCreated, rec.Code)
+	var out domain.Visualization
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &out))
+	require.NotNil(t, out.Bends)
+	assert.Equal(t, bends, *out.Bends)
+	assert.Contains(t, rec.Body.String(), `"bends":{"e1":{"dx":30,"dy":10},"e2":{"dx":0,"dy":-60}}`)
+}
+
+func TestGetVisualization_BendsInResponse_200(t *testing.T) {
+	bends := map[string]domain.Bend{"e7": {Dx: -5, Dy: 12}}
+	v := &stubVizAPI{byName: domain.Visualization{ID: "v1", Name: "mine", Bends: &bends}}
+	rec := doReq(t, routerWithVisualizations(v), http.MethodGet, "/graphs/g1/visualizations/mine", "")
+	require.Equal(t, http.StatusOK, rec.Code)
+	var out domain.Visualization
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &out))
+	require.NotNil(t, out.Bends)
+	assert.Equal(t, bends, *out.Bends)
 }
 
 func TestPutVisualization_DefaultName_201(t *testing.T) {

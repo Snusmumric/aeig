@@ -12,7 +12,7 @@ import (
 // VisualizationStore is the storage contract for visualizations
 // (implemented by postgres.VisualizationRepo).
 type VisualizationStore interface {
-	SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges []byte) (domain.Visualization, error)
+	SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends []byte) (domain.Visualization, error)
 	GetVisualizationByName(ctx context.Context, graphID, name string) (domain.Visualization, error)
 	GetDefaultVisualization(ctx context.Context, graphID string) (domain.Visualization, error)
 	TryCreateDefaultVisualization(ctx context.Context, graphID string) (domain.Visualization, bool, error)
@@ -62,8 +62,9 @@ func (s *VisualizationService) GetVisualization(ctx context.Context, graphID, na
 // SaveVisualization upserts a named visualization. "default" is the default's
 // own name (autosave of the default writes under it) and is legal here; only
 // blank names are rejected. The manifest binding (graphVersion/nodes/edges)
-// is passed through opaquely: nil = leave the stored values unchanged.
-func (s *VisualizationService) SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges []byte) (domain.Visualization, error) {
+// and the bends map are passed through opaquely: nil = leave the stored
+// values unchanged (bends non-nil = full replace).
+func (s *VisualizationService) SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends []byte) (domain.Visualization, error) {
 	if strings.TrimSpace(name) == "" {
 		return domain.Visualization{}, ErrInvalidInput
 	}
@@ -73,5 +74,5 @@ func (s *VisualizationService) SaveVisualization(ctx context.Context, graphID, n
 	if positions == nil {
 		positions = map[string]domain.Position{}
 	}
-	return s.store.SaveVisualization(ctx, graphID, name, positions, vp, nodeTypes, edgeTypes, hideOrphans, graphVersion, nodes, edges)
+	return s.store.SaveVisualization(ctx, graphID, name, positions, vp, nodeTypes, edgeTypes, hideOrphans, graphVersion, nodes, edges, bends)
 }

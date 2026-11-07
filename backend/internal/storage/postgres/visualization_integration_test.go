@@ -36,14 +36,14 @@ func TestVisualizationRepo_SaveGet(t *testing.T) {
 	pos := map[string]domain.Position{"n1": {X: 10, Y: 20}}
 	vp := domain.Viewport{X: 1, Y: 2, Zoom: 1.5}
 
-	saved, err := viz.SaveVisualization(ctx, g.ID, "mine", pos, vp, nil, nil, false, nil, nil, nil)
+	saved, err := viz.SaveVisualization(ctx, g.ID, "mine", pos, vp, nil, nil, false, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.NotEmpty(t, saved.ID)
 	assert.Equal(t, "mine", saved.Name)
 
 	// Upsert: same (graph, name) overwrites, keeps one row and the same id.
 	pos2 := map[string]domain.Position{"n1": {X: 99, Y: 0}, "n2": {X: 5, Y: 5}}
-	saved2, err := viz.SaveVisualization(ctx, g.ID, "mine", pos2, vp, nil, nil, false, nil, nil, nil)
+	saved2, err := viz.SaveVisualization(ctx, g.ID, "mine", pos2, vp, nil, nil, false, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, saved.ID, saved2.ID)
 
@@ -72,13 +72,13 @@ func TestVisualizationRepo_NodeTypesRoundtrip(t *testing.T) {
 	g, err := graphs.CreateGraph(ctx, "g")
 	require.NoError(t, err)
 
-	saved, err := viz.SaveVisualization(ctx, g.ID, "filtered", nil, domain.Viewport{}, []string{"service", "domain"}, nil, false, nil, nil, nil)
+	saved, err := viz.SaveVisualization(ctx, g.ID, "filtered", nil, domain.Viewport{}, []string{"service", "domain"}, nil, false, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, saved.NodeTypes)
 	assert.Equal(t, []string{"service", "domain"}, *saved.NodeTypes)
 
 	// upsert with nil overwrites node_types back to NULL
-	_, err = viz.SaveVisualization(ctx, g.ID, "filtered", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil)
+	_, err = viz.SaveVisualization(ctx, g.ID, "filtered", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	got, err := viz.GetVisualizationByName(ctx, g.ID, "filtered")
@@ -86,7 +86,7 @@ func TestVisualizationRepo_NodeTypesRoundtrip(t *testing.T) {
 	assert.Nil(t, got.NodeTypes)
 
 	// [] ("show none") roundtrips distinctly from NULL
-	_, err = viz.SaveVisualization(ctx, g.ID, "filtered", nil, domain.Viewport{}, []string{}, nil, false, nil, nil, nil)
+	_, err = viz.SaveVisualization(ctx, g.ID, "filtered", nil, domain.Viewport{}, []string{}, nil, false, nil, nil, nil, nil)
 	require.NoError(t, err)
 	gotEmpty, err := viz.GetVisualizationByName(ctx, g.ID, "filtered")
 	require.NoError(t, err)
@@ -109,7 +109,7 @@ func TestVisualizationRepo_NewFieldsRoundtrip(t *testing.T) {
 	g, err := graphs.CreateGraph(ctx, "g")
 	require.NoError(t, err)
 
-	saved, err := viz.SaveVisualization(ctx, g.ID, "v1", nil, domain.Viewport{Zoom: 1}, nil, []string{"rel"}, true, nil, nil, nil)
+	saved, err := viz.SaveVisualization(ctx, g.ID, "v1", nil, domain.Viewport{Zoom: 1}, nil, []string{"rel"}, true, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.True(t, saved.HideOrphans)
 	require.NotNil(t, saved.EdgeTypes)
@@ -123,7 +123,7 @@ func TestVisualizationRepo_NewFieldsRoundtrip(t *testing.T) {
 	assert.False(t, got.IsDefault)
 
 	// re-save with nil edgeTypes + false → NULL/false back
-	_, err = viz.SaveVisualization(ctx, g.ID, "v1", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil)
+	_, err = viz.SaveVisualization(ctx, g.ID, "v1", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil)
 	require.NoError(t, err)
 	got2, err := viz.GetVisualizationByName(ctx, g.ID, "v1")
 	require.NoError(t, err)
@@ -168,7 +168,7 @@ func TestVisualizationRepo_TryCreateDefault(t *testing.T) {
 	//    (the name is fixed, so no collision with non-default rows is possible)
 	g2, err := graphs.CreateGraph(ctx, "g2")
 	require.NoError(t, err)
-	_, err = viz.SaveVisualization(ctx, g2.ID, "taken-name", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil)
+	_, err = viz.SaveVisualization(ctx, g2.ID, "taken-name", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil)
 	require.NoError(t, err)
 	third, created3, err := viz.TryCreateDefaultVisualization(ctx, g2.ID)
 	require.NoError(t, err)
@@ -257,8 +257,9 @@ func TestVisualizationRepo_PromotionMigration(t *testing.T) {
 	_, err = viz.GetDefaultVisualization(ctx, g2.ID)
 	assert.ErrorIs(t, err, domain.ErrNotFound)
 
-	// down migration drops the new columns (SELECT on them fails);
-	// one step down = 0005's down, so assert on a manifest column
+	// down migrations drop the new columns (SELECT on them fails);
+	// two steps down = 0006's then 0005's down, so assert on a manifest column
+	migrateDownOne(t, dsn)
 	migrateDownOne(t, dsn)
 	_, err = pool.Exec(ctx, `SELECT nodes FROM layouts LIMIT 1`)
 	assert.Error(t, err)
@@ -286,7 +287,7 @@ func TestVisualizationRepo_SaveNeverFlipsDefault(t *testing.T) {
 	// autosave PUTs the whole state over the default row's name — the row must
 	// stay the graph's default (upsert never flips is_default)
 	saved, err := viz.SaveVisualization(ctx, g.ID, "default",
-		map[string]domain.Position{"n1": {X: 5, Y: 5}}, domain.Viewport{Zoom: 1}, nil, nil, true, nil, nil, nil)
+		map[string]domain.Position{"n1": {X: 5, Y: 5}}, domain.Viewport{Zoom: 1}, nil, nil, true, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, def.ID, saved.ID)
 
@@ -326,7 +327,7 @@ func TestVisualizationRepo_ManifestRoundtrip(t *testing.T) {
 
 	// 1) save with a graph version + manifests → stored and returned
 	gv := int64(7)
-	saved, err := viz.SaveVisualization(ctx, g.ID, "v", nil, domain.Viewport{}, nil, nil, false, &gv, nodesJSON, edgesJSON)
+	saved, err := viz.SaveVisualization(ctx, g.ID, "v", nil, domain.Viewport{}, nil, nil, false, &gv, nodesJSON, edgesJSON, nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, 7, saved.GraphVersion)
 	require.NotNil(t, saved.Nodes)
@@ -344,7 +345,7 @@ func TestVisualizationRepo_ManifestRoundtrip(t *testing.T) {
 
 	// 2) re-save with nil binding params → binding unchanged
 	_, err = viz.SaveVisualization(ctx, g.ID, "v",
-		map[string]domain.Position{"n1": {X: 9, Y: 9}}, domain.Viewport{Zoom: 2}, nil, nil, false, nil, nil, nil)
+		map[string]domain.Position{"n1": {X: 9, Y: 9}}, domain.Viewport{Zoom: 2}, nil, nil, false, nil, nil, nil, nil)
 	require.NoError(t, err)
 	got2, err := viz.GetVisualizationByName(ctx, g.ID, "v")
 	require.NoError(t, err)
@@ -362,7 +363,7 @@ func TestVisualizationRepo_ManifestRoundtrip(t *testing.T) {
 	require.NoError(t, err)
 	freshEdgesJSON, err := json.Marshal(freshEdges)
 	require.NoError(t, err)
-	_, err = viz.SaveVisualization(ctx, g.ID, "v", nil, domain.Viewport{}, nil, nil, false, &gv9, freshNodesJSON, freshEdgesJSON)
+	_, err = viz.SaveVisualization(ctx, g.ID, "v", nil, domain.Viewport{}, nil, nil, false, &gv9, freshNodesJSON, freshEdgesJSON, nil)
 	require.NoError(t, err)
 	got3, err := viz.GetVisualizationByName(ctx, g.ID, "v")
 	require.NoError(t, err)
@@ -371,6 +372,91 @@ func TestVisualizationRepo_ManifestRoundtrip(t *testing.T) {
 	assert.Equal(t, freshNodes, *got3.Nodes)
 	require.NotNil(t, got3.Edges) // JSON null/empty still decodes to a present, empty map
 	assert.Empty(t, *got3.Edges)
+}
+
+func TestVisualizationRepo_BendsRoundtrip(t *testing.T) {
+	ctx := context.Background()
+	dsn := startPostgres(t)
+	require.NoError(t, RunMigrations(dsn))
+
+	pool, err := NewPool(ctx, dsn)
+	require.NoError(t, err)
+	defer pool.Close()
+
+	graphs := NewGraphRepo(pool)
+	viz := NewVisualizationRepo(pool)
+
+	g, err := graphs.CreateGraph(ctx, "g")
+	require.NoError(t, err)
+
+	wantBends := map[string]domain.Bend{
+		"e1": {Dx: 30, Dy: 10},
+		"e2": {Dx: -12.5, Dy: 0},
+	}
+	bendsJSON, err := json.Marshal(wantBends)
+	require.NoError(t, err)
+
+	// 1) save with bends absent → NULL column, scan gives nil
+	saved, err := viz.SaveVisualization(ctx, g.ID, "v", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil)
+	require.NoError(t, err)
+	assert.Nil(t, saved.Bends)
+
+	got, err := viz.GetVisualizationByName(ctx, g.ID, "v")
+	require.NoError(t, err)
+	assert.Nil(t, got.Bends)
+
+	// 2) re-save with bends (binding otherwise absent) → stored and returned
+	saved2, err := viz.SaveVisualization(ctx, g.ID, "v", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, bendsJSON)
+	require.NoError(t, err)
+	require.NotNil(t, saved2.Bends)
+	assert.Equal(t, wantBends, *saved2.Bends)
+
+	got2, err := viz.GetVisualizationByName(ctx, g.ID, "v")
+	require.NoError(t, err)
+	require.NotNil(t, got2.Bends)
+	assert.Equal(t, wantBends, *got2.Bends)
+
+	// 3) re-save with bends absent → stored bends unchanged
+	_, err = viz.SaveVisualization(ctx, g.ID, "v",
+		map[string]domain.Position{"n1": {X: 9, Y: 9}}, domain.Viewport{Zoom: 2}, nil, nil, false, nil, nil, nil, nil)
+	require.NoError(t, err)
+	got3, err := viz.GetVisualizationByName(ctx, g.ID, "v")
+	require.NoError(t, err)
+	require.NotNil(t, got3.Bends)
+	assert.Equal(t, wantBends, *got3.Bends)
+
+	// 4) re-save with {} → full replace to a present, empty map
+	_, err = viz.SaveVisualization(ctx, g.ID, "v", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, []byte(`{}`))
+	require.NoError(t, err)
+	got4, err := viz.GetVisualizationByName(ctx, g.ID, "v")
+	require.NoError(t, err)
+	require.NotNil(t, got4.Bends) // {} still decodes to a present, empty map
+	assert.Empty(t, *got4.Bends)
+
+	// 5) full replace with a different map
+	freshBends := map[string]domain.Bend{"e9": {Dx: 0, Dy: -60}}
+	freshBendsJSON, err := json.Marshal(freshBends)
+	require.NoError(t, err)
+	_, err = viz.SaveVisualization(ctx, g.ID, "v", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, freshBendsJSON)
+	require.NoError(t, err)
+	got5, err := viz.GetVisualizationByName(ctx, g.ID, "v")
+	require.NoError(t, err)
+	require.NotNil(t, got5.Bends)
+	assert.Equal(t, freshBends, *got5.Bends)
+
+	// 6) INSERT path (brand-new row) writes bends directly
+	_, err = viz.SaveVisualization(ctx, g.ID, "fresh", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, bendsJSON)
+	require.NoError(t, err)
+	got6, err := viz.GetVisualizationByName(ctx, g.ID, "fresh")
+	require.NoError(t, err)
+	require.NotNil(t, got6.Bends)
+	assert.Equal(t, wantBends, *got6.Bends)
+
+	// down migration drops the bends column (SELECT on it fails);
+	// one step down = 0006's down
+	migrateDownOne(t, dsn)
+	_, err = pool.Exec(ctx, `SELECT bends FROM layouts LIMIT 1`)
+	assert.Error(t, err)
 }
 
 func TestVisualizationRepo_SelfHealingDefault(t *testing.T) {
@@ -390,7 +476,7 @@ func TestVisualizationRepo_SelfHealingDefault(t *testing.T) {
 
 	// any INSERT of a row named "default" self-heals into the graph's default
 	saved, err := viz.SaveVisualization(ctx, g.ID, "default",
-		map[string]domain.Position{"n1": {X: 1, Y: 2}}, domain.Viewport{Zoom: 1}, nil, nil, false, nil, nil, nil)
+		map[string]domain.Position{"n1": {X: 1, Y: 2}}, domain.Viewport{Zoom: 1}, nil, nil, false, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.True(t, saved.IsDefault)
 	assert.Equal(t, "default", saved.Name)
@@ -440,7 +526,9 @@ func TestVisualizationRepo_DefaultRenameMigration(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, created)
 
-	// down migration drops the manifest columns (SELECT on them fails)
+	// down migrations drop the manifest columns (SELECT on them fails);
+	// two steps down = 0006's then 0005's down
+	migrateDownOne(t, dsn)
 	migrateDownOne(t, dsn)
 	_, err = pool.Exec(ctx, `SELECT graph_version FROM layouts LIMIT 1`)
 	assert.Error(t, err)

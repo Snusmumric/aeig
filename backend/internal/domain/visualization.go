@@ -29,6 +29,13 @@ type ManifestEdge struct {
 	Target string `json:"target"`
 }
 
+// Bend is a relative edge-bend offset: the displacement of the curve's
+// midpoint from the straight-line midpoint between the anchor points.
+type Bend struct {
+	Dx float64 `json:"dx"`
+	Dy float64 `json:"dy"`
+}
+
 type Visualization struct {
 	ID          string              `json:"id"`
 	GraphID     string              `json:"graphId"`
@@ -45,5 +52,8 @@ type Visualization struct {
 	GraphVersion int64                    `json:"graphVersion"`
 	Nodes        *map[string]ManifestNode `json:"nodes,omitempty"`
 	Edges        *map[string]ManifestEdge `json:"edges,omitempty"`
-	CreatedAt    time.Time                `json:"createdAt"`
+	// Bends is the edge-bend map (edge id → relative offset); nil = the
+	// row has no bends (NULL column, e.g. saved before bends existed).
+	Bends     *map[string]Bend `json:"bends,omitempty"`
+	CreatedAt time.Time        `json:"createdAt"`
 }
