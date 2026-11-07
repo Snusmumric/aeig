@@ -83,6 +83,10 @@ NODES = [
     {"id": "fld-layouts-edges", "type": "field", "props": {"label": "edges", "datatype": "JSONB", "note": "манифест рёбер — {id: {type, source, target}}; NULL = legacy"}},
     {"id": "ent-manifest-nodes", "type": "entity", "props": {"label": "ManifestNodes", "note": "map[string]ManifestNode — память визуализации о составе узлов"}},
     {"id": "ent-manifest-edges", "type": "entity", "props": {"label": "ManifestEdges", "note": "map[string]ManifestEdge — память визуализации о составе рёбер"}},
+    # ── edge bends (0006) — appended at the END: node ids are positional in
+    # the seed, inserting mid-list would renumber existing ids ────────────
+    {"id": "fld-layouts-bends", "type": "field", "props": {"label": "bends", "datatype": "JSONB", "note": "изгибы рёбер — относительные офсеты {dx,dy} от середины"}},
+    {"id": "ent-edge-bends", "type": "entity", "props": {"label": "EdgeBends", "note": "{edgeId → {dx,dy}}; автосейв шлёт полную карту от живых рёбер"}},
 ]
 
 EDGES = [
@@ -150,6 +154,12 @@ EDGES = [
     {"source": "ent-manifest-edges", "target": "fld-layouts-edges", "type": "serializes"},
     {"source": "ent-manifest-nodes", "target": "ent-layout", "type": "part_of"},
     {"source": "ent-manifest-edges", "target": "ent-layout", "type": "part_of"},
+    # ── edge bends (0006) — appended at the END on purpose: edge ids are
+    # positional (e0..eN), inserting mid-list would renumber every later
+    # edge and duplicate it in Neo4j (MERGE is by id). ─────────────────────
+    {"source": "tbl-layouts", "target": "fld-layouts-bends", "type": "has_field"},
+    {"source": "ent-edge-bends", "target": "fld-layouts-bends", "type": "serializes"},
+    {"source": "ent-edge-bends", "target": "ent-layout", "type": "part_of"},
 ]
 
 

@@ -45,7 +45,9 @@ UNWIND [
   {id: 'fld-layouts-nodes', type: 'field', props: {label: 'nodes', datatype: 'JSONB', note: 'манифест узлов — {id: {type, label, x, y}}; NULL = legacy'}},
   {id: 'fld-layouts-edges', type: 'field', props: {label: 'edges', datatype: 'JSONB', note: 'манифест рёбер — {id: {type, source, target}}; NULL = legacy'}},
   {id: 'ent-manifest-nodes', type: 'entity', props: {label: 'ManifestNodes', note: 'map[string]ManifestNode — память визуализации о составе узлов'}},
-  {id: 'ent-manifest-edges', type: 'entity', props: {label: 'ManifestEdges', note: 'map[string]ManifestEdge — память визуализации о составе рёбер'}}
+  {id: 'ent-manifest-edges', type: 'entity', props: {label: 'ManifestEdges', note: 'map[string]ManifestEdge — память визуализации о составе рёбер'}},
+  {id: 'fld-layouts-bends', type: 'field', props: {label: 'bends', datatype: 'JSONB', note: 'изгибы рёбер — относительные офсеты {dx,dy} от середины'}},
+  {id: 'ent-edge-bends', type: 'entity', props: {label: 'EdgeBends', note: '{edgeId → {dx,dy}}; автосейв шлёт полную карту от живых рёбер'}}
 ] AS n
 MERGE (x:Element {graphId: 'c0de0000-0000-4000-8000-000000000003', id: n.id})
 SET x.type = n.type, x += n.props;
@@ -103,7 +105,10 @@ UNWIND [
   {id: 'e48', type: 'serializes', source: 'ent-manifest-nodes', target: 'fld-layouts-nodes', props: {}},
   {id: 'e49', type: 'serializes', source: 'ent-manifest-edges', target: 'fld-layouts-edges', props: {}},
   {id: 'e50', type: 'part_of', source: 'ent-manifest-nodes', target: 'ent-layout', props: {}},
-  {id: 'e51', type: 'part_of', source: 'ent-manifest-edges', target: 'ent-layout', props: {}}
+  {id: 'e51', type: 'part_of', source: 'ent-manifest-edges', target: 'ent-layout', props: {}},
+  {id: 'e52', type: 'has_field', source: 'tbl-layouts', target: 'fld-layouts-bends', props: {}},
+  {id: 'e53', type: 'serializes', source: 'ent-edge-bends', target: 'fld-layouts-bends', props: {}},
+  {id: 'e54', type: 'part_of', source: 'ent-edge-bends', target: 'ent-layout', props: {}}
 ] AS e
 MATCH (s:Element {graphId: 'c0de0000-0000-4000-8000-000000000003', id: e.source})
 MATCH (t:Element {graphId: 'c0de0000-0000-4000-8000-000000000003', id: e.target})
