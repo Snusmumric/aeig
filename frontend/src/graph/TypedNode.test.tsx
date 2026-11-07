@@ -24,4 +24,18 @@ describe('TypedNode', () => {
     expect(screen.getByText('Hi')).toBeInTheDocument()
     expect(el).toHaveStyle({ borderRadius: '50%' })
   })
+
+  it('renders 8 near-invisible anchor handles: source+target × t/r/b/l', () => {
+    const { container } = renderNode({
+      label: 'Hi',
+      nodeType: 'Task',
+      style: { shape: 'rectangle', color: '#3366cc' },
+      properties: {},
+    })
+    expect(container.querySelectorAll('.react-flow__handle')).toHaveLength(8)
+    for (const side of ['t', 'r', 'b', 'l']) {
+      expect(container.querySelector(`.react-flow__handle.source[data-handleid="${side}"]`)).not.toBeNull()
+      expect(container.querySelector(`.react-flow__handle.target[data-handleid="${side}"]`)).not.toBeNull()
+    }
+  })
 })

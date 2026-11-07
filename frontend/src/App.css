@@ -193,3 +193,15 @@
 .react-flow__node.added {
   outline: 2px dashed #22c55e;
 }
+
+/* ── dynamic side anchors: near-invisible geometric handle dots ────────── */
+
+.react-flow__handle.anchor {
+  width: 2px;
+  height: 2px;
+  min-width: 2px;
+  min-height: 2px;
+  background: transparent;
+  border: none;
+  pointer-events: none;
+}

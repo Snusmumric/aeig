@@ -262,4 +262,81 @@ describe('useGraph', () => {
     // followers stay at the follower-session end positions
     expect(result.current.nodes.find((n) => n.id === 'n2')!.position).toEqual({ x: start2.x + 40, y: start2.y })
   })
+
+  it('anchors an edge to the sides facing each other (target right of source)', async () => {
+    // default grid: n1(0,0) → n2(200,0): n2 is strictly right of n1
+    const { result } = renderHook(() => useGraph(fakeClient(), 'g1', styles))
+    await act(async () => {
+      await result.current.reload()
+    })
+    const e1 = result.current.edges.find((e) => e.id === 'e1')!
+    expect(e1.sourceHandle).toBe('r')
+    expect(e1.targetHandle).toBe('l')
+    expect(e1.data?.selfLoop).toBeUndefined()
+  })
+
+  it('re-anchors when a node moves: target below the source goes vertical', async () => {
+    const { result } = renderHook(() => useGraph(fakeClient(), 'g1', styles))
+    await act(async () => {
+      await result.current.reload()
+    })
+    act(() => {
+      result.current.onNodesChange([
+        { id: 'n2', type: 'position', position: { x: 0, y: 200 }, dragging: false },
+      ])
+    })
+    const e1 = result.current.edges.find((e) => e.id === 'e1')!
+    expect(e1.sourceHandle).toBe('b')
+    expect(e1.targetHandle).toBe('t')
+  })
+
+  it('diagonal boundary |dx| == |dy| picks the horizontal pair', async () => {
+    const { result } = renderHook(() => useGraph(fakeClient(), 'g1', styles))
+    await act(async () => {
+      await result.current.reload()
+    })
+    act(() => {
+      result.current.onNodesChange([
+        { id: 'n2', type: 'position', position: { x: 150, y: 150 }, dragging: false },
+      ])
+    })
+    const e1 = result.current.edges.find((e) => e.id === 'e1')!
+    expect(e1.sourceHandle).toBe('r')
+    expect(e1.targetHandle).toBe('l')
+  })
+
+  it('moving the target to the left flips the pair', async () => {
+    const { result } = renderHook(() => useGraph(fakeClient(), 'g1', styles))
+    await act(async () => {
+      await result.current.reload()
+    })
+    act(() => {
+      result.current.onNodesChange([
+        { id: 'n2', type: 'position', position: { x: -300, y: 0 }, dragging: false },
+      ])
+    })
+    const e1 = result.current.edges.find((e) => e.id === 'e1')!
+    expect(e1.sourceHandle).toBe('l')
+    expect(e1.targetHandle).toBe('r')
+  })
+
+  it('flags self-loop edges in data', async () => {
+    const client = fakeClient()
+    ;(client.getSubgraph as any).mockResolvedValue({
+      nodes: [
+        { id: 'n1', type: 'Task', properties: {} },
+        { id: 'n2', type: 'Milestone', properties: {} },
+      ],
+      edges: [{ id: 'e9', type: 'loops', source: 'n1', target: 'n1', properties: {} }],
+    })
+    const { result } = renderHook(() => useGraph(client, 'g1', styles))
+    await act(async () => {
+      await result.current.reload()
+    })
+    const e9 = result.current.edges.find((e) => e.id === 'e9')!
+    expect(e9.data?.selfLoop).toBe(true)
+    // coincident centers → horizontal default anchors
+    expect(e9.sourceHandle).toBe('r')
+    expect(e9.targetHandle).toBe('l')
+  })
 })
