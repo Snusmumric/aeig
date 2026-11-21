@@ -190,4 +190,131 @@ describe('visualizations', () => {
     expect(body.graphVersion).toBe(7)
     expect(body.bends).toEqual({ e1: { dx: 1, dy: 2 } })
   })
+
+  it('saveVisualization carries opts.visibleSlices verbatim', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    await c.saveVisualization('g1', 'default', {}, { x: 0, y: 0, zoom: 1 }, undefined, undefined, false, {
+      visibleSlices: ['s1', 's2'],
+    })
+    const [, opts] = (fetch as any).mock.calls[0]
+    expect(JSON.parse(opts.body).visibleSlices).toEqual(['s1', 's2'])
+  })
+
+  it('saveVisualization omits visibleSlices when not provided', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    // no opts at all
+    await c.saveVisualization('g1', 'default', {}, { x: 0, y: 0, zoom: 1 }, undefined, undefined, false)
+    // opts with bends only — visibleSlices must still be absent
+    await c.saveVisualization('g1', 'default', {}, { x: 0, y: 0, zoom: 1 }, undefined, undefined, false, {
+      bends: { e1: { dx: 1, dy: 2 } },
+    })
+    for (const call of (fetch as any).mock.calls) {
+      expect(JSON.parse(call[1].body)).not.toHaveProperty('visibleSlices')
+    }
+  })
+
+  it('saveVisualization carries an empty visibleSlices array (show none)', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    await c.saveVisualization('g1', 'default', {}, { x: 0, y: 0, zoom: 1 }, undefined, undefined, false, {
+      visibleSlices: [],
+    })
+    const [, opts] = (fetch as any).mock.calls[0]
+    expect(JSON.parse(opts.body).visibleSlices).toEqual([])
+  })
+})
+
+describe('slices', () => {
+  it('listSlices GETs the collection and types the rows', async () => {
+    mockFetchOnce(200, [
+      { id: 's1', name: 'core', description: 'ядро', nodeCount: 3 },
+      { id: 's2', name: 'edge', description: '', nodeCount: 0 },
+    ])
+    const c = createClient('http://api')
+    const slices = await c.listSlices('g1')
+    expect(slices[0].nodeCount).toBe(3)
+    expect(slices[1].description).toBe('')
+    expect(fetch).toHaveBeenCalledWith('http://api/graphs/g1/slices', expect.any(Object))
+  })
+
+  it('createSlice POSTs name/description/nodeIds', async () => {
+    mockFetchOnce(201, { id: 's1', name: 'core', description: 'ядро', nodeCount: 2 })
+    const c = createClient('http://api')
+    const slice = await c.createSlice('g1', { name: 'core', description: 'ядро', nodeIds: ['n1', 'n2'] })
+    expect(slice.nodeCount).toBe(2)
+    const [url, opts] = (fetch as any).mock.calls[0]
+    expect(url).toBe('http://api/graphs/g1/slices')
+    expect(opts.method).toBe('POST')
+    expect(JSON.parse(opts.body)).toEqual({ name: 'core', description: 'ядро', nodeIds: ['n1', 'n2'] })
+  })
+
+  it('createSlice omits optional fields when not provided', async () => {
+    mockFetchOnce(201, { id: 's1', name: 'core', description: '', nodeCount: 0 })
+    const c = createClient('http://api')
+    await c.createSlice('g1', { name: 'core' })
+    const [, opts] = (fetch as any).mock.calls[0]
+    const body = JSON.parse(opts.body)
+    expect(body).toEqual({ name: 'core' })
+    expect(body).not.toHaveProperty('description')
+    expect(body).not.toHaveProperty('nodeIds')
+  })
+
+  it('getSlice GETs by the encoded name and types hydrated nodes', async () => {
+    mockFetchOnce(200, {
+      id: 's1',
+      name: 'my slice',
+      description: '',
+      nodes: [{ id: 'n1', type: 'Task', properties: {}, sliceIds: ['s1'] }],
+    })
+    const c = createClient('http://api')
+    const detail = await c.getSlice('g1', 'my slice')
+    expect(detail.nodes[0].sliceIds).toEqual(['s1'])
+    expect(fetch).toHaveBeenCalledWith('http://api/graphs/g1/slices/my%20slice', expect.any(Object))
+  })
+
+  it('renameSlice PATCHes only the provided fields', async () => {
+    mockFetchOnce(200, { id: 's1', name: 'renamed', description: 'старое', nodeCount: 1 })
+    const c = createClient('http://api')
+    await c.renameSlice('g1', 'old', { name: 'renamed' })
+    await c.renameSlice('g1', 'renamed', { description: 'новое' })
+    const [url1, opts1] = (fetch as any).mock.calls[0]
+    expect(url1).toBe('http://api/graphs/g1/slices/old')
+    expect(opts1.method).toBe('PATCH')
+    expect(JSON.parse(opts1.body)).toEqual({ name: 'renamed' })
+    const [, opts2] = (fetch as any).mock.calls[1]
+    expect(JSON.parse(opts2.body)).toEqual({ description: 'новое' })
+  })
+
+  it('deleteSlice DELETEs by the encoded name', async () => {
+    mockFetchOnce(204, {})
+    const c = createClient('http://api')
+    await c.deleteSlice('g1', 'my slice')
+    const [url, opts] = (fetch as any).mock.calls[0]
+    expect(url).toBe('http://api/graphs/g1/slices/my%20slice')
+    expect(opts.method).toBe('DELETE')
+  })
+
+  it('addSliceNodes POSTs the ids body', async () => {
+    mockFetchOnce(200, { nodeCount: 2 })
+    const c = createClient('http://api')
+    const res = await c.addSliceNodes('g1', 'core', ['n1', 'n2'])
+    expect(res.nodeCount).toBe(2)
+    const [url, opts] = (fetch as any).mock.calls[0]
+    expect(url).toBe('http://api/graphs/g1/slices/core/nodes')
+    expect(opts.method).toBe('POST')
+    expect(JSON.parse(opts.body)).toEqual({ ids: ['n1', 'n2'] })
+  })
+
+  it('removeSliceNodes DELETEs with the ids body', async () => {
+    mockFetchOnce(200, { nodeCount: 1 })
+    const c = createClient('http://api')
+    const res = await c.removeSliceNodes('g1', 'core', ['n2'])
+    expect(res.nodeCount).toBe(1)
+    const [url, opts] = (fetch as any).mock.calls[0]
+    expect(url).toBe('http://api/graphs/g1/slices/core/nodes')
+    expect(opts.method).toBe('DELETE')
+    expect(JSON.parse(opts.body)).toEqual({ ids: ['n2'] })
+  })
 })

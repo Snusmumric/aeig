@@ -11,6 +11,8 @@ export interface GraphNode {
   id: string
   type: string
   properties: Record<string, unknown>
+  /** slice memberships (system field, absent when the node is in no slice) */
+  sliceIds?: string[]
 }
 
 export interface GraphEdge {
@@ -79,6 +81,8 @@ export interface SaveVisualizationOptions {
   manifest?: VisualizationManifest
   /** edge bends keyed by edgeId — present = full replace of the map */
   bends?: Record<string, Bend>
+  /** visible slice UUIDs — present = full replace ([] = show none) */
+  visibleSlices?: string[]
 }
 
 export interface Visualization {
@@ -99,4 +103,19 @@ export interface Visualization {
   edges?: Record<string, ManifestEdge> | null
   /** Edge bends {edgeId → {dx,dy}} — null = never saved. */
   bends?: Record<string, Bend> | null
+  /** Visible slice UUIDs — null = no slice filter (all visible). */
+  visibleSlices?: string[] | null
+}
+
+/** Slice identity row — as listed/created/renamed over the API. */
+export interface Slice {
+  id: string
+  name: string
+  description: string
+  nodeCount: number
+}
+
+/** Slice detail — GET /graphs/{id}/slices/{name}, members hydrated. */
+export interface SliceDetail extends Slice {
+  nodes: GraphNode[]
 }
