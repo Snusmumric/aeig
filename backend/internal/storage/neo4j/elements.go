@@ -7,8 +7,9 @@ import (
 	neo4jdriver "github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
-// reserved system property keys stripped from user Properties.
-var reservedKeys = map[string]struct{}{"graphId": {}, "id": {}, "type": {}}
+// reserved system property keys stripped from user Properties. `sliceIds`
+// (slice memberships) is the fourth system property, after graphId/id/type.
+var reservedKeys = map[string]struct{}{"graphId": {}, "id": {}, "type": {}, "sliceIds": {}}
 
 type ElementRepo struct {
 	driver neo4jdriver.DriverWithContext
@@ -50,11 +51,38 @@ func userProps(all map[string]any) map[string]any {
 	return out
 }
 
+// sliceIDsFrom projects the `sliceIds` system property into the typed
+// response field (the driver returns lists as []any). Absent or empty → nil,
+// which the API's omitempty hides.
+func sliceIDsFrom(props map[string]any) []string {
+	raw, ok := props["sliceIds"].([]any)
+	if !ok || len(raw) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(raw))
+	for _, v := range raw {
+		if s, ok := v.(string); ok {
+			out = append(out, s)
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+// UpsertNode is a full property replacement (omitted user properties are
+// deleted) with ONE carve-out: the system `sliceIds` memberships are captured
+// before `SET x = $props` wipes them and restored right after (WITH-capture
+// in a single query). Membership is managed exclusively by
+// SliceMembershipRepo; an incoming n.SliceIDs field is ignored here.
 func (r *ElementRepo) UpsertNode(ctx context.Context, graphID string, n domain.Node) error {
 	props := buildProps(graphID, n.ID, n.Type, nil, nil, n.Properties)
 	_, err := neo4jdriver.ExecuteQuery(ctx, r.driver,
 		`MERGE (x:Element {graphId: $graphId, id: $id})
-		 SET x = $props`,
+		 WITH x, coalesce(x.sliceIds, []) AS keptSliceIds
+		 SET x = $props
+		 SET x.sliceIds = keptSliceIds`,
 		map[string]any{"graphId": graphID, "id": n.ID, "props": props},
 		neo4jdriver.EagerResultTransformer,
 		neo4jdriver.ExecuteQueryWithDatabase("neo4j"),
@@ -97,6 +125,7 @@ func (r *ElementRepo) GetSubgraph(ctx context.Context, graphID string) (domain.S
 		sg.Nodes = append(sg.Nodes, domain.Node{
 			ID:         node.Props["id"].(string),
 			Type:       node.Props["type"].(string),
+			SliceIDs:   sliceIDsFrom(node.Props),
 			Properties: userProps(node.Props),
 		})
 	}
