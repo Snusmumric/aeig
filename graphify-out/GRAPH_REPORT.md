@@ -1,16 +1,16 @@
 # Graph Report - AEiG  (2026-11-21)
 
 ## Corpus Check
-- 94 files · ~41,555 words
+- 94 files · ~42,199 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 527 nodes · 1231 edges · 22 communities (19 shown, 3 thin omitted)
+- 528 nodes · 1232 edges · 28 communities (24 shown, 4 thin omitted)
 - Extraction: 83% EXTRACTED · 17% INFERRED · 0% AMBIGUOUS · INFERRED: 210 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f18b909d`
+- Built from commit: `b987d212`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -22,16 +22,22 @@
 - NewGraphService
 - NewRouter
 - Load
+- GraphEditor.test.tsx
 - devDependencies
 - compilerOptions
 - SliceRepo
+- GraphRepo
 - client.ts
 - plugins
 - errors.go
 - github.com/aeig/backend
 - ResizeObserverMock
+- followDrag.test.ts
 - App.tsx
+- VizDiffBar.test.tsx
 - App.tsx
+- layout.ts
+- useGraph.test.tsx
 - Load
 - T
 - Visualization
@@ -64,15 +70,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (22 total, 3 thin omitted)
+## Communities (28 total, 4 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.06
-Nodes (40): ApiClient, ApiError, createClient(), request(), Graph, GraphEdge, GraphNode, ManifestEdge (+32 more)
+Cohesion: 0.15
+Nodes (15): ApiClient, ApiError, createClient(), request(), Graph, Mutations, Position, SaveVisualizationOptions (+7 more)
 
 ### Community 1 - "ElementRepo"
-Cohesion: 0.09
-Nodes (27): Context, Graph, Mutations, Subgraph, NewGraphService(), edgeIDs(), Context, Graph (+19 more)
+Cohesion: 0.10
+Nodes (25): Context, Graph, Mutations, Subgraph, NewGraphService(), edgeIDs(), Context, Graph (+17 more)
 
 ### Community 2 - "NewVisualizationRepo"
 Cohesion: 0.35
@@ -94,6 +100,10 @@ Nodes (26): DriverWithContext, NewDriver(), buildProps(), Context, DriverWithCon
 Cohesion: 0.17
 Nodes (30): HandlerFunc, handleApplyMutations(), handleCreateGraph(), handleGetGraph(), handleGetSubgraph(), T, TestHealth_OK(), ResponseWriter (+22 more)
 
+### Community 7 - "GraphEditor.test.tsx"
+Cohesion: 0.24
+Nodes (7): bendClient(), fakeClient(), legacyDiffClient(), measuredClient(), NOTE: node-click selection rides d3's native mousedown (not simulable in, sliceClient(), viz()
+
 ### Community 8 - "devDependencies"
 Cohesion: 0.43
 Nodes (5): Context, Position, Viewport, Visualization, stubVizAPI
@@ -106,6 +116,10 @@ Nodes (5): Context, Graph, Mutations, Subgraph, stubAPI
 Cohesion: 0.19
 Nodes (14): Context, Slice, Subgraph, T, newSliceService(), TestSliceService_AddRemoveNodes(), TestSliceService_Create(), TestSliceService_Delete() (+6 more)
 
+### Community 11 - "GraphRepo"
+Cohesion: 0.26
+Nodes (7): Slice, SliceContextMenu(), SliceContextMenuProps, slices, SlicePanel(), SlicePanelProps, slices
+
 ### Community 13 - "plugins"
 Cohesion: 0.43
 Nodes (7): Time, Bend, ManifestEdge, ManifestNode, Position, Viewport, Visualization
@@ -114,13 +128,25 @@ Nodes (7): Time, Bend, ManifestEdge, ManifestNode, Position, Viewport, Visualiza
 Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
+### Community 18 - "followDrag.test.ts"
+Cohesion: 0.29
+Nodes (3): allEdges, allNodes, tEdges
+
 ### Community 19 - "App.tsx"
-Cohesion: 0.07
-Nodes (34): Subgraph, App(), client, params, styles, pickHandles(), filterFlow(), allEdges (+26 more)
+Cohesion: 0.14
+Nodes (17): App(), client, params, styles, sg, styles, toFlowEdges(), toFlowNodes() (+9 more)
 
 ### Community 21 - "App.tsx"
-Cohesion: 0.14
-Nodes (13): Context, Slice, SliceDetail, Context, Slice, SliceDetail, NewSliceService(), SliceInfo (+5 more)
+Cohesion: 0.12
+Nodes (15): Context, Slice, SliceDetail, Context, Slice, SliceDetail, NewSliceService(), Slice (+7 more)
+
+### Community 22 - "layout.ts"
+Cohesion: 0.16
+Nodes (12): GraphEdge, GraphNode, ManifestEdge, ManifestNode, Visualization, CurvyEdgeData, Bend, extractPositions() (+4 more)
+
+### Community 23 - "useGraph.test.tsx"
+Cohesion: 0.16
+Nodes (13): pickHandles(), filterFlow(), addAdjacent(), applyFollowDrag(), planFollowers(), GraphEditor(), TypedEdgeData, DragSession (+5 more)
 
 ### Community 26 - "Load"
 Cohesion: 0.43
@@ -135,21 +161,21 @@ Cohesion: 0.23
 Nodes (11): decodeManifest(), decodeVisibleSlices(), Context, Pool, Position, T, Viewport, Visualization (+3 more)
 
 ### Community 35 - "GraphCanvas.tsx"
-Cohesion: 0.13
-Nodes (17): CurvyEdge(), CurvyEdgeData, EdgeBendContext, GRAB_PARAMETERS, bendFromPointer(), EST_CENTER, Pt, quadControl() (+9 more)
+Cohesion: 0.14
+Nodes (16): CurvyEdge(), EdgeBendContext, GRAB_PARAMETERS, bendFromPointer(), EST_CENTER, Pt, quadControl(), quadPoint() (+8 more)
 
 ## Knowledge Gaps
 - **26 isolated node(s):** `github.com/aeig/backend`, `Slice`, `client`, `styles`, `params` (+21 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `main()` connect `TestGraphRepo_CreateGetBump` to `ElementRepo`, `NewRouter`, `Load`, `App.tsx`, `Load`, `T`?**
-  _High betweenness centrality (0.328) - this node is a cross-community bridge._
+  _High betweenness centrality (0.327) - this node is a cross-community bridge._
 - **Why does `NewRouter()` connect `Load` to `TestGraphRepo_CreateGetBump`, `NewGraphService`?**
-  _High betweenness centrality (0.188) - this node is a cross-community bridge._
+  _High betweenness centrality (0.187) - this node is a cross-community bridge._
 - **Why does `NewSliceService()` connect `App.tsx` to `T`, `SliceRepo`, `TestGraphRepo_CreateGetBump`?**
   _High betweenness centrality (0.085) - this node is a cross-community bridge._
 - **Are the 22 inferred relationships involving `doReq()` (e.g. with `TestSliceRoutes_Create()` and `TestSliceRoutes_Delete()`) actually correct?**
