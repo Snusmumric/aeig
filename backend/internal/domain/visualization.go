@@ -54,6 +54,10 @@ type Visualization struct {
 	Edges        *map[string]ManifestEdge `json:"edges,omitempty"`
 	// Bends is the edge-bend map (edge id → relative offset); nil = the
 	// row has no bends (NULL column, e.g. saved before bends existed).
-	Bends     *map[string]Bend `json:"bends,omitempty"`
-	CreatedAt time.Time        `json:"createdAt"`
+	Bends *map[string]Bend `json:"bends,omitempty"`
+	// VisibleSlices is the slice-visibility filter: the UUIDs of VISIBLE
+	// slices. nil = no filtering (all slices visible; NULL column) —
+	// distinct from a non-nil pointer to an empty list ("none visible").
+	VisibleSlices *[]string `json:"visibleSlices,omitempty"`
+	CreatedAt     time.Time `json:"createdAt"`
 }

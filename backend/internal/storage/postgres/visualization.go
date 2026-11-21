@@ -23,12 +23,12 @@ func NewVisualizationRepo(pool *pgxpool.Pool) *VisualizationRepo {
 }
 
 // SaveVisualization upserts by (graph_id, name). The manifest binding is
-// partial: nil graphVersion/nodes/edges/bends leave the stored values
-// unchanged, non-nil (raw JSON, including `null`) set them (bends: full
-// replace of the map). Any INSERT of a row named "default" self-heals into
-// the graph's default (is_default = true); the conflict-update path never
-// flips is_default.
-func (r *VisualizationRepo) SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends []byte) (domain.Visualization, error) {
+// partial: nil graphVersion/nodes/edges/bends/visibleSlices leave the stored
+// values unchanged, non-nil (raw JSON, including `null`) set them (bends and
+// visibleSlices: full replace). Any INSERT of a row named "default" self-heals
+// into the graph's default (is_default = true); the conflict-update path
+// never flips is_default.
+func (r *VisualizationRepo) SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends, visibleSlices []byte) (domain.Visualization, error) {
 	posJSON, err := json.Marshal(positions)
 	if err != nil {
 		return domain.Visualization{}, err
@@ -63,19 +63,20 @@ func (r *VisualizationRepo) SaveVisualization(ctx context.Context, graphID, name
 	// graphVersion is NOT NULL, so the INSERT path defaults nil → 0; the
 	// conflict-update path must distinguish "absent" from "set to 0", hence
 	// it re-checks the parameter instead of using EXCLUDED.
-	var nodesJSON, edgesJSON, bendsJSON []byte
+	var nodesJSON, edgesJSON, bendsJSON, visibleSlicesJSON []byte
 	err = r.pool.QueryRow(ctx,
-		`INSERT INTO layouts (id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, graph_version, nodes, edges, bends)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, ($3 = 'default'), COALESCE($9, 0), $10, $11, $12)
+		`INSERT INTO layouts (id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, graph_version, nodes, edges, bends, visible_slices)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, ($3 = 'default'), COALESCE($9, 0), $10, $11, $12, $13)
 		 ON CONFLICT (graph_id, name)
 		 DO UPDATE SET positions = EXCLUDED.positions, viewport = EXCLUDED.viewport, node_types = EXCLUDED.node_types, edge_types = EXCLUDED.edge_types, hide_orphans = EXCLUDED.hide_orphans,
 		   graph_version = COALESCE($9, layouts.graph_version),
 		   nodes = COALESCE($10, layouts.nodes),
 		   edges = COALESCE($11, layouts.edges),
-		   bends = COALESCE($12, layouts.bends)
-		 RETURNING id, is_default, created_at, graph_version, nodes, edges, bends`,
-		uuid.NewString(), graphID, name, posJSON, vpJSON, nodeTypesJSON, edgeTypesJSON, hideOrphans, graphVersion, nodes, edges, bends,
-	).Scan(&out.ID, &out.IsDefault, &out.CreatedAt, &out.GraphVersion, &nodesJSON, &edgesJSON, &bendsJSON)
+		   bends = COALESCE($12, layouts.bends),
+		   visible_slices = COALESCE($13, layouts.visible_slices)
+		 RETURNING id, is_default, created_at, graph_version, nodes, edges, bends, visible_slices`,
+		uuid.NewString(), graphID, name, posJSON, vpJSON, nodeTypesJSON, edgeTypesJSON, hideOrphans, graphVersion, nodes, edges, bends, visibleSlices,
+	).Scan(&out.ID, &out.IsDefault, &out.CreatedAt, &out.GraphVersion, &nodesJSON, &edgesJSON, &bendsJSON, &visibleSlicesJSON)
 	if err != nil {
 		return domain.Visualization{}, err
 	}
@@ -88,12 +89,15 @@ func (r *VisualizationRepo) SaveVisualization(ctx context.Context, graphID, name
 	if out.Bends, err = decodeManifest[domain.Bend](bendsJSON); err != nil {
 		return domain.Visualization{}, err
 	}
+	if out.VisibleSlices, err = decodeVisibleSlices(visibleSlicesJSON); err != nil {
+		return domain.Visualization{}, err
+	}
 	return out, nil
 }
 
 func (r *VisualizationRepo) GetVisualizationByName(ctx context.Context, graphID, name string) (domain.Visualization, error) {
 	row := r.pool.QueryRow(ctx,
-		`SELECT id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, graph_version, nodes, edges, bends, created_at
+		`SELECT id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, graph_version, nodes, edges, bends, visible_slices, created_at
 		 FROM layouts WHERE graph_id = $1 AND name = $2`, graphID, name)
 	v, err := scanVisualization(row)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -107,7 +111,7 @@ func (r *VisualizationRepo) GetVisualizationByName(ctx context.Context, graphID,
 
 func (r *VisualizationRepo) GetDefaultVisualization(ctx context.Context, graphID string) (domain.Visualization, error) {
 	row := r.pool.QueryRow(ctx,
-		`SELECT id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, graph_version, nodes, edges, bends, created_at
+		`SELECT id, graph_id, name, positions, viewport, node_types, edge_types, hide_orphans, is_default, graph_version, nodes, edges, bends, visible_slices, created_at
 		 FROM layouts WHERE graph_id = $1 AND is_default`, graphID)
 	v, err := scanVisualization(row)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -173,10 +177,27 @@ func decodeManifest[T any](b []byte) (*map[string]T, error) {
 	return &m, nil
 }
 
+// decodeVisibleSlices turns the stored JSONB array into the typed pointer:
+// NULL column or stored json null → nil (no filtering), `[]` → present empty
+// list ("none visible") — the same absent/present distinction as the maps.
+func decodeVisibleSlices(b []byte) (*[]string, error) {
+	if len(b) == 0 {
+		return nil, nil
+	}
+	var s []string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return nil, err
+	}
+	if s == nil {
+		return nil, nil
+	}
+	return &s, nil
+}
+
 func scanVisualization(row rowScanner) (domain.Visualization, error) {
 	var v domain.Visualization
-	var posJSON, vpJSON, nodeTypesJSON, edgeTypesJSON, nodesJSON, edgesJSON, bendsJSON []byte
-	if err := row.Scan(&v.ID, &v.GraphID, &v.Name, &posJSON, &vpJSON, &nodeTypesJSON, &edgeTypesJSON, &v.HideOrphans, &v.IsDefault, &v.GraphVersion, &nodesJSON, &edgesJSON, &bendsJSON, &v.CreatedAt); err != nil {
+	var posJSON, vpJSON, nodeTypesJSON, edgeTypesJSON, nodesJSON, edgesJSON, bendsJSON, visibleSlicesJSON []byte
+	if err := row.Scan(&v.ID, &v.GraphID, &v.Name, &posJSON, &vpJSON, &nodeTypesJSON, &edgeTypesJSON, &v.HideOrphans, &v.IsDefault, &v.GraphVersion, &nodesJSON, &edgesJSON, &bendsJSON, &visibleSlicesJSON, &v.CreatedAt); err != nil {
 		return domain.Visualization{}, err
 	}
 	if err := json.Unmarshal(posJSON, &v.Positions); err != nil {
@@ -207,6 +228,9 @@ func scanVisualization(row rowScanner) (domain.Visualization, error) {
 		return domain.Visualization{}, err
 	}
 	if v.Bends, err = decodeManifest[domain.Bend](bendsJSON); err != nil {
+		return domain.Visualization{}, err
+	}
+	if v.VisibleSlices, err = decodeVisibleSlices(visibleSlicesJSON); err != nil {
 		return domain.Visualization{}, err
 	}
 	return v, nil
