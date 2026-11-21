@@ -1175,7 +1175,7 @@ describe('GraphEditor — slice context menus, markers, persistence', () => {
     expect(nodeEl('n3')).not.toHaveClass('slice-member')
   })
 
-  it('autosave payload includes visibleSlices; omitted while the filter is inactive', async () => {
+  it('autosave payload includes visibleSlices; explicit null while the filter is inactive', async () => {
     vi.useFakeTimers()
     const client = sliceClient()
     render(<GraphEditor client={client} graphId="g1" styles={{}} />)
@@ -1189,14 +1189,32 @@ describe('GraphEditor — slice context menus, markers, persistence', () => {
     })
     expect(client.saveVisualization).toHaveBeenCalledTimes(1)
     expect((client.saveVisualization as any).mock.calls[0][7].visibleSlices).toEqual(['s2'])
-    // back to null («Все») → the field is omitted (absent = unchanged)
+    // back to null («Все») → explicit JSON null clears the stored set
+    // (absent = unchanged would keep the stale subset alive)
     fireEvent.click(screen.getByTestId('slice-visible-all'))
     fireEvent.click(screen.getByTestId('type-Milestone')) // any fresh dirty source
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10_000)
     })
     const later = (client.saveVisualization as any).mock.calls[1]
-    expect(later[7].visibleSlices).toBeUndefined()
+    expect(later[7].visibleSlices).toBeNull()
+  })
+
+  it('«Все» after a stored set PUTs explicit null (clears the stored filter)', async () => {
+    vi.useFakeTimers()
+    const client = sliceClient({ visibleSlices: ['s2'] })
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await settle() // panel list resolves; viz load restored Set(['s2'])
+    // the stored subset must not outlive «Все» — the PUT carries null, so a
+    // reload re-applies no filter while the panel shows all checked
+    fireEvent.click(screen.getByTestId('slice-visible-all'))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(client.saveVisualization).toHaveBeenCalledTimes(1)
+    expect((client.saveVisualization as any).mock.calls[0][7].visibleSlices).toBeNull()
   })
 
   it('viz load restores the visibleSlices filter', async () => {

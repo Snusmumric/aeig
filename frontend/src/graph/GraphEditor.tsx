@@ -493,12 +493,13 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     return Object.fromEntries(Object.entries(bs).filter(([id]) => live.has(id)))
   }, [])
 
-  // the slice filter for any save: an existing Set always serializes — even
-  // empty («Ни одного» = show none); null (filter inactive) is omitted
-  // (absent = unchanged, the RawMessage passthrough contract)
+  // the slice filter for any save: full state, like bends — an existing Set
+  // always serializes (even empty: «Ни одного» = show none); null («Все»)
+  // PUTs explicit JSON null, clearing the stored column (absent = unchanged
+  // would keep a stale subset alive across reloads)
   const visibleSlicesForSave = useCallback(() => {
     const { visibleSlices: vs } = latest.current
-    return vs ? [...vs] : undefined
+    return vs ? [...vs] : null
   }, [])
 
   // bend drags/resets dirty the editor exactly like filter changes

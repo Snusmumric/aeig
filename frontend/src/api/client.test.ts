@@ -224,6 +224,17 @@ describe('visualizations', () => {
     const [, opts] = (fetch as any).mock.calls[0]
     expect(JSON.parse(opts.body).visibleSlices).toEqual([])
   })
+
+  it('saveVisualization carries an explicit null visibleSlices (clears the stored filter)', async () => {
+    mockFetchOnce(200, { id: 'v1' })
+    const c = createClient('http://api')
+    await c.saveVisualization('g1', 'default', {}, { x: 0, y: 0, zoom: 1 }, undefined, undefined, false, {
+      visibleSlices: null,
+    })
+    const [, opts] = (fetch as any).mock.calls[0]
+    // the key must be present with JSON null — absent would mean "keep stored"
+    expect(JSON.parse(opts.body)).toHaveProperty('visibleSlices', null)
+  })
 })
 
 describe('slices', () => {

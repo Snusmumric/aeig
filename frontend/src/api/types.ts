@@ -81,8 +81,8 @@ export interface SaveVisualizationOptions {
   manifest?: VisualizationManifest
   /** edge bends keyed by edgeId — present = full replace of the map */
   bends?: Record<string, Bend>
-  /** visible slice UUIDs — present = full replace ([] = show none) */
-  visibleSlices?: string[]
+  /** visible slice UUIDs — present = full replace ([] = show none, null = clear → «Все») */
+  visibleSlices?: string[] | null
 }
 
 export interface Visualization {
