@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import { GraphEditor } from './GraphEditor'
 import type { ApiClient } from '../api/client'
-import type { Visualization } from '../api/types'
+import type { Slice, Visualization } from '../api/types'
 
 function viz(overrides: Partial<Visualization> = {}): Visualization {
   return {
@@ -865,5 +865,206 @@ describe('GraphEditor — edge bends', () => {
     expect(
       document.querySelectorAll('.react-flow__edge[data-id="e1"] .edge-grab'),
     ).toHaveLength(3)
+  })
+})
+
+describe('GraphEditor — slices', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  const slices: Slice[] = [
+    { id: 's1', name: 'core', description: 'ядро', nodeCount: 2 },
+    { id: 's2', name: 'aux', description: '', nodeCount: 1 },
+  ]
+
+  // n1: member of s1; n2: member of s1 AND s2; n3: membership-free
+  function sliceClient(def: Partial<Visualization> = {}): ApiClient {
+    const client = fakeClient(def)
+    ;(client.getSubgraph as any).mockResolvedValue({
+      nodes: [
+        { id: 'n1', type: 'Task', properties: {}, sliceIds: ['s1'] },
+        { id: 'n2', type: 'Milestone', properties: {}, sliceIds: ['s1', 's2'] },
+        { id: 'n3', type: 'Task', properties: {} },
+      ],
+      edges: [
+        { id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} },
+        { id: 'e2', type: 'blocks', source: 'n2', target: 'n3', properties: {} },
+      ],
+    })
+    ;(client as any).listSlices = vi.fn().mockResolvedValue(slices)
+    ;(client as any).createSlice = vi
+      .fn()
+      .mockResolvedValue({ id: 's-new', name: 'new', description: '', nodeCount: 0 })
+    ;(client as any).getSlice = vi.fn()
+    ;(client as any).renameSlice = vi.fn().mockResolvedValue({ ...slices[0], name: 'renamed' })
+    ;(client as any).deleteSlice = vi.fn().mockResolvedValue(undefined)
+    ;(client as any).addSliceNodes = vi.fn().mockResolvedValue({ nodeCount: 1 })
+    ;(client as any).removeSliceNodes = vi.fn().mockResolvedValue({ nodeCount: 0 })
+    return client
+  }
+
+  const nodeEl = (id: string) => document.querySelector(`.react-flow__node[data-id="${id}"]`)
+
+  it('«Срезы» opens the panel and lists slices with name, description, count', async () => {
+    vi.useFakeTimers()
+    const client = sliceClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await settle()
+    expect(client.listSlices).toHaveBeenCalledWith('g1')
+    expect(screen.getByTestId('slice-name-s1').textContent).toBe('core')
+    expect(screen.getByTestId('slice-desc-s1').textContent).toBe('ядро')
+    expect(screen.getByTestId('slice-count-s1').textContent).toBe('2')
+    expect(screen.getByTestId('slice-name-s2').textContent).toBe('aux')
+    // closing hides the panel
+    fireEvent.click(screen.getByTestId('slice-panel-close'))
+    expect(screen.queryByTestId('slice-panel')).not.toBeInTheDocument()
+  })
+
+  it('unchecking a slice hides its members; a two-slice node stays while either is checked', async () => {
+    render(<GraphEditor client={sliceClient()} graphId="g1" styles={{}} />)
+    await settle()
+    expect(nodeEl('n1')).not.toBeNull()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await waitFor(() => expect(screen.getByTestId('slice-visible-s1')).toBeInTheDocument())
+    // uncheck s1: n1 (s1 only) hidden; n2 (s1+s2) visible via s2; n3 free
+    fireEvent.click(screen.getByTestId('slice-visible-s1'))
+    await waitFor(() => expect(nodeEl('n1')).toBeNull())
+    expect(nodeEl('n2')).not.toBeNull()
+    expect(nodeEl('n3')).not.toBeNull()
+    // uncheck s2 as well: n2 hidden too, only the membership-free node survives
+    fireEvent.click(screen.getByTestId('slice-visible-s2'))
+    await waitFor(() => expect(nodeEl('n2')).toBeNull())
+    expect(nodeEl('n3')).not.toBeNull()
+  })
+
+  it('re-checking back to all slices normalizes the filter to null (all visible)', async () => {
+    render(<GraphEditor client={sliceClient()} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await waitFor(() => expect(screen.getByTestId('slice-visible-s1')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('slice-visible-s1'))
+    fireEvent.click(screen.getByTestId('slice-visible-s2'))
+    await waitFor(() => expect(nodeEl('n2')).toBeNull())
+    // checking s1 then s2 again — «все отмечены» normalizes to null
+    fireEvent.click(screen.getByTestId('slice-visible-s1'))
+    await waitFor(() => expect(nodeEl('n1')).not.toBeNull())
+    fireEvent.click(screen.getByTestId('slice-visible-s2'))
+    await waitFor(() => expect(nodeEl('n2')).not.toBeNull())
+    expect(nodeEl('n3')).not.toBeNull()
+  })
+
+  it('«Ни одного» shows only membership-free nodes; «Все» resets', async () => {
+    render(<GraphEditor client={sliceClient()} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await waitFor(() => expect(screen.getByTestId('slice-visible-s1')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('slice-visible-none'))
+    await waitFor(() => expect(nodeEl('n1')).toBeNull())
+    expect(nodeEl('n2')).toBeNull()
+    expect(nodeEl('n3')).not.toBeNull()
+    fireEvent.click(screen.getByTestId('slice-visible-all'))
+    await waitFor(() => expect(nodeEl('n1')).not.toBeNull())
+    expect(nodeEl('n2')).not.toBeNull()
+  })
+
+  it('a checkbox toggle marks the editor dirty → the autosave PUTs', async () => {
+    vi.useFakeTimers()
+    const client = sliceClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    expect(client.saveVisualization).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await settle()
+    fireEvent.click(screen.getByTestId('slice-visible-s1'))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(client.saveVisualization).toHaveBeenCalledTimes(1)
+  })
+
+  it('«Показать» activates the slice; «Только срез» hides non-members', async () => {
+    render(<GraphEditor client={sliceClient()} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await waitFor(() => expect(screen.getByTestId('slice-visible-s1')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('slice-activate-s1'))
+    expect(screen.getByTestId('slice-row-s1')).toHaveClass('active')
+    // «Только срез» needs the active slice — now enabled
+    fireEvent.click(screen.getByTestId('slice-only-toggle'))
+    // s1 members: n1, n2 stay; n3 (non-member) hidden
+    await waitFor(() => expect(nodeEl('n3')).toBeNull())
+    expect(nodeEl('n1')).not.toBeNull()
+    expect(nodeEl('n2')).not.toBeNull()
+    // toggle off — everyone back
+    fireEvent.click(screen.getByTestId('slice-only-toggle'))
+    await waitFor(() => expect(nodeEl('n3')).not.toBeNull())
+  })
+
+  it('create form calls createSlice and refetches the list', async () => {
+    vi.useFakeTimers()
+    const client = sliceClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await settle()
+    fireEvent.change(screen.getByTestId('slice-create-name'), { target: { value: 'новый' } })
+    fireEvent.change(screen.getByTestId('slice-create-desc'), { target: { value: 'текст' } })
+    fireEvent.click(screen.getByTestId('slice-create-ok'))
+    await settle()
+    expect(client.createSlice).toHaveBeenCalledWith('g1', { name: 'новый', description: 'текст' })
+    expect(client.listSlices).toHaveBeenCalledTimes(2)
+  })
+
+  it('inline rename PATCHes via the slice’s current name and refetches', async () => {
+    vi.useFakeTimers()
+    const client = sliceClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await settle()
+    fireEvent.click(screen.getByTestId('slice-rename-s1'))
+    fireEvent.change(screen.getByTestId('slice-edit-name-s1'), { target: { value: 'ядро!' } })
+    fireEvent.click(screen.getByTestId('slice-edit-ok-s1'))
+    await settle()
+    expect(client.renameSlice).toHaveBeenCalledWith('g1', 'core', { name: 'ядро!', description: 'ядро' })
+    expect(client.listSlices).toHaveBeenCalledTimes(2)
+  })
+
+  it('delete removes via the current name and clears the active slice', async () => {
+    vi.useFakeTimers()
+    const client = sliceClient()
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await settle()
+    fireEvent.click(screen.getByTestId('slice-activate-s1'))
+    fireEvent.click(screen.getByTestId('slice-delete-s1'))
+    await settle()
+    expect(client.deleteSlice).toHaveBeenCalledWith('g1', 'core')
+    expect(client.listSlices).toHaveBeenCalledTimes(2)
+    // the active slice is gone — no highlight left
+    expect(screen.getByTestId('slice-row-s1')).not.toHaveClass('active')
+    expect(screen.getByTestId('slice-only-toggle')).toBeDisabled()
+  })
+
+  it('visibility checkboxes are disabled while no visualization is loaded', async () => {
+    vi.useFakeTimers()
+    const client = sliceClient()
+    ;(client.getDefaultVisualization as any).mockRejectedValue(new Error('no viz'))
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    expect(screen.queryByTestId('viz-badge')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await settle()
+    expect(screen.getByTestId('slice-visible-s1')).toBeDisabled()
+    expect(screen.getByTestId('slice-visible-all')).toBeDisabled()
   })
 })

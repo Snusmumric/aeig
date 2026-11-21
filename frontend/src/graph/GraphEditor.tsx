@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Edge, Node, NodeChange } from '@xyflow/react'
 import type { ApiClient } from '../api/client'
-import type { GraphEdge, GraphNode, Visualization, VisualizationManifest, Viewport } from '../api/types'
+import type { GraphEdge, GraphNode, Slice, Visualization, VisualizationManifest, Viewport } from '../api/types'
 import { MarkerType } from '@xyflow/react'
 import { GraphCanvas } from './GraphCanvas'
 import { TypeFilterPanel } from './TypeFilterPanel'
+import { SlicePanel } from './SlicePanel'
 import { VizDiffBar } from './VizDiffBar'
 import { useGraph } from './useGraph'
 import { computeVizDiff } from './vizDiff'
@@ -40,6 +41,8 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     setVisibleEdgeTypes,
     hideOrphans,
     setHideOrphans,
+    visibleSlices,
+    setVisibleSlices,
     bends,
     setBends,
     onNodeDragStart,
@@ -58,6 +61,11 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   const [showAdded, setShowAdded] = useState(true)
   const [saveFormOpen, setSaveFormOpen] = useState(false)
   const [saveName, setSaveName] = useState('')
+  // slice management state: panel visibility, list, active slice, «Только срез»
+  const [slicesOpen, setSlicesOpen] = useState(false)
+  const [slices, setSlices] = useState<Slice[]>([])
+  const [activeSliceId, setActiveSliceId] = useState<string | null>(null)
+  const [sliceOnly, setSliceOnly] = useState(false)
   const dirty = useRef(false)
   // bumped on every state change that dirties the editor — lets a save that was
   // in flight when newer edits happened refuse to declare the state clean
@@ -147,6 +155,89 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     setHideOrphans((v) => !v)
   }, [setHideOrphans, markDirty])
 
+  // ── slices: list refresh, panel actions, visibility filter ────────────────
+  const refreshSlices = useCallback(async () => {
+    try {
+      setSlices(await client.listSlices(graphId))
+    } catch {
+      // the panel keeps showing the previous list; failures are non-fatal
+    }
+  }, [client, graphId])
+
+  const openSlices = useCallback(() => {
+    setSlicesOpen(true)
+    void refreshSlices()
+  }, [refreshSlices])
+
+  const activateSlice = useCallback((id: string) => {
+    setActiveSliceId(id)
+  }, [])
+
+  const handleCreateSlice = useCallback(
+    (args: { name: string; description?: string }) => {
+      void client.createSlice(graphId, args).then(refreshSlices).catch(() => setNotice('slice create failed'))
+    },
+    [client, graphId, refreshSlices],
+  )
+
+  // rename is name-addressed — resolve the id to its CURRENT name first
+  const handleRenameSlice = useCallback(
+    (id: string, patch: { name?: string; description?: string }) => {
+      const current = slices.find((s) => s.id === id)
+      if (!current) return
+      void client.renameSlice(graphId, current.name, patch).then(refreshSlices).catch(() => setNotice('slice rename failed'))
+    },
+    [client, graphId, slices, refreshSlices],
+  )
+
+  const handleDeleteSlice = useCallback(
+    (id: string) => {
+      const current = slices.find((s) => s.id === id)
+      if (!current) return
+      void client
+        .deleteSlice(graphId, current.name)
+        .then(() => {
+          if (activeSliceId === id) {
+            setActiveSliceId(null)
+            setSliceOnly(false)
+          }
+          return refreshSlices()
+        })
+        .catch(() => setNotice('slice delete failed'))
+    },
+    [client, graphId, slices, activeSliceId, refreshSlices],
+  )
+
+  // visibility filter — the TypeFilterPanel pattern: prune stale ids, toggle,
+  // normalize «все отмечены» back to null (filter inactive)
+  const toggleVisibleSlice = useCallback(
+    (id: string) => {
+      markDirty()
+      const known = new Set(slices.map((s) => s.id))
+      const next = new Set([...(visibleSlices ?? slices.map((s) => s.id))].filter((x) => known.has(x)))
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      setVisibleSlices(next.size === slices.length ? null : next)
+    },
+    [slices, visibleSlices, setVisibleSlices, markDirty],
+  )
+
+  const setAllSlicesVisible = useCallback(() => {
+    markDirty()
+    setVisibleSlices(null)
+  }, [setVisibleSlices, markDirty])
+
+  const setNoSlicesVisible = useCallback(() => {
+    markDirty()
+    setVisibleSlices(new Set())
+  }, [setVisibleSlices, markDirty])
+
+  // «Только срез» is an ephemeral view mode — never dirties the autosave
+  const toggleSliceOnly = useCallback(() => {
+    setSliceOnly((v) => !v)
+  }, [])
+
+
   const handleMove = useCallback(
     (vp: Viewport) => {
       viewportRef.current = vp
@@ -183,10 +274,19 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
 
   // visible nodes = filtered graph nodes (additions highlighted while shown)
   // plus ghost nodes remembered by the manifest (bypass type filters)
+  // «Только срез» (ephemeral view mode): keep only members of the active
+  // slice, composing AND with the persisted filters; ghosts bypass it
+  const sliceMemberIds = useMemo(() => {
+    if (activeSliceId === null || !sliceOnly) return null
+    return new Set(allNodes.filter((n) => n.data.sliceIds?.includes(activeSliceId)).map((n) => n.id))
+  }, [activeSliceId, sliceOnly, allNodes])
+
   const displayNodes = useMemo<Node[]>(() => {
-    if (diff.mode === 'unbound') return nodes
+    const members = (list: Node[]) =>
+      sliceMemberIds ? list.filter((n) => sliceMemberIds.has(n.id)) : list
+    if (diff.mode === 'unbound') return members(nodes)
     const alive = showAdded ? nodes : nodes.filter((n) => !diff.addedNodeIds.has(n.id))
-    const styled = alive.map((n) => (diff.addedNodeIds.has(n.id) ? { ...n, className: 'added' } : n))
+    const styled = members(alive).map((n) => (diff.addedNodeIds.has(n.id) ? { ...n, className: 'added' } : n))
     if (!showDeleted) return styled
     const graphIds = new Set(graphNodes.map((n) => n.id))
     const ghosts = Object.entries(diff.manifestNodes)
@@ -201,7 +301,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         className: 'ghost',
       }))
     return [...styled, ...ghosts]
-  }, [diff, nodes, graphNodes, showAdded, showDeleted])
+  }, [diff, nodes, graphNodes, showAdded, showDeleted, sliceMemberIds])
 
   // anchor positions for ghost edges: current node positions first, then the
   // manifest's remembered coordinates for nodes gone from the graph
@@ -215,9 +315,15 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   }, [allNodes, diff])
 
   const displayEdges = useMemo<Edge[]>(() => {
-    if (diff.mode === 'unbound') return edges
+    // «Только срез»: an edge shows when BOTH endpoints are members —
+    // the derived membership rule, applied to the already-filtered edges
+    const members = (list: Edge[]) =>
+      sliceMemberIds
+        ? list.filter((e) => sliceMemberIds.has(e.source) && sliceMemberIds.has(e.target))
+        : list
+    if (diff.mode === 'unbound') return members(edges)
     const alive = showAdded ? edges : edges.filter((e) => !diff.addedEdgeIds.has(e.id))
-    const styled = alive.map((e) =>
+    const styled = members(alive).map((e) =>
       diff.addedEdgeIds.has(e.id)
         ? { ...e, className: 'added', animated: true, style: { stroke: '#22c55e', strokeWidth: 2 } }
         : e,
@@ -253,7 +359,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         }
       })
     return [...styled, ...ghosts]
-  }, [diff, edges, graphEdges, showAdded, showDeleted, posById, styles])
+  }, [diff, edges, graphEdges, showAdded, showDeleted, posById, styles, sliceMemberIds])
 
   // the autosave PUT args — reads refs so its identity stays stable
   const buildSaveArgs = useCallback(
@@ -483,6 +589,9 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         >
           Скрыть сироты
         </button>
+        <button data-testid="slices-btn" onClick={slicesOpen ? () => setSlicesOpen(false) : openSlices}>
+          Срезы
+        </button>
         {hasDiff && (
           <VizDiffBar
             deletedCount={deletedCount}
@@ -505,7 +614,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         {error && <span style={{ color: 'red' }}>{error}</span>}
         {notice && <span style={{ color: '#b45309' }}>{notice}</span>}
       </div>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, position: 'relative' }}>
         <GraphCanvas
           nodes={displayNodes}
           edges={displayEdges}
@@ -518,6 +627,24 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
           onEdgeBend={handleEdgeBend}
           fitView={fitView}
         />
+        {slicesOpen && (
+          <SlicePanel
+            slices={slices}
+            activeSliceId={activeSliceId}
+            visibleSlices={visibleSlices}
+            onActivate={activateSlice}
+            onCreate={handleCreateSlice}
+            onRename={handleRenameSlice}
+            onDelete={handleDeleteSlice}
+            onToggleVisible={toggleVisibleSlice}
+            onSetAllVisible={setAllSlicesVisible}
+            onSetNoneVisible={setNoSlicesVisible}
+            onClose={() => setSlicesOpen(false)}
+            sliceOnly={sliceOnly}
+            onToggleSliceOnly={toggleSliceOnly}
+            canFilter={vizName !== null}
+          />
+        )}
       </div>
     </div>
   )
