@@ -287,6 +287,20 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     [refreshSlices],
   )
 
+  // Right-click on the multi-selection overlay (after box-selection) — open the
+  // slice menu for the FIRST selected node (the overlay passes all selected nodes;
+  // membership toggles operate per-node, so the user picks a representative node)
+  const handleSelectionContextMenu = useCallback(
+    (event: ReactMouseEvent, nodes: Node[]) => {
+      event.preventDefault()
+      void refreshSlices()
+      if (nodes.length > 0) {
+        setNodeMenu({ x: event.pageX, y: event.pageY, nodeId: nodes[0].id })
+      }
+    },
+    [refreshSlices],
+  )
+
   const handleEdgeContextMenu = useCallback(
     (event: ReactMouseEvent, edge: Edge) => {
       event.preventDefault()
@@ -779,6 +793,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
           onMove={handleMove}
           onEdgeBend={handleEdgeBend}
           onNodeContextMenu={handleNodeContextMenu}
+          onSelectionContextMenu={handleSelectionContextMenu}
           onEdgeContextMenu={handleEdgeContextMenu}
           fitView={fitView}
         />

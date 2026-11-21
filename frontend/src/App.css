@@ -394,3 +394,12 @@
   stroke: #2563eb !important;
   stroke-width: 3 !important;
 }
+
+/* The NodesSelection overlay (rendered after box-selection) has
+   pointer-events:all and z-index:3 — it blocks right-click (context menu)
+   and Cmd+click (accumulation) on nodes underneath. Group-drag still works:
+   ReactFlow drags ALL selected nodes when any selected node is dragged
+   (via XYDrag/getDragItems), not via this overlay. */
+.react-flow__nodesselection-rect {
+  pointer-events: none !important;
+}

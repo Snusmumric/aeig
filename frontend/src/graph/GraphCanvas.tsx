@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type MouseEvent as ReactSyntheticMouseEvent } from 'react'
 import {
   ReactFlow,
   Background,
@@ -59,6 +59,8 @@ export interface GraphCanvasProps {
   onEdgeBend?: (edgeId: string, bend: Bend | null) => void
   /** Right-click on a node — opens the slice membership menu. */
   onNodeContextMenu?: NodeMouseHandler<Node>
+  /** Right-click on the multi-selection overlay — opens the slice menu. */
+  onSelectionContextMenu?: (event: ReactSyntheticMouseEvent, nodes: Node[]) => void
   /** Right-click on an edge — opens the slice menu (adds both endpoints). */
   onEdgeContextMenu?: EdgeMouseHandler<Edge>
   fitView?: boolean
@@ -76,6 +78,7 @@ export function GraphCanvas({
   onMove,
   onEdgeBend,
   onNodeContextMenu,
+  onSelectionContextMenu,
   onEdgeContextMenu,
   fitView = true,
 }: GraphCanvasProps) {
@@ -126,6 +129,7 @@ export function GraphCanvas({
           onInit={setInstance}
           onMove={onMove ? handleFlowMove : undefined}
           onNodeContextMenu={onNodeContextMenu}
+          onSelectionContextMenu={onSelectionContextMenu}
           onEdgeContextMenu={onEdgeContextMenu}
           fitView={fitView}
         >
