@@ -10,6 +10,8 @@ import {
   type NodeProps,
   type OnNodeDrag,
   type OnMove,
+  type NodeMouseHandler,
+  type EdgeMouseHandler,
   type ReactFlowInstance,
   type Viewport,
 } from '@xyflow/react'
@@ -53,6 +55,10 @@ export interface GraphCanvasProps {
   onMove?: (vp: Viewport) => void
   /** Notified when a curvy edge is bent (grab-circle drag) or reset (dblclick). */
   onEdgeBend?: (edgeId: string, bend: Bend | null) => void
+  /** Right-click on a node — opens the slice membership menu. */
+  onNodeContextMenu?: NodeMouseHandler<Node>
+  /** Right-click on an edge — opens the slice menu (adds both endpoints). */
+  onEdgeContextMenu?: EdgeMouseHandler<Edge>
   fitView?: boolean
 }
 
@@ -66,6 +72,8 @@ export function GraphCanvas({
   applyViewport,
   onMove,
   onEdgeBend,
+  onNodeContextMenu,
+  onEdgeContextMenu,
   fitView = true,
 }: GraphCanvasProps) {
   const [instance, setInstance] = useState<ReactFlowInstance | null>(null)
@@ -108,6 +116,8 @@ export function GraphCanvas({
           edgeTypes={edgeTypes}
           onInit={setInstance}
           onMove={onMove ? handleFlowMove : undefined}
+          onNodeContextMenu={onNodeContextMenu}
+          onEdgeContextMenu={onEdgeContextMenu}
           fitView={fitView}
         >
           <Background />

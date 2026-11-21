@@ -1068,3 +1068,252 @@ describe('GraphEditor — slices', () => {
     expect(screen.getByTestId('slice-visible-all')).toBeDisabled()
   })
 })
+
+describe('GraphEditor — slice context menus, markers, persistence', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  const slices: Slice[] = [
+    { id: 's1', name: 'core', description: '', nodeCount: 2 },
+    { id: 's2', name: 'aux', description: '', nodeCount: 1 },
+  ]
+
+  // n1: member of s1; n2: member of s1 AND s2; n3: membership-free
+  function sliceClient(def: Partial<Visualization> = {}): ApiClient {
+    const client = fakeClient(def)
+    ;(client.getSubgraph as any).mockResolvedValue({
+      nodes: [
+        { id: 'n1', type: 'Task', properties: {}, sliceIds: ['s1'] },
+        { id: 'n2', type: 'Milestone', properties: {}, sliceIds: ['s1', 's2'] },
+        { id: 'n3', type: 'Task', properties: {} },
+      ],
+      edges: [{ id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} }],
+    })
+    ;(client as any).listSlices = vi.fn().mockResolvedValue(slices)
+    ;(client as any).createSlice = vi
+      .fn()
+      .mockResolvedValue({ id: 's-new', name: 'new', description: '', nodeCount: 1 })
+    ;(client as any).getSlice = vi.fn()
+    ;(client as any).renameSlice = vi.fn().mockResolvedValue(slices[0])
+    ;(client as any).deleteSlice = vi.fn().mockResolvedValue(undefined)
+    ;(client as any).addSliceNodes = vi.fn().mockResolvedValue({ nodeCount: 3 })
+    ;(client as any).removeSliceNodes = vi.fn().mockResolvedValue({ nodeCount: 1 })
+    return client
+  }
+
+  const nodeEl = (id: string) => document.querySelector(`.react-flow__node[data-id="${id}"]`)
+
+  function contextMenuOn(id: string) {
+    fireEvent.contextMenu(nodeEl(id)!, { clientX: 100, clientY: 50 })
+  }
+
+  it('right-clicking a node opens the membership menu with checkmarks from sliceIds', async () => {
+    const client = sliceClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(nodeEl('n1')).not.toBeNull())
+    contextMenuOn('n1')
+    await waitFor(() => expect(screen.getByTestId('slice-context-menu')).toBeInTheDocument())
+    // right-click suppresses the browser menu
+    // n1 ∈ s1 only → s1 checked, s2 not
+    expect(screen.getByTestId('slice-menu-check-s1')).toBeChecked()
+    expect(screen.getByTestId('slice-menu-check-s2')).not.toBeChecked()
+  })
+
+  it('toggling membership calls add/remove with the node id and refetches', async () => {
+    const client = sliceClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(nodeEl('n1')).not.toBeNull())
+    contextMenuOn('n1')
+    await waitFor(() => expect(screen.getByTestId('slice-context-menu')).toBeInTheDocument())
+    // n1 ∉ s2 → add; slice ops are name-addressed
+    fireEvent.click(screen.getByTestId('slice-menu-check-s2'))
+    await waitFor(() => expect(client.addSliceNodes).toHaveBeenCalledWith('g1', 'aux', ['n1']))
+    // n1 ∈ s1 → remove
+    fireEvent.click(screen.getByTestId('slice-menu-check-s1'))
+    await waitFor(() => expect(client.removeSliceNodes).toHaveBeenCalledWith('g1', 'core', ['n1']))
+    // membership ops refetch the subgraph (fresh sliceIds) and the slice list
+    expect(client.getSubgraph).toHaveBeenCalledTimes(3)
+    expect(client.listSlices).toHaveBeenCalledTimes(3)
+  })
+
+  it('«новый срез…» in the node menu creates a slice with the node added', async () => {
+    const client = sliceClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(nodeEl('n1')).not.toBeNull())
+    contextMenuOn('n1')
+    await waitFor(() => expect(screen.getByTestId('slice-menu-new')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('slice-menu-new'))
+    fireEvent.change(screen.getByTestId('slice-menu-new-name'), { target: { value: 'свежий' } })
+    fireEvent.click(screen.getByTestId('slice-menu-new-ok'))
+    await waitFor(() => expect(client.createSlice).toHaveBeenCalledWith('g1', { name: 'свежий', nodeIds: ['n1'] }))
+  })
+
+  it('the node menu closes on Escape', async () => {
+    render(<GraphEditor client={sliceClient()} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(nodeEl('n1')).not.toBeNull())
+    contextMenuOn('n1')
+    await waitFor(() => expect(screen.getByTestId('slice-context-menu')).toBeInTheDocument())
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByTestId('slice-context-menu')).not.toBeInTheDocument())
+  })
+
+  it('active-slice members get a marker class on nodes', async () => {
+    render(<GraphEditor client={sliceClient()} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(nodeEl('n1')).not.toBeNull())
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await waitFor(() => expect(screen.getByTestId('slice-activate-s1')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('slice-activate-s1'))
+    // s1 members: n1, n2 marked; n3 not
+    await waitFor(() => expect(nodeEl('n1')).toHaveClass('slice-member'))
+    expect(nodeEl('n2')).toHaveClass('slice-member')
+    expect(nodeEl('n3')).not.toHaveClass('slice-member')
+  })
+
+  it('autosave payload includes visibleSlices; omitted while the filter is inactive', async () => {
+    vi.useFakeTimers()
+    const client = sliceClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await settle() // panel list resolves (no waitFor — it hangs under fake timers)
+    // uncheck s1 → active filter Set([s2]) rides the next autosave
+    fireEvent.click(screen.getByTestId('slice-visible-s1'))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(client.saveVisualization).toHaveBeenCalledTimes(1)
+    expect((client.saveVisualization as any).mock.calls[0][7].visibleSlices).toEqual(['s2'])
+    // back to null («Все») → the field is omitted (absent = unchanged)
+    fireEvent.click(screen.getByTestId('slice-visible-all'))
+    fireEvent.click(screen.getByTestId('type-Milestone')) // any fresh dirty source
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    const later = (client.saveVisualization as any).mock.calls[1]
+    expect(later[7].visibleSlices).toBeUndefined()
+  })
+
+  it('viz load restores the visibleSlices filter', async () => {
+    const client = sliceClient({ visibleSlices: ['s2'] })
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    // filter restored as Set(['s2']): n1 (s1 only) hidden; n2 visible via s2; n3 free
+    await waitFor(() => expect(nodeEl('n1')).toBeNull())
+    expect(nodeEl('n2')).not.toBeNull()
+    expect(nodeEl('n3')).not.toBeNull()
+  })
+
+  it('membership-free node menu renders all slices unchecked', async () => {
+    render(<GraphEditor client={sliceClient()} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(nodeEl('n3')).not.toBeNull())
+    contextMenuOn('n3')
+    await waitFor(() => expect(screen.getByTestId('slice-menu-check-s1')).not.toBeChecked())
+    expect(screen.getByTestId('slice-menu-check-s2')).not.toBeChecked()
+  })
+})
+
+describe('GraphEditor — slice edge context menu (measured edges)', () => {
+  // ReactFlow edges only mount when nodes measure — same patch as 'edge bends'
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        private readonly cb: (entries: Array<{ target: Element; contentRect?: DOMRectReadOnly }>) => void
+        constructor(cb: (entries: Array<{ target: Element; contentRect?: DOMRectReadOnly }>) => void) {
+          this.cb = cb
+        }
+        observe = (el: Element) => {
+          queueMicrotask(() => {
+            this.cb([{ target: el, contentRect: { width: 120, height: 60 } as DOMRectReadOnly }])
+          })
+        }
+        unobserve = () => {}
+        disconnect = () => {}
+      },
+    )
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(120)
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(60)
+    ;(SVGElement.prototype as unknown as { getBBox: () => DOMRect }).getBBox = () =>
+      ({ x: 0, y: 0, width: 0, height: 0 }) as DOMRect
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  const slices: Slice[] = [
+    { id: 's1', name: 'core', description: '', nodeCount: 2 },
+    { id: 's2', name: 'aux', description: '', nodeCount: 0 },
+  ]
+
+  function measuredClient(def: Partial<Visualization> = {}): ApiClient {
+    const client = fakeClient(def)
+    ;(client.getSubgraph as any).mockResolvedValue({
+      nodes: [
+        { id: 'n1', type: 'Task', properties: {}, sliceIds: ['s1'] },
+        { id: 'n2', type: 'Milestone', properties: {}, sliceIds: ['s1', 's2'] },
+        { id: 'n3', type: 'Task', properties: {} },
+      ],
+      edges: [
+        { id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} },
+        { id: 'e2', type: 'blocks', source: 'n2', target: 'n3', properties: {} },
+      ],
+    })
+    ;(client as any).listSlices = vi.fn().mockResolvedValue(slices)
+    ;(client as any).addSliceNodes = vi.fn().mockResolvedValue({ nodeCount: 2 })
+    return client
+  }
+
+  const edgeEl = (id: string) => document.querySelector(`.react-flow__edge[data-id="${id}"]`)
+
+  it('right-clicking an edge opens the menu; clicking a slice adds BOTH endpoints', async () => {
+    const client = measuredClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(edgeEl('e1')).not.toBeNull())
+    fireEvent.contextMenu(edgeEl('e1')!.querySelector('.react-flow__edge-interaction')!, {
+      clientX: 80,
+      clientY: 40,
+    })
+    await waitFor(() => expect(screen.getByTestId('slice-context-menu')).toBeInTheDocument())
+    // edge menu has no checkboxes and no «новый срез…»
+    expect(screen.queryByTestId('slice-menu-check-s1')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('slice-menu-new')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('slice-menu-add-s2'))
+    await waitFor(() => expect(client.addSliceNodes).toHaveBeenCalledWith('g1', 'aux', ['n1', 'n2']))
+  })
+
+  it('an edge slice row is disabled when both endpoints are already members', async () => {
+    const client = measuredClient()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(edgeEl('e1')).not.toBeNull())
+    fireEvent.contextMenu(edgeEl('e1')!.querySelector('.react-flow__edge-interaction')!, {})
+    await waitFor(() => expect(screen.getByTestId('slice-menu-add-s1')).toBeDisabled())
+    // s2: n2 is a member but n1 is not → enabled
+    expect(screen.getByTestId('slice-menu-add-s2')).not.toBeDisabled()
+  })
+
+  it('active-slice edges (both endpoints members) get the marker class', async () => {
+    const client = measuredClient()
+    ;(client as any).renameSlice = vi.fn()
+    ;(client as any).deleteSlice = vi.fn().mockResolvedValue(undefined)
+    ;(client as any).createSlice = vi.fn()
+    ;(client as any).removeSliceNodes = vi.fn()
+    ;(client as any).getSlice = vi.fn()
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await waitFor(() => expect(edgeEl('e1')).not.toBeNull())
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await waitFor(() => expect(screen.getByTestId('slice-activate-s1')).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('slice-activate-s1'))
+    // e1 (n1–n2, both in s1) marked; e2 (n2–n3, n3 not a member) not
+    await waitFor(() => expect(edgeEl('e1')).toHaveClass('slice-member-edge'))
+    expect(edgeEl('e2')).not.toHaveClass('slice-member-edge')
+  })
+})

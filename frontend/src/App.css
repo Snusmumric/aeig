@@ -331,3 +331,56 @@
   border-top: 1px solid #e5e7eb;
   padding-top: 8px;
 }
+
+/* ── slice context menu: plain fixed overlay at the cursor ─────────────── */
+
+.slice-context-menu {
+  position: fixed;
+  z-index: 20;
+  min-width: 180px;
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #d0d4da;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.16);
+  font-size: 13px;
+}
+
+.slice-menu-row label,
+.slice-menu-row button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 4px;
+  text-align: left;
+}
+
+.slice-menu-row button:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.slice-menu-new {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 4px;
+}
+
+/* ── active-slice markers: member outline + derived thicker edge stroke ── */
+
+.react-flow__node.slice-member {
+  outline: 2px solid #2563eb;
+}
+
+.react-flow__edge.slice-member-edge .react-flow__edge-path {
+  stroke-width: 3;
+}

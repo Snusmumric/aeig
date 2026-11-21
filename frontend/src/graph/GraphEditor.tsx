@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import type { Edge, Node, NodeChange } from '@xyflow/react'
 import type { ApiClient } from '../api/client'
 import type { GraphEdge, GraphNode, Slice, Visualization, VisualizationManifest, Viewport } from '../api/types'
@@ -6,6 +6,7 @@ import { MarkerType } from '@xyflow/react'
 import { GraphCanvas } from './GraphCanvas'
 import { TypeFilterPanel } from './TypeFilterPanel'
 import { SlicePanel } from './SlicePanel'
+import { SliceContextMenu } from './SliceContextMenu'
 import { VizDiffBar } from './VizDiffBar'
 import { useGraph } from './useGraph'
 import { computeVizDiff } from './vizDiff'
@@ -66,6 +67,9 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   const [slices, setSlices] = useState<Slice[]>([])
   const [activeSliceId, setActiveSliceId] = useState<string | null>(null)
   const [sliceOnly, setSliceOnly] = useState(false)
+  // context menus: cursor position + the right-clicked element id
+  const [nodeMenu, setNodeMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null)
+  const [edgeMenu, setEdgeMenu] = useState<{ x: number; y: number; edgeId: string } | null>(null)
   const dirty = useRef(false)
   // bumped on every state change that dirties the editor — lets a save that was
   // in flight when newer edits happened refuse to declare the state clean
@@ -79,9 +83,9 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
 
   // Snapshot of the state the autosave needs — refreshed every render so the
   // 10s interval keeps a stable identity and never resets mid-session.
-  const latest = useRef({ allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans, bends, error })
+  const latest = useRef({ allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans, visibleSlices, bends, error })
   useEffect(() => {
-    latest.current = { allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans, bends, error }
+    latest.current = { allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans, visibleSlices, bends, error }
   })
 
   // Mount: resolve the visualization — the ?viz= name, falling back to the
@@ -115,6 +119,8 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       else setVisibleTypes(null)
       if (viz.edgeTypes) setVisibleEdgeTypes(new Set(viz.edgeTypes))
       else setVisibleEdgeTypes(null)
+      if (viz.visibleSlices) setVisibleSlices(new Set(viz.visibleSlices))
+      else setVisibleSlices(null)
       setHideOrphans(viz.hideOrphans)
       setBends(viz.bends ?? {})
       await reload(viz.positions)
@@ -123,7 +129,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     return () => {
       cancelled = true
     }
-  }, [client, graphId, initialVizName, reload, setVisibleTypes, setVisibleEdgeTypes, setHideOrphans, setBends])
+  }, [client, graphId, initialVizName, reload, setVisibleTypes, setVisibleEdgeTypes, setVisibleSlices, setHideOrphans, setBends])
 
   // Dirty tracking: node position changes, filter changes, viewport moves.
   const handleNodesChange = useCallback(
@@ -237,6 +243,91 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     setSliceOnly((v) => !v)
   }, [])
 
+  // ── slice context menus: membership ops on right-clicked elements ────────
+  // membership changes must refetch the subgraph (fresh sliceIds) and the
+  // slice list (fresh counts); positions are preserved across the reload
+  const refetchMembership = useCallback(() => {
+    const { allNodes: an } = latest.current
+    void refreshSlices()
+    void reload(extractPositions(an))
+  }, [refreshSlices, reload])
+
+  const handleNodeContextMenu = useCallback(
+    (event: ReactMouseEvent, node: Node) => {
+      event.preventDefault() // suppress the browser menu
+      void refreshSlices()
+      setNodeMenu({ x: event.pageX, y: event.pageY, nodeId: node.id })
+    },
+    [refreshSlices],
+  )
+
+  const handleEdgeContextMenu = useCallback(
+    (event: ReactMouseEvent, edge: Edge) => {
+      event.preventDefault()
+      void refreshSlices()
+      setEdgeMenu({ x: event.pageX, y: event.pageY, edgeId: edge.id })
+    },
+    [refreshSlices],
+  )
+
+  const handleNodeMenuToggle = useCallback(
+    (sliceId: string) => {
+      const slice = slices.find((s) => s.id === sliceId)
+      if (!slice || !nodeMenu) return
+      const nodeId = nodeMenu.nodeId
+      const isMember =
+        allNodes.find((n) => n.id === nodeId)?.data.sliceIds?.includes(sliceId) ?? false
+      const op = isMember
+        ? client.removeSliceNodes(graphId, slice.name, [nodeId])
+        : client.addSliceNodes(graphId, slice.name, [nodeId])
+      void op.then(refetchMembership).catch(() => setNotice('slice update failed'))
+    },
+    [slices, nodeMenu, allNodes, client, graphId, refetchMembership],
+  )
+
+  const handleNodeMenuCreate = useCallback(
+    (name: string) => {
+      if (!nodeMenu) return
+      void client
+        .createSlice(graphId, { name, nodeIds: [nodeMenu.nodeId] })
+        .then(refetchMembership)
+        .catch(() => setNotice('slice create failed'))
+    },
+    [nodeMenu, client, graphId, refetchMembership],
+  )
+
+  // edge membership is derived: adding an edge = adding BOTH endpoints
+  const edgeEndpoints = useMemo(() => {
+    if (!edgeMenu) return []
+    const edge = allEdges.find((e) => e.id === edgeMenu.edgeId)
+    return edge ? [...new Set([edge.source, edge.target])] : []
+  }, [edgeMenu, allEdges])
+
+  const edgeDisabledSlices = useMemo(() => {
+    const membersOf = (sid: string) =>
+      new Set(allNodes.filter((n) => n.data.sliceIds?.includes(sid)).map((n) => n.id))
+    return new Set(
+      slices
+        .filter((s) => {
+          const members = membersOf(s.id)
+          return edgeEndpoints.length > 0 && edgeEndpoints.every((id) => members.has(id))
+        })
+        .map((s) => s.id),
+    )
+  }, [slices, edgeEndpoints, allNodes])
+
+  const handleEdgeMenuToggle = useCallback(
+    (sliceId: string) => {
+      const slice = slices.find((s) => s.id === sliceId)
+      if (!slice || edgeEndpoints.length === 0) return
+      void client
+        .addSliceNodes(graphId, slice.name, edgeEndpoints)
+        .then(refetchMembership)
+        .catch(() => setNotice('slice update failed'))
+    },
+    [slices, edgeEndpoints, client, graphId, refetchMembership],
+  )
+
 
   const handleMove = useCallback(
     (vp: Viewport) => {
@@ -276,17 +367,29 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   // plus ghost nodes remembered by the manifest (bypass type filters)
   // «Только срез» (ephemeral view mode): keep only members of the active
   // slice, composing AND with the persisted filters; ghosts bypass it
-  const sliceMemberIds = useMemo(() => {
-    if (activeSliceId === null || !sliceOnly) return null
+  const activeMemberIds = useMemo(() => {
+    if (activeSliceId === null) return null
     return new Set(allNodes.filter((n) => n.data.sliceIds?.includes(activeSliceId)).map((n) => n.id))
-  }, [activeSliceId, sliceOnly, allNodes])
+  }, [activeSliceId, allNodes])
+  const sliceOnlyIds = sliceOnly ? activeMemberIds : null
 
+  // active-slice markers: members get an outline; edges derived (both
+  // endpoints members) a thicker stroke — applied after every filter
   const displayNodes = useMemo<Node[]>(() => {
-    const members = (list: Node[]) =>
-      sliceMemberIds ? list.filter((n) => sliceMemberIds.has(n.id)) : list
-    if (diff.mode === 'unbound') return members(nodes)
+    const markMembers = (list: Node[]) =>
+      activeMemberIds
+        ? list.map((n) =>
+            activeMemberIds.has(n.id)
+              ? { ...n, className: `${n.className ? `${n.className} ` : ''}slice-member` }
+              : n,
+          )
+        : list
+    const members = (list: Node[]) => (sliceOnlyIds ? list.filter((n) => sliceOnlyIds.has(n.id)) : list)
+    if (diff.mode === 'unbound') return markMembers(members(nodes))
     const alive = showAdded ? nodes : nodes.filter((n) => !diff.addedNodeIds.has(n.id))
-    const styled = members(alive).map((n) => (diff.addedNodeIds.has(n.id) ? { ...n, className: 'added' } : n))
+    const styled = markMembers(members(alive)).map((n) =>
+      diff.addedNodeIds.has(n.id) ? { ...n, className: `${n.className ? `${n.className} ` : ''}added` } : n,
+    )
     if (!showDeleted) return styled
     const graphIds = new Set(graphNodes.map((n) => n.id))
     const ghosts = Object.entries(diff.manifestNodes)
@@ -301,7 +404,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         className: 'ghost',
       }))
     return [...styled, ...ghosts]
-  }, [diff, nodes, graphNodes, showAdded, showDeleted, sliceMemberIds])
+  }, [diff, nodes, graphNodes, showAdded, showDeleted, sliceOnlyIds, activeMemberIds])
 
   // anchor positions for ghost edges: current node positions first, then the
   // manifest's remembered coordinates for nodes gone from the graph
@@ -318,14 +421,21 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     // «Только срез»: an edge shows when BOTH endpoints are members —
     // the derived membership rule, applied to the already-filtered edges
     const members = (list: Edge[]) =>
-      sliceMemberIds
-        ? list.filter((e) => sliceMemberIds.has(e.source) && sliceMemberIds.has(e.target))
+      sliceOnlyIds ? list.filter((e) => sliceOnlyIds.has(e.source) && sliceOnlyIds.has(e.target)) : list
+    // active-slice marker: both endpoints members → thicker stroke class
+    const markEdges = (list: Edge[]) =>
+      activeMemberIds
+        ? list.map((e) =>
+            activeMemberIds.has(e.source) && activeMemberIds.has(e.target)
+              ? { ...e, className: `${e.className ? `${e.className} ` : ''}slice-member-edge` }
+              : e,
+          )
         : list
-    if (diff.mode === 'unbound') return members(edges)
+    if (diff.mode === 'unbound') return markEdges(members(edges))
     const alive = showAdded ? edges : edges.filter((e) => !diff.addedEdgeIds.has(e.id))
-    const styled = members(alive).map((e) =>
+    const styled = markEdges(members(alive)).map((e) =>
       diff.addedEdgeIds.has(e.id)
-        ? { ...e, className: 'added', animated: true, style: { stroke: '#22c55e', strokeWidth: 2 } }
+        ? { ...e, className: `${e.className ? `${e.className} ` : ''}added`, animated: true, style: { stroke: '#22c55e', strokeWidth: 2 } }
         : e,
     )
     if (!showDeleted) return styled
@@ -359,7 +469,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         }
       })
     return [...styled, ...ghosts]
-  }, [diff, edges, graphEdges, showAdded, showDeleted, posById, styles, sliceMemberIds])
+  }, [diff, edges, graphEdges, showAdded, showDeleted, posById, styles, sliceOnlyIds, activeMemberIds])
 
   // the autosave PUT args — reads refs so its identity stays stable
   const buildSaveArgs = useCallback(
@@ -381,6 +491,14 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     const { bends: bs, allEdges: aes } = latest.current
     const live = new Set(aes.map((e) => e.id))
     return Object.fromEntries(Object.entries(bs).filter(([id]) => live.has(id)))
+  }, [])
+
+  // the slice filter for any save: an existing Set always serializes — even
+  // empty («Ни одного» = show none); null (filter inactive) is omitted
+  // (absent = unchanged, the RawMessage passthrough contract)
+  const visibleSlicesForSave = useCallback(() => {
+    const { visibleSlices: vs } = latest.current
+    return vs ? [...vs] : undefined
   }, [])
 
   // bend drags/resets dirty the editor exactly like filter changes
@@ -446,7 +564,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
         vt ? [...vt] : undefined,
         vet ? [...vet] : undefined,
         ho,
-        { manifest, bends: bendsForSave() },
+        { manifest, bends: bendsForSave(), visibleSlices: visibleSlicesForSave() },
       )
       .then((saved) => {
         setViz(saved)
@@ -478,6 +596,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       const saved = await client.saveVisualization(...buildSaveArgs(name), {
         manifest: manifestOfViz(),
         bends: bendsForSave(),
+        visibleSlices: visibleSlicesForSave(),
       })
       if (revision.current === revAtSaveStart) {
         dirty.current = false
@@ -506,7 +625,10 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       if (saveBlocked()) return
       const revAtSaveStart = revision.current
       void client
-        .saveVisualization(...buildSaveArgs(vizName), { bends: bendsForSave() })
+        .saveVisualization(...buildSaveArgs(vizName), {
+          bends: bendsForSave(),
+          visibleSlices: visibleSlicesForSave(),
+        })
         .then(() => {
           // edits may have happened while this PUT was in flight — only declare
           // the state clean if nothing changed since the save started
@@ -519,7 +641,10 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     }
     const onBeforeUnload = () => {
       if (dirty.current && !saveBlocked()) {
-        void client.saveVisualization(...buildSaveArgs(vizName), { bends: bendsForSave() })
+        void client.saveVisualization(...buildSaveArgs(vizName), {
+          bends: bendsForSave(),
+          visibleSlices: visibleSlicesForSave(),
+        })
       }
     }
     const id = setInterval(save, AUTOSAVE_INTERVAL_MS)
@@ -528,7 +653,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       clearInterval(id)
       window.removeEventListener('beforeunload', onBeforeUnload)
     }
-  }, [vizName, client, graphId, buildSaveArgs, bendsForSave, saveBlocked])
+  }, [vizName, client, graphId, buildSaveArgs, bendsForSave, visibleSlicesForSave, saveBlocked])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh' }}>
@@ -625,6 +750,8 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
           applyViewport={applyViewport ?? undefined}
           onMove={handleMove}
           onEdgeBend={handleEdgeBend}
+          onNodeContextMenu={handleNodeContextMenu}
+          onEdgeContextMenu={handleEdgeContextMenu}
           fitView={fitView}
         />
         {slicesOpen && (
@@ -643,6 +770,28 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
             sliceOnly={sliceOnly}
             onToggleSliceOnly={toggleSliceOnly}
             canFilter={vizName !== null}
+          />
+        )}
+        {nodeMenu && (
+          <SliceContextMenu
+            x={nodeMenu.x}
+            y={nodeMenu.y}
+            slices={slices}
+            memberships={allNodes.find((n) => n.id === nodeMenu.nodeId)?.data.sliceIds ?? []}
+            onToggle={handleNodeMenuToggle}
+            onCreateNew={handleNodeMenuCreate}
+            onClose={() => setNodeMenu(null)}
+          />
+        )}
+        {edgeMenu && (
+          <SliceContextMenu
+            x={edgeMenu.x}
+            y={edgeMenu.y}
+            slices={slices}
+            disabledSlices={edgeDisabledSlices}
+            onToggle={handleEdgeMenuToggle}
+            onCreateNew={() => {}}
+            onClose={() => setEdgeMenu(null)}
           />
         )}
       </div>
