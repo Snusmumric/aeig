@@ -13,6 +13,10 @@ export interface SlicePanelProps {
   onSetAllVisible: () => void
   onSetNoneVisible: () => void
   onClose: () => void
+  /** selected objects count (nodes + edges); 0 hides the bulk-add control */
+  selectionCount?: number
+  /** add the current selection to the picked slice (GraphEditor computes the id union) */
+  onAddSelection?: (sliceId: string) => void
   /** «Только срез» view mode (ephemeral — dims/hides non-members of the
    *  active slice, composing AND with the persisted filters) */
   sliceOnly?: boolean
@@ -39,8 +43,11 @@ export function SlicePanel({
   sliceOnly = false,
   onToggleSliceOnly,
   canFilter = true,
+  selectionCount = 0,
+  onAddSelection,
 }: SlicePanelProps) {
   const [newName, setNewName] = useState('')
+  const [addTarget, setAddTarget] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
@@ -160,6 +167,28 @@ export function SlicePanel({
           Ни одного
         </button>
       </div>
+      {selectionCount > 0 && onAddSelection && slices.length > 0 && (
+        <div className="slice-add-selection" data-testid="slice-add-selection">
+          Добавить выделенное (<span data-testid="add-selection-count">{selectionCount}</span>) в{' '}
+          <select
+            data-testid="add-selection-slice"
+            value={addTarget || activeSliceId || slices[0].id}
+            onChange={(e) => setAddTarget(e.target.value)}
+          >
+            {slices.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>{' '}
+          <button
+            data-testid="add-selection-go"
+            onClick={() => onAddSelection(addTarget || activeSliceId || slices[0].id)}
+          >
+            Добавить
+          </button>
+        </div>
+      )}
       <div className="slice-create" data-testid="slice-create-form">
         <input
           data-testid="slice-create-name"

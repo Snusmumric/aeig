@@ -21,6 +21,8 @@ function props(overrides: Partial<Parameters<typeof SlicePanel>[0]> = {}) {
     onSetAllVisible: vi.fn(),
     onSetNoneVisible: vi.fn(),
     onClose: vi.fn(),
+    selectionCount: 0,
+    onAddSelection: vi.fn(),
     ...overrides,
   }
 }
@@ -33,13 +35,27 @@ describe('SlicePanel', () => {
     vi.restoreAllMocks()
   })
 
+  it('shows «Добавить выделенное» only when a selection exists; add calls back with the picked slice', () => {
+    const p = props({ selectionCount: 3 })
+    render(<SlicePanel {...p} />)
+    expect(screen.getByTestId('add-selection-count').textContent).toBe('3')
+    // picker defaults to the active slice; no active → first slice
+    fireEvent.change(screen.getByTestId('add-selection-slice'), { target: { value: 's2' } })
+    fireEvent.click(screen.getByTestId('add-selection-go'))
+    expect(p.onAddSelection).toHaveBeenCalledWith('s2')
+  })
+
+  it('hides the add-selection control at zero selection', () => {
+    render(<SlicePanel {...props()} />)
+    expect(screen.queryByTestId('add-selection-go')).not.toBeInTheDocument()
+  })
+
   it('renders the list with name, trimmed description, and member count', () => {
     render(<SlicePanel {...props()} />)
     expect(screen.getByTestId('slice-name-s1').textContent).toBe('core')
     expect(screen.getByTestId('slice-desc-s1').textContent).toBe('ядро системы')
     expect(screen.getByTestId('slice-count-s1').textContent).toBe('3')
-    // empty description renders no description node
-    expect(screen.queryByTestId('slice-desc-s2')).not.toBeInTheDocument()
+    // empty description renders no description node    expect(screen.queryByTestId('slice-desc-s2')).not.toBeInTheDocument()
     expect(screen.getByTestId('slice-count-s2').textContent).toBe('0')
   })
 

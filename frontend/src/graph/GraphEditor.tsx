@@ -215,6 +215,31 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     [client, graphId, slices, activeSliceId, refreshSlices],
   )
 
+  // current selection as id union: selected nodes + BOTH endpoints of selected
+  // edges (the context-menu rule), deduped; riding allNodes/allEdges state
+  const selectionIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const n of allNodes) if (n.selected) ids.add(n.id)
+    for (const e of allEdges) if (e.selected) {
+      ids.add(e.source)
+      ids.add(e.target)
+    }
+    return ids
+  }, [allNodes, allEdges])
+  const selectionCount = selectionIds.size
+
+  const handleAddSelection = useCallback(
+    (sliceId: string) => {
+      const current = slices.find((s) => s.id === sliceId)
+      if (!current || selectionIds.size === 0) return
+      void client
+        .addSliceNodes(graphId, current.name, [...selectionIds])
+        .then(() => refreshSlices().then(() => reload(extractPositions(allNodes))))
+        .catch(() => setNotice('slice add failed'))
+    },
+    [client, graphId, slices, selectionIds, refreshSlices, reload, allNodes],
+  )
+
   // visibility filter — the TypeFilterPanel pattern: prune stale ids, toggle,
   // normalize «все отмечены» back to null (filter inactive)
   const toggleVisibleSlice = useCallback(
@@ -769,6 +794,8 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
             onToggleVisible={toggleVisibleSlice}
             onSetAllVisible={setAllSlicesVisible}
             onSetNoneVisible={setNoSlicesVisible}
+            selectionCount={selectionCount}
+            onAddSelection={handleAddSelection}
             onClose={() => setSlicesOpen(false)}
             sliceOnly={sliceOnly}
             onToggleSliceOnly={toggleSliceOnly}

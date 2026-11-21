@@ -34,6 +34,8 @@ function fakeClient(def: Partial<Visualization> = {}): ApiClient {
     getDefaultVisualization: vi.fn().mockResolvedValue(viz(def)),
     getVisualization: vi.fn().mockRejectedValue(new Error('not found')),
     saveVisualization: vi.fn().mockResolvedValue(viz()),
+    listSlices: vi.fn().mockResolvedValue([]),
+    addSliceNodes: vi.fn().mockResolvedValue({ nodeCount: 0 }),
     createGraph: vi.fn(),
     applyMutations: vi.fn(),
   } as unknown as ApiClient
@@ -770,6 +772,30 @@ describe('GraphEditor — edge bends', () => {
     await settle()
     const after = document.querySelector('.react-flow__edge[data-id="e1"]') as HTMLElement
     expect(after.classList.contains('selected')).toBe(true)
+  })
+
+  it('bulk add selection: selected edge contributes both endpoints, panel calls the batch API', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient()
+    ;(client.getDefaultVisualization as any).mockResolvedValue({
+      id: 'v1', graphId: 'g1', name: 'default', positions: {}, viewport: { x: 0, y: 0, zoom: 1 }, graphVersion: 0,
+    })
+    ;(client.listSlices as any).mockResolvedValue([{ id: 'sl1', name: 'core', description: '', nodeCount: 0 }])
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    // select the edge e1 (n1→n2) — React's onClick path (not d3) — our wiring applies it
+    fireEvent.click(document.querySelector('.react-flow__edge[data-id="e1"]') as HTMLElement)
+    await settle()
+    // panel: open via the toolbar button, «Добавить выделенное (2)» — both endpoints
+    fireEvent.click(screen.getByTestId('slices-btn'))
+    await settle()
+    expect(screen.getByTestId('add-selection-count').textContent).toBe('2')
+    fireEvent.click(screen.getByTestId('add-selection-go'))
+    await settle()
+    expect(client.addSliceNodes).toHaveBeenCalled()
+    const args = (client.addSliceNodes as any).mock.calls[0]
+    expect(args[1]).toBe('core')
+    expect([...args[2]].sort()).toEqual(['n1', 'n2'])
   })
   // NOTE: node-click selection rides d3's native mousedown (not simulable in
   // jsdom — nodrag crashes on view=null; project lesson). Node multi-select via
