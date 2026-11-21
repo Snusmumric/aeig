@@ -55,3 +55,20 @@ describe('toFlow', () => {
     expect(unstyled[0].markerEnd).toBeUndefined()
   })
 })
+
+describe('toFlow — slice memberships', () => {
+  it('carries sliceIds into node data', () => {
+    const sgs: Subgraph = {
+      nodes: [{ id: 'n1', type: 'Task', properties: {}, sliceIds: ['s1', 's2'] }],
+      edges: [],
+    }
+    const nodes = toFlowNodes(sgs, styles)
+    expect(nodes[0].data.sliceIds).toEqual(['s1', 's2'])
+  })
+
+  it('omits sliceIds for membership-free nodes', () => {
+    const nodes = toFlowNodes(sg, styles)
+    expect(nodes[0].data.sliceIds).toBeUndefined()
+    expect('sliceIds' in nodes[0].data).toBe(false)
+  })
+})

@@ -23,6 +23,9 @@ export interface UseGraph {
   setVisibleEdgeTypes: Dispatch<SetStateAction<Set<string> | null>>
   hideOrphans: boolean
   setHideOrphans: Dispatch<SetStateAction<boolean>>
+  /** visible slice UUIDs — null = no slice filter (all visible) */
+  visibleSlices: Set<string> | null
+  setVisibleSlices: Dispatch<SetStateAction<Set<string> | null>>
   /** edge bends keyed by edgeId — seeded from the viz, dirtied by drags */
   bends: Record<string, Bend>
   setBends: Dispatch<SetStateAction<Record<string, Bend>>>
@@ -52,6 +55,7 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
   const [visibleTypes, setVisibleTypes] = useState<Set<string> | null>(null)
   const [visibleEdgeTypes, setVisibleEdgeTypes] = useState<Set<string> | null>(null)
   const [hideOrphans, setHideOrphans] = useState(false)
+  const [visibleSlices, setVisibleSlices] = useState<Set<string> | null>(null)
   const [bends, setBends] = useState<Record<string, Bend>>({})
   const [version, setVersion] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -76,7 +80,7 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
   }, [])
 
   const { nodes, edges } = useMemo(() => {
-    const filtered = filterFlow(allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans)
+    const filtered = filterFlow(allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans, visibleSlices)
     // dynamic side anchors: direction between estimated centers (position +
     // EST_CENTER) picks the facing handle pair; allNodes is a dependency, so
     // moving a node re-anchors the edge live
@@ -107,7 +111,7 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
       }
     })
     return { nodes: filtered.nodes, edges: anchored }
-  }, [allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans, bends])
+  }, [allNodes, allEdges, visibleTypes, visibleEdgeTypes, hideOrphans, visibleSlices, bends])
   const types = useMemo(() => [...new Set(allNodes.map((n) => n.data.nodeType))].sort(), [allNodes])
   const edgeTypes = useMemo(
     () =>
@@ -162,6 +166,8 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
     setVisibleEdgeTypes,
     hideOrphans,
     setHideOrphans,
+    visibleSlices,
+    setVisibleSlices,
     bends,
     setBends,
     version,

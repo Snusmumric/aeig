@@ -8,6 +8,8 @@ export interface TypedNodeData {
   nodeType: string
   style: TypeStyle
   properties: Record<string, unknown>
+  /** slice memberships (uuids) — absent when the node is in no slice */
+  sliceIds?: string[]
   [key: string]: unknown
 }
 
@@ -38,6 +40,7 @@ export function toFlowNodes(
       nodeType: n.type,
       style: resolveStyle(styles, n.type),
       properties: n.properties,
+      ...(n.sliceIds ? { sliceIds: n.sliceIds } : {}),
     },
   }))
 }

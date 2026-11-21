@@ -369,4 +369,47 @@ describe('useGraph', () => {
     // implicit self-loop arc unless a user bend exists (not persisted)
     expect(e2.data?.bend).toEqual({ dx: 0, dy: -60 })
   })
+
+  it('carries sliceIds into node data and filters by visibleSlices', async () => {
+    const client = fakeClient()
+    ;(client.getSubgraph as any).mockResolvedValue({
+      nodes: [
+        { id: 'n1', type: 'Task', properties: {}, sliceIds: ['s1'] },
+        { id: 'n2', type: 'Milestone', properties: {}, sliceIds: ['s1', 's2'] },
+        { id: 'n3', type: 'Task', properties: {} },
+      ],
+      edges: [
+        { id: 'e1', type: 'depends_on', source: 'n1', target: 'n2', properties: {} },
+        { id: 'e2', type: 'blocks', source: 'n2', target: 'n3', properties: {} },
+      ],
+    })
+    const { result } = renderHook(() => useGraph(client, 'g1', styles))
+    await act(async () => {
+      await result.current.reload()
+    })
+    // membership flows from the subgraph into node data
+    expect(result.current.allNodes[0].data.sliceIds).toEqual(['s1'])
+    expect(result.current.allNodes[2].data.sliceIds).toBeUndefined()
+    expect(result.current.visibleSlices).toBeNull()
+    expect(result.current.nodes).toHaveLength(3)
+
+    // s2 checked: n1 (s1 only) hidden; n2 visible via s2; n3 membership-free visible
+    act(() => {
+      result.current.setVisibleSlices(new Set(['s2']))
+    })
+    expect(result.current.nodes.map((n) => n.id)).toEqual(['n2', 'n3'])
+    expect(result.current.edges.map((e) => e.id)).toEqual(['e2'])
+
+    // «Ни одного»: only membership-free nodes survive
+    act(() => {
+      result.current.setVisibleSlices(new Set())
+    })
+    expect(result.current.nodes.map((n) => n.id)).toEqual(['n3'])
+
+    // null = filter inactive again
+    act(() => {
+      result.current.setVisibleSlices(null)
+    })
+    expect(result.current.nodes).toHaveLength(3)
+  })
 })
