@@ -121,6 +121,10 @@ export function GraphCanvas({
           onNodeDragStart={onNodeDragStart}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
+          // wide zoom-out range: the default minZoom=0.5 prevents large graphs
+          // from fitting on screen; 0.05 lets any graph shrink to a thumbnail
+          minZoom={0.05}
+          maxZoom={4}
           // Space+drag draws the selection box; plain drag keeps panning
           // (pan is the high-frequency action). panActivationKeyCode is cleared
           // so Space does not double as a key-held pan mode.
