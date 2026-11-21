@@ -61,6 +61,8 @@ export interface GraphCanvasProps {
   onNodeContextMenu?: NodeMouseHandler<Node>
   /** Right-click on the multi-selection overlay — opens the slice menu. */
   onSelectionContextMenu?: (event: ReactSyntheticMouseEvent, nodes: Node[]) => void
+  /** Right-click on empty canvas — opens the bulk-add menu when a selection exists. */
+  onPaneContextMenu?: (event: ReactSyntheticMouseEvent | MouseEvent) => void
   /** Right-click on an edge — opens the slice menu (adds both endpoints). */
   onEdgeContextMenu?: EdgeMouseHandler<Edge>
   fitView?: boolean
@@ -79,6 +81,7 @@ export function GraphCanvas({
   onEdgeBend,
   onNodeContextMenu,
   onSelectionContextMenu,
+  onPaneContextMenu,
   onEdgeContextMenu,
   fitView = true,
 }: GraphCanvasProps) {
@@ -130,6 +133,7 @@ export function GraphCanvas({
           onMove={onMove ? handleFlowMove : undefined}
           onNodeContextMenu={onNodeContextMenu}
           onSelectionContextMenu={onSelectionContextMenu}
+          onPaneContextMenu={onPaneContextMenu}
           onEdgeContextMenu={onEdgeContextMenu}
           fitView={fitView}
         >

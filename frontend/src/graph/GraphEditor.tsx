@@ -71,6 +71,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   // context menus: cursor position + the right-clicked element id
   const [nodeMenu, setNodeMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null)
   const [edgeMenu, setEdgeMenu] = useState<{ x: number; y: number; edgeId: string } | null>(null)
+  const [selectionMenu, setSelectionMenu] = useState<{ x: number; y: number } | null>(null)
   const dirty = useRef(false)
   // bumped on every state change that dirties the editor — lets a save that was
   // in flight when newer edits happened refuse to declare the state clean
@@ -299,6 +300,20 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
       }
     },
     [refreshSlices],
+  )
+
+  // Right-click on empty canvas WITH a selection — open a bulk-add-to-slice menu
+  // (same union logic as the panel button: selected nodes + edge endpoints)
+  const handlePaneContextMenu = useCallback(
+    (event: ReactMouseEvent | MouseEvent) => {
+      if (selectionIds.size === 0) return // no selection → default browser menu
+      event.preventDefault()
+      void refreshSlices()
+      const pageX = 'pageX' in event ? event.pageX : 0
+      const pageY = 'pageY' in event ? event.pageY : 0
+      setSelectionMenu({ x: pageX, y: pageY })
+    },
+    [selectionIds, refreshSlices],
   )
 
   const handleEdgeContextMenu = useCallback(
@@ -794,6 +809,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
           onEdgeBend={handleEdgeBend}
           onNodeContextMenu={handleNodeContextMenu}
           onSelectionContextMenu={handleSelectionContextMenu}
+          onPaneContextMenu={handlePaneContextMenu}
           onEdgeContextMenu={handleEdgeContextMenu}
           fitView={fitView}
         />
@@ -837,6 +853,19 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
             onToggle={handleEdgeMenuToggle}
             onCreateNew={() => {}}
             onClose={() => setEdgeMenu(null)}
+          />
+        )}
+        {selectionMenu && (
+          <SliceContextMenu
+            x={selectionMenu.x}
+            y={selectionMenu.y}
+            slices={slices}
+            onToggle={(sliceId) => {
+              handleAddSelection(sliceId)
+              setSelectionMenu(null)
+            }}
+            onCreateNew={() => {}}
+            onClose={() => setSelectionMenu(null)}
           />
         )}
       </div>
