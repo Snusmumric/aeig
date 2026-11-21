@@ -47,7 +47,14 @@ UNWIND [
   {id: 'ent-manifest-nodes', type: 'entity', props: {label: 'ManifestNodes', note: 'map[string]ManifestNode — память визуализации о составе узлов'}},
   {id: 'ent-manifest-edges', type: 'entity', props: {label: 'ManifestEdges', note: 'map[string]ManifestEdge — память визуализации о составе рёбер'}},
   {id: 'fld-layouts-bends', type: 'field', props: {label: 'bends', datatype: 'JSONB', note: 'изгибы рёбер — относительные офсеты {dx,dy} от середины'}},
-  {id: 'ent-edge-bends', type: 'entity', props: {label: 'EdgeBends', note: '{edgeId → {dx,dy}}; автосейв шлёт полную карту от живых рёбер'}}
+  {id: 'ent-edge-bends', type: 'entity', props: {label: 'EdgeBends', note: '{edgeId → {dx,dy}}; автосейв шлёт полную карту от живых рёбер'}},
+  {id: 'tbl-slices', type: 'table', props: {label: 'slices', note: 'именованные наборы вершин (срезы); без created_at (YAGLI)'}},
+  {id: 'fld-slices-id', type: 'field', props: {label: 'id', datatype: 'UUID', constraint: 'PK'}},
+  {id: 'fld-slices-graph-id', type: 'field', props: {label: 'graph_id', datatype: 'UUID', note: 'FK → graphs.id, ON DELETE CASCADE'}},
+  {id: 'fld-slices-name', type: 'field', props: {label: 'name', datatype: 'TEXT', note: 'UNIQUE (graph_id, name)'}},
+  {id: 'fld-slices-description', type: 'field', props: {label: 'description', datatype: 'TEXT', note: 'произвольный текст пользователя'}},
+  {id: 'prp-element-sliceids', type: 'property', props: {label: 'sliceIds', note: 'системное, 4-е зарезервированное; список UUID срезов; в API — только системное поле GraphNode.sliceIds, не user property'}},
+  {id: 'ent-slice', type: 'entity', props: {label: 'Slice', note: 'id, name, description — Go domain.Slice + TS Slice; nodeCount в списках, members гидрируются'}}
 ] AS n
 MERGE (x:Element {graphId: 'c0de0000-0000-4000-8000-000000000003', id: n.id})
 SET x.type = n.type, x += n.props;
@@ -108,7 +115,16 @@ UNWIND [
   {id: 'e51', type: 'part_of', source: 'ent-manifest-edges', target: 'ent-layout', props: {}},
   {id: 'e52', type: 'has_field', source: 'tbl-layouts', target: 'fld-layouts-bends', props: {}},
   {id: 'e53', type: 'serializes', source: 'ent-edge-bends', target: 'fld-layouts-bends', props: {}},
-  {id: 'e54', type: 'part_of', source: 'ent-edge-bends', target: 'ent-layout', props: {}}
+  {id: 'e54', type: 'part_of', source: 'ent-edge-bends', target: 'ent-layout', props: {}},
+  {id: 'e55', type: 'has_field', source: 'tbl-slices', target: 'fld-slices-id', props: {}},
+  {id: 'e56', type: 'has_field', source: 'tbl-slices', target: 'fld-slices-graph-id', props: {}},
+  {id: 'e57', type: 'has_field', source: 'tbl-slices', target: 'fld-slices-name', props: {}},
+  {id: 'e58', type: 'has_field', source: 'tbl-slices', target: 'fld-slices-description', props: {}},
+  {id: 'e59', type: 'stored_in', source: 'tbl-slices', target: 'store-pg', props: {}},
+  {id: 'e60', type: 'references', source: 'fld-slices-graph-id', target: 'tbl-graphs', props: {note: 'ON DELETE CASCADE'}},
+  {id: 'e61', type: 'has_property', source: 'lbl-element', target: 'prp-element-sliceids', props: {}},
+  {id: 'e62', type: 'persisted_as', source: 'ent-slice', target: 'tbl-slices', props: {}},
+  {id: 'e63', type: 'belongs_to', source: 'ent-slice', target: 'ent-graph', props: {}}
 ] AS e
 MATCH (s:Element {graphId: 'c0de0000-0000-4000-8000-000000000003', id: e.source})
 MATCH (t:Element {graphId: 'c0de0000-0000-4000-8000-000000000003', id: e.target})

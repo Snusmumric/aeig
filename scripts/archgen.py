@@ -87,6 +87,18 @@ NODES = [
     # the seed, inserting mid-list would renumber existing ids ────────────
     {"id": "fld-layouts-bends", "type": "field", "props": {"label": "bends", "datatype": "JSONB", "note": "изгибы рёбер — относительные офсеты {dx,dy} от середины"}},
     {"id": "ent-edge-bends", "type": "entity", "props": {"label": "EdgeBends", "note": "{edgeId → {dx,dy}}; автосейв шлёт полную карту от живых рёбер"}},
+    # ── slices (0007/0008) — appended at the END: node ids are positional in
+    # the seed, inserting mid-list would renumber existing ids ────────────
+    # NOTE: the plan says "+6 nodes", but its own list (and the spec's archgen
+    # section) enumerates 7, and the +9 edges (has_field ×4 incl.) are only
+    # composable with all 7 — the count, not the list, is the slip.
+    {"id": "tbl-slices", "type": "table", "props": {"label": "slices", "note": "именованные наборы вершин (срезы); без created_at (YAGLI)"}},
+    {"id": "fld-slices-id", "type": "field", "props": {"label": "id", "datatype": "UUID", "constraint": "PK"}},
+    {"id": "fld-slices-graph-id", "type": "field", "props": {"label": "graph_id", "datatype": "UUID", "note": "FK → graphs.id, ON DELETE CASCADE"}},
+    {"id": "fld-slices-name", "type": "field", "props": {"label": "name", "datatype": "TEXT", "note": "UNIQUE (graph_id, name)"}},
+    {"id": "fld-slices-description", "type": "field", "props": {"label": "description", "datatype": "TEXT", "note": "произвольный текст пользователя"}},
+    {"id": "prp-element-sliceids", "type": "property", "props": {"label": "sliceIds", "note": "системное, 4-е зарезервированное; список UUID срезов; в API — только системное поле GraphNode.sliceIds, не user property"}},
+    {"id": "ent-slice", "type": "entity", "props": {"label": "Slice", "note": "id, name, description — Go domain.Slice + TS Slice; nodeCount в списках, members гидрируются"}},
 ]
 
 EDGES = [
@@ -160,6 +172,18 @@ EDGES = [
     {"source": "tbl-layouts", "target": "fld-layouts-bends", "type": "has_field"},
     {"source": "ent-edge-bends", "target": "fld-layouts-bends", "type": "serializes"},
     {"source": "ent-edge-bends", "target": "ent-layout", "type": "part_of"},
+    # ── slices (0007/0008) — appended at the END on purpose: edge ids are
+    # positional (e0..eN), inserting mid-list would renumber every later
+    # edge and duplicate it in Neo4j (MERGE is by id). ─────────────────────
+    {"source": "tbl-slices", "target": "fld-slices-id", "type": "has_field"},
+    {"source": "tbl-slices", "target": "fld-slices-graph-id", "type": "has_field"},
+    {"source": "tbl-slices", "target": "fld-slices-name", "type": "has_field"},
+    {"source": "tbl-slices", "target": "fld-slices-description", "type": "has_field"},
+    {"source": "tbl-slices", "target": "store-pg", "type": "stored_in"},
+    {"source": "fld-slices-graph-id", "target": "tbl-graphs", "type": "references", "props": {"note": "ON DELETE CASCADE"}},
+    {"source": "lbl-element", "target": "prp-element-sliceids", "type": "has_property"},
+    {"source": "ent-slice", "target": "tbl-slices", "type": "persisted_as"},
+    {"source": "ent-slice", "target": "ent-graph", "type": "belongs_to"},
 ]
 
 
