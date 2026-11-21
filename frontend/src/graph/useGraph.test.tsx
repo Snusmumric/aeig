@@ -85,6 +85,19 @@ describe('useGraph', () => {
     expect(result.current.edges).toHaveLength(2)
   })
 
+  it('onEdgesChange applies an edge selection change', async () => {
+    const { result } = renderHook(() => useGraph(fakeClient(), 'g1', styles))
+    await act(async () => {
+      await result.current.reload()
+    })
+    expect(result.current.edges[0].selected).toBeFalsy()
+    act(() => {
+      result.current.onEdgesChange([{ id: 'e1', type: 'select', selected: true }])
+    })
+    expect(result.current.edges.find((e) => e.id === 'e1')?.selected).toBe(true)
+    expect(result.current.nodes).toHaveLength(3)
+  })
+
   it('exposes sorted edgeTypes and applies visibleEdgeTypes to edges only', async () => {
     const { result } = renderHook(() => useGraph(fakeClient(), 'g1', styles))
     await act(async () => {

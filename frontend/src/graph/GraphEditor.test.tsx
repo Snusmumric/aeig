@@ -755,6 +755,28 @@ describe('GraphEditor — edge bends', () => {
   })
 
   /** mid-point of the rendered e1 path, read back from the DOM */
+
+  it('edges are selectable objects (click selects an edge)', async () => {
+    vi.useFakeTimers()
+    const client = fakeClient()
+    ;(client.getDefaultVisualization as any).mockResolvedValue({
+      id: 'v1', graphId: 'g1', name: 'default', positions: {}, viewport: { x: 0, y: 0, zoom: 1 }, graphVersion: 0,
+    })
+    render(<GraphEditor client={client} graphId="g1" styles={{}} />)
+    await settle()
+    const edge = document.querySelector('.react-flow__edge[data-id="e1"]') as HTMLElement
+    expect(edge).not.toBeNull()
+    fireEvent.click(edge)
+    await settle()
+    const after = document.querySelector('.react-flow__edge[data-id="e1"]') as HTMLElement
+    expect(after.classList.contains('selected')).toBe(true)
+  })
+  // NOTE: node-click selection rides d3's native mousedown (not simulable in
+  // jsdom — nodrag crashes on view=null; project lesson). Node multi-select via
+  // Ctrl/Cmd is wired by props (multiSelectionKeyCode) and verified manually;
+  // what we own — onEdgesChange wiring — is unit-tested in useGraph.test.tsx.
+
+  /** mid-point of the rendered e1 path, read back from the DOM */
   function edgeMid(id: string): { x: number; y: number } {
     const grab = screen.getByTestId(`edge-grab-${id}-0.5`)
     const path = grab.closest('.react-flow__edge')!.querySelector('.react-flow__edge-path')!

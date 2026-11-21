@@ -12,6 +12,7 @@ import {
   type OnMove,
   type NodeMouseHandler,
   type EdgeMouseHandler,
+  type EdgeChange,
   type ReactFlowInstance,
   type Viewport,
 } from '@xyflow/react'
@@ -46,6 +47,7 @@ export interface GraphCanvasProps {
   nodes: Node[]
   edges: Edge[]
   onNodesChange?: (changes: NodeChange[]) => void
+  onEdgesChange?: (changes: EdgeChange[]) => void
   onNodeDragStart?: OnNodeDrag
   onNodeDrag?: OnNodeDrag
   onNodeDragStop?: OnNodeDrag
@@ -66,6 +68,7 @@ export function GraphCanvas({
   nodes,
   edges,
   onNodesChange,
+  onEdgesChange,
   onNodeDragStart,
   onNodeDrag,
   onNodeDragStop,
@@ -108,10 +111,16 @@ export function GraphCanvas({
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
           onNodeDragStart={onNodeDragStart}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
-          selectionKeyCode={null}
+          // Space+drag draws the selection box; plain drag keeps panning
+          // (pan is the high-frequency action). panActivationKeyCode is cleared
+          // so Space does not double as a key-held pan mode.
+          selectionKeyCode="Space"
+          panActivationKeyCode={null}
+          multiSelectionKeyCode={['Control', 'Meta']}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onInit={setInstance}

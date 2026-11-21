@@ -1,5 +1,13 @@
 import { useCallback, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react'
-import { applyNodeChanges, type Edge, type Node, type NodeChange, type OnNodeDrag } from '@xyflow/react'
+import {
+  applyEdgeChanges,
+  applyNodeChanges,
+  type Edge,
+  type EdgeChange,
+  type Node,
+  type NodeChange,
+  type OnNodeDrag,
+} from '@xyflow/react'
 import type { ApiClient } from '../api/client'
 import { toFlowEdges, toFlowNodes, type TypedEdgeData, type TypedNodeData } from './toFlow'
 import { filterFlow } from './filterFlow'
@@ -33,6 +41,7 @@ export interface UseGraph {
   error: string | null
   reload: (positions?: PositionMap) => Promise<void>
   onNodesChange: (changes: NodeChange[]) => void
+  onEdgesChange: (changes: EdgeChange[]) => void
   onNodeDragStart: OnNodeDrag
   onNodeDrag: OnNodeDrag
   onNodeDragStop: OnNodeDrag
@@ -77,6 +86,10 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setAllNodes((nds) => applyNodeChanges(changes, nds) as Node<TypedNodeData>[])
+  }, [])
+
+  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+    setAllEdges((eds) => applyEdgeChanges(changes, eds) as Edge<TypedEdgeData>[])
   }, [])
 
   const { nodes, edges } = useMemo(() => {
@@ -174,6 +187,7 @@ export function useGraph(client: ApiClient, graphId: string, styles: TypeStyleMa
     error,
     reload,
     onNodesChange,
+    onEdgesChange,
     onNodeDragStart,
     onNodeDrag,
     onNodeDragStop,

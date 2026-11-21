@@ -34,6 +34,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     error,
     reload,
     onNodesChange,
+    onEdgesChange,
     types,
     visibleTypes,
     setVisibleTypes,
@@ -745,6 +746,7 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
           nodes={displayNodes}
           edges={displayEdges}
           onNodesChange={handleNodesChange}
+          onEdgesChange={onEdgesChange}
           onNodeDragStart={onNodeDragStart}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
