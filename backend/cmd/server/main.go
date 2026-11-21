@@ -36,10 +36,12 @@ func main() {
 	defer driver.Close(ctx)
 
 	graphRepo := pgstore.NewGraphRepo(pool)
-	svc := service.NewGraphService(graphRepo, neo4jstore.NewElementRepo(driver))
+	elementRepo := neo4jstore.NewElementRepo(driver)
+	svc := service.NewGraphService(graphRepo, elementRepo)
 	vizSvc := service.NewVisualizationService(pgstore.NewVisualizationRepo(pool), graphRepo)
+	sliceSvc := service.NewSliceService(pgstore.NewSliceRepo(pool), neo4jstore.NewSliceMembershipRepo(driver), graphRepo, elementRepo)
 
-	router := httpapi.NewRouter(httpapi.Deps{Graphs: svc, Visualizations: vizSvc})
+	router := httpapi.NewRouter(httpapi.Deps{Graphs: svc, Visualizations: vizSvc, Slices: sliceSvc})
 
 	log.Printf("listening on %s", cfg.HTTPAddr)
 	if err := http.ListenAndServe(cfg.HTTPAddr, router); err != nil {

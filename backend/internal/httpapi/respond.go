@@ -22,6 +22,8 @@ func writeError(w http.ResponseWriter, err error) {
 		status = http.StatusNotFound
 	case errors.Is(err, domain.ErrVersionConflict):
 		status = http.StatusConflict
+	case errors.Is(err, domain.ErrAlreadyExists):
+		status = http.StatusConflict
 	case errors.Is(err, service.ErrInvalidInput):
 		status = http.StatusBadRequest
 	}

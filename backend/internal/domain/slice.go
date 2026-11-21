@@ -11,3 +11,21 @@ type Slice struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
+
+// SliceInfo is the API list-item / create response: slice identity plus the
+// current member count (membership lives in Neo4j, aggregated by the service).
+type SliceInfo struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	NodeCount   int    `json:"nodeCount"`
+}
+
+// SliceDetail is the hydrated single-slice response: full member node data
+// (GraphNode shape, incl. the typed sliceIds field).
+type SliceDetail struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Nodes       []Node `json:"nodes"`
+}

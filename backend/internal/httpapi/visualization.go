@@ -14,7 +14,7 @@ import (
 type VisualizationAPI interface {
 	GetDefaultVisualization(ctx context.Context, graphID string) (domain.Visualization, error)
 	GetVisualization(ctx context.Context, graphID, name string) (domain.Visualization, error)
-	SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends []byte) (domain.Visualization, error)
+	SaveVisualization(ctx context.Context, graphID, name string, positions map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends, visibleSlices []byte) (domain.Visualization, error)
 }
 
 // maxVizBodyBytes caps PUT bodies: positions + manifests grow with graph
@@ -48,15 +48,16 @@ func handleGetVisualization(api VisualizationAPI) http.HandlerFunc {
 
 func handleSaveVisualization(api VisualizationAPI) http.HandlerFunc {
 	type request struct {
-		Positions    map[string]domain.Position `json:"positions"`
-		Viewport     domain.Viewport            `json:"viewport"`
-		NodeTypes    []string                   `json:"nodeTypes"`
-		EdgeTypes    []string                   `json:"edgeTypes"`
-		HideOrphans  bool                       `json:"hideOrphans"`
-		GraphVersion *int64                     `json:"graphVersion"`
-		Nodes        json.RawMessage            `json:"nodes"`
-		Edges        json.RawMessage            `json:"edges"`
-		Bends        json.RawMessage            `json:"bends"`
+		Positions     map[string]domain.Position `json:"positions"`
+		Viewport      domain.Viewport            `json:"viewport"`
+		NodeTypes     []string                   `json:"nodeTypes"`
+		EdgeTypes     []string                   `json:"edgeTypes"`
+		HideOrphans   bool                       `json:"hideOrphans"`
+		GraphVersion  *int64                     `json:"graphVersion"`
+		Nodes         json.RawMessage            `json:"nodes"`
+		Edges         json.RawMessage            `json:"edges"`
+		Bends         json.RawMessage            `json:"bends"`
+		VisibleSlices json.RawMessage            `json:"visibleSlices"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		name := chi.URLParam(r, "name") // "default" is legal: it is the default's own name
@@ -66,7 +67,7 @@ func handleSaveVisualization(api VisualizationAPI) http.HandlerFunc {
 			writeError(w, service.ErrInvalidInput)
 			return
 		}
-		v, err := api.SaveVisualization(r.Context(), chi.URLParam(r, "id"), name, req.Positions, req.Viewport, req.NodeTypes, req.EdgeTypes, req.HideOrphans, req.GraphVersion, req.Nodes, req.Edges, req.Bends)
+		v, err := api.SaveVisualization(r.Context(), chi.URLParam(r, "id"), name, req.Positions, req.Viewport, req.NodeTypes, req.EdgeTypes, req.HideOrphans, req.GraphVersion, req.Nodes, req.Edges, req.Bends, req.VisibleSlices)
 		if err != nil {
 			writeError(w, err)
 			return

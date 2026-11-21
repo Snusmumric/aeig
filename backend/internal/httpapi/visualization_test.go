@@ -32,6 +32,7 @@ type stubVizAPI struct {
 	gotNodes    []byte
 	gotEdges    []byte
 	gotBends    []byte
+	gotVisible  []byte
 }
 
 func (s *stubVizAPI) GetDefaultVisualization(_ context.Context, graphID string) (domain.Visualization, error) {
@@ -48,7 +49,7 @@ func (s *stubVizAPI) GetVisualization(_ context.Context, _, name string) (domain
 	return s.byName, s.getErr
 }
 
-func (s *stubVizAPI) SaveVisualization(_ context.Context, _, name string, p map[string]domain.Position, _ domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends []byte) (domain.Visualization, error) {
+func (s *stubVizAPI) SaveVisualization(_ context.Context, _, name string, p map[string]domain.Position, _ domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends, visibleSlices []byte) (domain.Visualization, error) {
 	s.saveCalls++
 	s.gotName = name
 	s.gotPosLen = len(p)
@@ -59,6 +60,7 @@ func (s *stubVizAPI) SaveVisualization(_ context.Context, _, name string, p map[
 	s.gotNodes = nodes
 	s.gotEdges = edges
 	s.gotBends = bends
+	s.gotVisible = visibleSlices
 	if s.saveErr != nil {
 		return domain.Visualization{}, s.saveErr
 	}
@@ -150,8 +152,35 @@ func TestPutVisualization_BendsField_201(t *testing.T) {
 	assert.JSONEq(t, `{"e1":{"dx":30,"dy":10},"e2":{"dx":0,"dy":-60}}`, string(v.gotBends))
 }
 
-func TestPutVisualization_BendsInResponse_201(t *testing.T) {
-	// the PUT response echoes the stored bends map
+func TestPutVisualization_VisibleSlicesField_201(t *testing.T) {
+	v := &stubVizAPI{saved: domain.Visualization{ID: "v1", Name: "mine"}}
+	body := `{"positions":{},"viewport":{"x":0,"y":0,"zoom":1},` +
+		`"visibleSlices":["sid-1","sid-2"]}`
+	rec := doReq(t, routerWithVisualizations(v), http.MethodPut, "/graphs/g1/visualizations/mine", body)
+	require.Equal(t, http.StatusCreated, rec.Code)
+	assert.JSONEq(t, `["sid-1","sid-2"]`, string(v.gotVisible))
+}
+
+func TestPutVisualization_VisibleSlicesNullClears_201(t *testing.T) {
+	// an explicit JSON null replaces the stored set with "no filtering"
+	v := &stubVizAPI{saved: domain.Visualization{ID: "v1"}}
+	rec := doReq(t, routerWithVisualizations(v), http.MethodPut, "/graphs/g1/visualizations/mine", `{"positions":{},"visibleSlices":null}`)
+	require.Equal(t, http.StatusCreated, rec.Code)
+	assert.Equal(t, "null", string(v.gotVisible)) // forwarded verbatim, distinct from absent
+}
+
+func TestPutVisualization_VisibleSlicesInResponse_201(t *testing.T) {
+	visible := []string{"sid-1"}
+	v := &stubVizAPI{saved: domain.Visualization{ID: "v1", Name: "mine", VisibleSlices: &visible}}
+	rec := doReq(t, routerWithVisualizations(v), http.MethodPut, "/graphs/g1/visualizations/mine", `{"positions":{}}`)
+	require.Equal(t, http.StatusCreated, rec.Code)
+	var out domain.Visualization
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &out))
+	require.NotNil(t, out.VisibleSlices)
+	assert.Equal(t, visible, *out.VisibleSlices)
+}
+
+func TestPutVisualization_BendsInResponse_201(t *testing.T) { // the PUT response echoes the stored bends map
 	bends := map[string]domain.Bend{"e1": {Dx: 30, Dy: 10}, "e2": {Dx: 0, Dy: -60}}
 	v := &stubVizAPI{saved: domain.Visualization{ID: "v1", Name: "mine", Bends: &bends}}
 	rec := doReq(t, routerWithVisualizations(v), http.MethodPut, "/graphs/g1/visualizations/mine", `{"positions":{}}`)

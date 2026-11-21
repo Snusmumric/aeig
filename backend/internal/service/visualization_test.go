@@ -26,12 +26,13 @@ type stubVizStore struct {
 	gotNodes    []byte
 	gotEdges    []byte
 	gotBends    []byte
+	gotVisible  []byte
 	saveCalls   int
 	tryScript   []tryResult
 	tryCalls    int
 }
 
-func (s *stubVizStore) SaveVisualization(_ context.Context, graphID, name string, p map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends []byte) (domain.Visualization, error) {
+func (s *stubVizStore) SaveVisualization(_ context.Context, graphID, name string, p map[string]domain.Position, vp domain.Viewport, nodeTypes, edgeTypes []string, hideOrphans bool, graphVersion *int64, nodes, edges, bends, visibleSlices []byte) (domain.Visualization, error) {
 	s.saveCalls++
 	s.saved = domain.Visualization{ID: "v1", GraphID: graphID, Name: name, Positions: p, Viewport: vp}
 	s.gotTypes = nodeTypes
@@ -41,6 +42,7 @@ func (s *stubVizStore) SaveVisualization(_ context.Context, graphID, name string
 	s.gotNodes = nodes
 	s.gotEdges = edges
 	s.gotBends = bends
+	s.gotVisible = visibleSlices
 	return s.saved, nil
 }
 
@@ -112,7 +114,7 @@ func TestGetDefault_UnknownGraph(t *testing.T) {
 func TestSave_DefaultNameAllowed(t *testing.T) {
 	store := &stubVizStore{}
 	svc := NewVisualizationService(store, &stubGraphExistence{})
-	v, err := svc.SaveVisualization(context.Background(), "g1", "default", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil)
+	v, err := svc.SaveVisualization(context.Background(), "g1", "default", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "default", v.Name)
 	assert.Equal(t, 1, store.saveCalls) // no reserved-name rejection: it is the default's own name
@@ -120,13 +122,13 @@ func TestSave_DefaultNameAllowed(t *testing.T) {
 
 func TestVisualizationService_SaveEmptyName(t *testing.T) {
 	svc := NewVisualizationService(&stubVizStore{}, &stubGraphExistence{})
-	_, err := svc.SaveVisualization(context.Background(), "g1", " ", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil)
+	_, err := svc.SaveVisualization(context.Background(), "g1", " ", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil, nil)
 	assert.ErrorIs(t, err, ErrInvalidInput)
 }
 
 func TestVisualizationService_SaveUnknownGraph(t *testing.T) {
 	svc := NewVisualizationService(&stubVizStore{}, &stubGraphExistence{err: domain.ErrNotFound})
-	_, err := svc.SaveVisualization(context.Background(), "gX", "v", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil)
+	_, err := svc.SaveVisualization(context.Background(), "gX", "v", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil, nil)
 	assert.ErrorIs(t, err, domain.ErrNotFound)
 }
 
@@ -134,7 +136,7 @@ func TestVisualizationService_SaveOK(t *testing.T) {
 	store := &stubVizStore{}
 	svc := NewVisualizationService(store, &stubGraphExistence{})
 	v, err := svc.SaveVisualization(context.Background(), "g1", "mine",
-		map[string]domain.Position{"n1": {X: 1, Y: 2}}, domain.Viewport{Zoom: 1}, nil, nil, false, nil, nil, nil, nil)
+		map[string]domain.Position{"n1": {X: 1, Y: 2}}, domain.Viewport{Zoom: 1}, nil, nil, false, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, "mine", v.Name)
 	assert.EqualValues(t, 1, store.saved.Positions["n1"].X)
@@ -143,7 +145,7 @@ func TestVisualizationService_SaveOK(t *testing.T) {
 func TestVisualizationService_SavePassesFilters(t *testing.T) {
 	store := &stubVizStore{}
 	svc := NewVisualizationService(store, &stubGraphExistence{})
-	_, err := svc.SaveVisualization(context.Background(), "g1", "mine", nil, domain.Viewport{}, []string{"phase"}, []string{"rel"}, true, nil, nil, nil, nil)
+	_, err := svc.SaveVisualization(context.Background(), "g1", "mine", nil, domain.Viewport{}, []string{"phase"}, []string{"rel"}, true, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"phase"}, store.gotTypes)
 	assert.Equal(t, []string{"rel"}, store.gotEdge)
@@ -156,7 +158,7 @@ func TestVisualizationService_SavePassesManifestVerbatim(t *testing.T) {
 	gv := int64(12)
 	nodes := []byte(`{"n1":{"type":"service","label":"S","x":1,"y":2}}`)
 	edges := []byte(`{"e1":{"type":"rel","source":"n1","target":"n2"}}`)
-	_, err := svc.SaveVisualization(context.Background(), "g1", "mine", nil, domain.Viewport{}, nil, nil, false, &gv, nodes, edges, nil)
+	_, err := svc.SaveVisualization(context.Background(), "g1", "mine", nil, domain.Viewport{}, nil, nil, false, &gv, nodes, edges, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, store.gotGraphVer)
 	assert.EqualValues(t, 12, *store.gotGraphVer)
@@ -168,7 +170,16 @@ func TestVisualizationService_SavePassesBendsVerbatim(t *testing.T) {
 	store := &stubVizStore{}
 	svc := NewVisualizationService(store, &stubGraphExistence{})
 	bends := []byte(`{"e1":{"dx":30,"dy":10},"e2":{"dx":0,"dy":-60}}`)
-	_, err := svc.SaveVisualization(context.Background(), "g1", "mine", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, bends)
+	_, err := svc.SaveVisualization(context.Background(), "g1", "mine", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, bends, nil)
 	require.NoError(t, err)
 	assert.Equal(t, bends, store.gotBends) // opaque bytes, forwarded verbatim
+}
+
+func TestVisualizationService_SavePassesVisibleSlicesVerbatim(t *testing.T) {
+	store := &stubVizStore{}
+	svc := NewVisualizationService(store, &stubGraphExistence{})
+	visible := []byte(`["sid-1","sid-2"]`)
+	_, err := svc.SaveVisualization(context.Background(), "g1", "mine", nil, domain.Viewport{}, nil, nil, false, nil, nil, nil, nil, visible)
+	require.NoError(t, err)
+	assert.Equal(t, visible, store.gotVisible) // opaque bytes, forwarded verbatim
 }
