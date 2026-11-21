@@ -3,7 +3,6 @@
 # Overridable via env: PG_PORT, PGPW, NEO4J_PW, HTTP_ADDR.
 set -euo pipefail
 
-PG_PORT="${PG_PORT:-5432}"
 PGPW="${PGPW:-devpass}"
 NEO4J_PW="${NEO4J_PW:-password123}"   # must match NEO4J_AUTH in docker-compose.yml
 HTTP_ADDR="${HTTP_ADDR:-:8080}"
@@ -12,9 +11,44 @@ API="http://localhost${HTTP_ADDR}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# --- pick the Postgres host port ---
+# If PG_PORT is not set explicitly:
+#   * our compose postgres is already running → adopt the port it is actually mapped to
+#     (a restart must not recreate the container onto a conflicting default port);
+#   * otherwise, if :5432 is taken by a foreign service → fall back to the first free
+#     port of 5433..5439. This keeps plain `make dev` working on machines with a local
+#     Postgres or another project's container on 5432.
+if [ -z "${PG_PORT:-}" ]; then
+  PG_PORT=5432
+  OWN_UP="$(docker compose ps --services --filter status=running 2>/dev/null | grep -x postgres || true)"
+  if [ -n "$OWN_UP" ]; then
+    OWN_PORT="$(docker compose port postgres 5432 2>/dev/null | sed 's/.*://')"
+    if [ -n "$OWN_PORT" ]; then
+      PG_PORT="$OWN_PORT"
+      echo "==> dev postgres already running on :$PG_PORT — adopting it"
+    fi
+  else
+    if (exec 3<>/dev/tcp/localhost/5432) 2>/dev/null; then
+      exec 3>&- 3<&- 2>/dev/null || true
+      for CAND in 5433 5434 5435 5436 5437 5438 5439; do
+        if ! (exec 3<>/dev/tcp/localhost/"$CAND") 2>/dev/null; then
+          PG_PORT="$CAND"
+          break
+        fi
+        exec 3>&- 3<&- 2>/dev/null || true
+      done
+      if [ "$PG_PORT" = 5432 ]; then
+        echo "ERROR: :5432 is busy and no fallback port in 5433..5439 is free."
+        exit 1
+      fi
+      echo "==> :5432 is taken by another service — using PG_PORT=$PG_PORT (export PG_PORT to override)"
+    fi
+  fi
+fi
+export PG_PORT
+
 # --- prerequisites ---
-# Postgres host port must be free (docker compose binds it) — fail fast with a hint.
-# Exception: our own compose stack is already running (make dev restart) — it holds the port legitimately.
+# If PG_PORT was set explicitly and is held by a foreign service — fail fast with a hint.
 OWN_PG_RUNNING="$(docker compose ps --services --filter status=running 2>/dev/null | grep -x postgres || true)"
 if [ -z "$OWN_PG_RUNNING" ] && (exec 3<>/dev/tcp/localhost/"$PG_PORT") 2>/dev/null; then
   exec 3>&- 3<&- 2>/dev/null || true
@@ -22,7 +56,7 @@ if [ -z "$OWN_PG_RUNNING" ] && (exec 3<>/dev/tcp/localhost/"$PG_PORT") 2>/dev/nu
   lsof -nP -iTCP:"$PG_PORT" -sTCP:LISTEN 2>/dev/null || true
   echo
   echo "       Stop that service, or run the dev stack on a different port:"
-  echo "         PG_PORT=5433 make dev"
+  echo "         PG_PORT=5434 make dev"
   exit 1
 fi
 
@@ -58,6 +92,21 @@ export NEO4J_USER="neo4j"
 export NEO4J_PASSWORD="$NEO4J_PW"
 export POSTGRES_DSN="postgres://aeig:${PGPW}@localhost:${PG_PORT}/aeig?sslmode=disable"
 
+# Kill a leftover backend of OURS on :8080 (a `go run` child that survived a previous
+# run makes the new one die with "bind: address already in use"). Only targets
+# processes whose executable lives in the go-build cache and is named `server`.
+API_PORT="${HTTP_ADDR#:}"
+if [ -n "$API_PORT" ]; then
+  for PID in $(lsof -nP -iTCP:"$API_PORT" -sTCP:LISTEN -t 2>/dev/null); do
+    EXE="$(ps -p "$PID" -o comm= 2>/dev/null || true)"
+    if [[ "$EXE" == *go-build* ]] && [ "$(basename "$EXE")" = "server" ]; then
+      echo "==> killing leftover dev backend on :$API_PORT (pid $PID)"
+      kill "$PID" 2>/dev/null || true
+      sleep 1
+    fi
+  done
+fi
+
 echo "==> starting backend ($API)"
 ( cd backend && go run ./cmd/server ) &
 BACK_PID=$!
@@ -66,6 +115,9 @@ cleanup() {
   echo
   echo "==> stopping backend"
   kill "$BACK_PID" 2>/dev/null || true
+  # `go run` spawns the compiled binary as a child; if the wrapper dies first the
+  # binary survives and holds :8080. Kill the children too.
+  pkill -TERM -P "$BACK_PID" 2>/dev/null || true
   echo "    databases are still up — run 'make down' to stop them."
 }
 trap cleanup EXIT INT TERM
