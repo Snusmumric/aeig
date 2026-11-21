@@ -8,6 +8,7 @@
   "6": "Load",
   "8": "devDependencies",
   "9": "compilerOptions",
+  "10": "SliceRepo",
   "12": "client.ts",
   "13": "plugins",
   "14": "errors.go",
@@ -15,8 +16,9 @@
   "16": "Load",
   "17": "ResizeObserverMock",
   "19": "App.tsx",
+  "21": "App.tsx",
+  "26": "Load",
   "27": "T",
   "34": "Visualization",
-  "35": "GraphCanvas.tsx",
-  "39": "Load"
+  "35": "GraphCanvas.tsx"
 }
