@@ -4335,8 +4335,8 @@
       "source_location": "L111",
       "_origin": "ast",
       "id": "frontend_src_api_types_slice",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slice"
     },
     {
@@ -4497,7 +4497,7 @@
       "label": "GraphCanvas()",
       "file_type": "code",
       "source_file": "frontend/src/graph/GraphCanvas.tsx",
-      "source_location": "L67",
+      "source_location": "L69",
       "_origin": "ast",
       "id": "frontend_src_graph_graphcanvas_graphcanvas",
       "community": 35,
@@ -4511,7 +4511,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "grapheditor.test.tsx"
     },
@@ -4522,7 +4522,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_viz",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "viz()"
     },
@@ -4533,7 +4533,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_fakeclient",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "fakeclient()"
     },
@@ -4544,7 +4544,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_settle",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "settle()"
     },
@@ -4555,7 +4555,7 @@
       "source_location": "L356",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_legacydiffclient",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "legacydiffclient()"
     },
@@ -4566,7 +4566,7 @@
       "source_location": "L707",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_constructor",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "constructor()"
     },
@@ -4577,7 +4577,7 @@
       "source_location": "L806",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_edgemid",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "edgemid()"
     },
@@ -4588,7 +4588,7 @@
       "source_location": "L815",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_bendclient",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "bendclient()"
     },
@@ -4599,7 +4599,7 @@
       "source_location": "L934",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_sliceclient",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "sliceclient()"
     },
@@ -4610,7 +4610,7 @@
       "source_location": "L1160",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_contextmenuon",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "contextmenuon()"
     },
@@ -4621,7 +4621,7 @@
       "source_location": "L1323",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_measuredclient",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "measuredclient()"
     },
@@ -4632,7 +4632,7 @@
       "source_location": "L800",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_rationale_800",
-      "community": 7,
+      "community": 11,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "note: node-click selection rides d3's native mousedown (not simulable in"
     },
@@ -4676,8 +4676,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_slicecontextmenu_test",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slicecontextmenu.test.tsx"
     },
     {
@@ -4687,8 +4687,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_graph_slicecontextmenu_test_slices",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slices"
     },
     {
@@ -4698,8 +4698,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_slicecontextmenu",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slicecontextmenu.tsx"
     },
     {
@@ -4709,8 +4709,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_graph_slicecontextmenu_slicecontextmenuprops",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slicecontextmenuprops"
     },
     {
@@ -4720,8 +4720,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_graph_slicecontextmenu_slicecontextmenu",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slicecontextmenu()"
     },
     {
@@ -4731,8 +4731,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel_test",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slicepanel.test.tsx"
     },
     {
@@ -4742,8 +4742,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel_test_slices",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slices"
     },
     {
@@ -4753,8 +4753,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel_test_props",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "props()"
     },
     {
@@ -4764,8 +4764,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slicepanel.tsx"
     },
     {
@@ -4775,8 +4775,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel_slicepanelprops",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slicepanelprops"
     },
     {
@@ -4786,8 +4786,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel_slicepanel",
-      "community": 11,
-      "community_name": "GraphRepo",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "slicepanel()"
     },
     {
@@ -5150,7 +5150,7 @@
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test",
       "community": 18,
-      "community_name": "followDrag.test.ts",
+      "community_name": "filterFlow.test.ts",
       "norm_label": "filterflow.test.ts"
     },
     {
@@ -5161,7 +5161,7 @@
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_node",
       "community": 18,
-      "community_name": "followDrag.test.ts",
+      "community_name": "filterFlow.test.ts",
       "norm_label": "node()"
     },
     {
@@ -5172,7 +5172,7 @@
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_edge",
       "community": 18,
-      "community_name": "followDrag.test.ts",
+      "community_name": "filterFlow.test.ts",
       "norm_label": "edge()"
     },
     {
@@ -5183,7 +5183,7 @@
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_allnodes",
       "community": 18,
-      "community_name": "followDrag.test.ts",
+      "community_name": "filterFlow.test.ts",
       "norm_label": "allnodes"
     },
     {
@@ -5194,7 +5194,7 @@
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_alledges",
       "community": 18,
-      "community_name": "followDrag.test.ts",
+      "community_name": "filterFlow.test.ts",
       "norm_label": "alledges"
     },
     {
@@ -5205,7 +5205,7 @@
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_tedges",
       "community": 18,
-      "community_name": "followDrag.test.ts",
+      "community_name": "filterFlow.test.ts",
       "norm_label": "tedges"
     },
     {
@@ -5216,7 +5216,7 @@
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_snode",
       "community": 18,
-      "community_name": "followDrag.test.ts",
+      "community_name": "filterFlow.test.ts",
       "norm_label": "snode()"
     },
     {
@@ -17722,7 +17722,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/graph/GraphCanvas.tsx",
-      "source_location": "L67",
+      "source_location": "L69",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_graph_graphcanvas",
@@ -18308,7 +18308,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/graph/GraphEditor.tsx",
-      "source_location": "L476",
+      "source_location": "L490",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_graph_grapheditor_grapheditor",
@@ -18332,7 +18332,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/graph/GraphEditor.tsx",
-      "source_location": "L491",
+      "source_location": "L505",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_graph_grapheditor_grapheditor",
@@ -18356,7 +18356,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/graph/GraphEditor.tsx",
-      "source_location": "L383",
+      "source_location": "L397",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_graph_grapheditor_grapheditor",
@@ -20233,5 +20233,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "b987d212c1bd20465d665f5361aec766683ab10b"
+  "built_at_commit": "9ef9577cdf45b0cc45bbca2aaffe599030ff3e02"
 }
