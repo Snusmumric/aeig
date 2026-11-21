@@ -148,6 +148,29 @@ describe('SliceContextMenu', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
+  it('closes on an outside mousedown even when a target listener swallows it (d3-drag/zoom stopPropagation)', () => {
+    const onClose = vi.fn()
+    render(
+      <SliceContextMenu
+        x={0}
+        y={0}
+        slices={slices}
+        memberships={[]}
+        onToggle={vi.fn()}
+        onCreateNew={vi.fn()}
+        onClose={onClose}
+      />,
+    )
+    // simulate a canvas node/pane: a target that stops mousedown propagation,
+    // exactly like d3-drag (nodes) and d3-zoom (pane) do in the real browser
+    const swallower = document.createElement('div')
+    document.body.appendChild(swallower)
+    swallower.addEventListener('mousedown', (e) => e.stopPropagation())
+    fireEvent.mouseDown(swallower)
+    expect(onClose).toHaveBeenCalledTimes(1)
+    swallower.remove()
+  })
+
   it('closes on scroll', () => {
     const onClose = vi.fn()
     render(

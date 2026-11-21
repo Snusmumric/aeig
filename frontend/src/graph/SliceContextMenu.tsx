@@ -45,13 +45,16 @@ export function SliceContextMenu({
     }
     const onScroll = () => onClose()
     document.addEventListener('keydown', onKey)
-    document.addEventListener('mousedown', onPointer)
+    // capture phase: clicks on the canvas are swallowed by d3-drag (nodes) and
+    // d3-zoom (pane), which stopPropagation() on mousedown — the bubble phase
+    // never reaches document. Capture runs top-down before those listeners.
+    document.addEventListener('mousedown', onPointer, true)
     // capture: element scroll events do not bubble, but still traverse the
     // capture phase — any scroll in the pane closes the menu
     document.addEventListener('scroll', onScroll, true)
     return () => {
       document.removeEventListener('keydown', onKey)
-      document.removeEventListener('mousedown', onPointer)
+      document.removeEventListener('mousedown', onPointer, true)
       document.removeEventListener('scroll', onScroll, true)
     }
   }, [onClose])
