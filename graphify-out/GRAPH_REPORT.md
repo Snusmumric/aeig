@@ -1,7 +1,7 @@
-# Graph Report - AEiG  (2026-11-21)
+# Graph Report - AEiG  (2026-11-22)
 
 ## Corpus Check
-- 94 files · ~42,431 words
+- 94 files · ~42,524 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `154d98a0`
+- Built from commit: `6bf9885b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -26,20 +26,20 @@
 - devDependencies
 - compilerOptions
 - SliceRepo
-- GraphEditor.test.tsx
 - client.ts
 - plugins
 - errors.go
 - github.com/aeig/backend
 - ResizeObserverMock
-- filterFlow.test.ts
-- App.tsx
 - VizDiffBar.test.tsx
 - App.tsx
-- layout.ts
-- useGraph.test.tsx
+- App.tsx
+- types.ts
+- GraphEditor.test.tsx
+- App.tsx
 - Load
 - T
+- Slice
 - Visualization
 - GraphCanvas.tsx
 
@@ -73,8 +73,8 @@
 ## Communities (28 total, 4 thin omitted)
 
 ### Community 0 - "AEiG — Дизайн: браузерный редактор типизированных графов с метамоделями и валидацией"
-Cohesion: 0.15
-Nodes (15): ApiClient, ApiError, createClient(), request(), Graph, Mutations, Position, SaveVisualizationOptions (+7 more)
+Cohesion: 0.16
+Nodes (12): GraphEdge, GraphNode, ManifestEdge, ManifestNode, Visualization, CurvyEdgeData, Bend, extractPositions() (+4 more)
 
 ### Community 1 - "ElementRepo"
 Cohesion: 0.10
@@ -101,8 +101,8 @@ Cohesion: 0.17
 Nodes (30): HandlerFunc, handleApplyMutations(), handleCreateGraph(), handleGetGraph(), handleGetSubgraph(), T, TestHealth_OK(), ResponseWriter (+22 more)
 
 ### Community 7 - "GraphEditor.test.tsx"
-Cohesion: 0.26
-Nodes (7): Slice, SliceContextMenu(), SliceContextMenuProps, slices, SlicePanel(), SlicePanelProps, slices
+Cohesion: 0.29
+Nodes (3): allEdges, allNodes, tEdges
 
 ### Community 8 - "devDependencies"
 Cohesion: 0.43
@@ -116,10 +116,6 @@ Nodes (5): Context, Graph, Mutations, Subgraph, stubAPI
 Cohesion: 0.19
 Nodes (14): Context, Slice, Subgraph, T, newSliceService(), TestSliceService_AddRemoveNodes(), TestSliceService_Create(), TestSliceService_Delete() (+6 more)
 
-### Community 11 - "GraphEditor.test.tsx"
-Cohesion: 0.24
-Nodes (7): bendClient(), fakeClient(), legacyDiffClient(), measuredClient(), NOTE: node-click selection rides d3's native mousedown (not simulable in, sliceClient(), viz()
-
 ### Community 13 - "plugins"
 Cohesion: 0.43
 Nodes (7): Time, Bend, ManifestEdge, ManifestNode, Position, Viewport, Visualization
@@ -128,25 +124,25 @@ Nodes (7): Time, Bend, ManifestEdge, ManifestNode, Position, Viewport, Visualiza
 Cohesion: 0.50
 Nodes (3): ResponseWriter, handleHealth(), Request
 
-### Community 18 - "filterFlow.test.ts"
-Cohesion: 0.29
-Nodes (3): allEdges, allNodes, tEdges
-
 ### Community 19 - "App.tsx"
-Cohesion: 0.14
-Nodes (17): App(), client, params, styles, sg, styles, toFlowEdges(), toFlowNodes() (+9 more)
+Cohesion: 0.16
+Nodes (13): pickHandles(), filterFlow(), addAdjacent(), applyFollowDrag(), planFollowers(), GraphEditor(), TypedEdgeData, DragSession (+5 more)
 
 ### Community 21 - "App.tsx"
 Cohesion: 0.12
 Nodes (15): Context, Slice, SliceDetail, Context, Slice, SliceDetail, NewSliceService(), Slice (+7 more)
 
-### Community 22 - "layout.ts"
-Cohesion: 0.16
-Nodes (12): GraphEdge, GraphNode, ManifestEdge, ManifestNode, Visualization, CurvyEdgeData, Bend, extractPositions() (+4 more)
+### Community 22 - "types.ts"
+Cohesion: 0.15
+Nodes (15): ApiClient, ApiError, createClient(), request(), Graph, Mutations, Position, SaveVisualizationOptions (+7 more)
 
-### Community 23 - "useGraph.test.tsx"
-Cohesion: 0.16
-Nodes (13): pickHandles(), filterFlow(), addAdjacent(), applyFollowDrag(), planFollowers(), GraphEditor(), TypedEdgeData, DragSession (+5 more)
+### Community 23 - "GraphEditor.test.tsx"
+Cohesion: 0.24
+Nodes (7): bendClient(), fakeClient(), legacyDiffClient(), measuredClient(), NOTE: node-click selection rides d3's native mousedown (not simulable in, sliceClient(), viz()
+
+### Community 25 - "App.tsx"
+Cohesion: 0.14
+Nodes (17): App(), client, params, styles, sg, styles, toFlowEdges(), toFlowNodes() (+9 more)
 
 ### Community 26 - "Load"
 Cohesion: 0.43
@@ -155,6 +151,10 @@ Nodes (6): Load(), T, TestLoad_DefaultsHTTPAddr(), TestLoad_MissingRequired(), T
 ### Community 27 - "T"
 Cohesion: 0.12
 Nodes (29): Context, Position, Viewport, Visualization, NewVisualizationService(), Context, Graph, Position (+21 more)
+
+### Community 28 - "Slice"
+Cohesion: 0.26
+Nodes (7): Slice, SliceContextMenu(), SliceContextMenuProps, slices, SlicePanel(), SlicePanelProps, slices
 
 ### Community 34 - "Visualization"
 Cohesion: 0.23

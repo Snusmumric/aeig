@@ -4049,7 +4049,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_app",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "app.tsx"
     },
@@ -4060,7 +4060,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_app_client",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "client"
     },
@@ -4071,7 +4071,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_app_styles",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "styles"
     },
@@ -4082,7 +4082,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "frontend_src_app_params",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "params"
     },
@@ -4093,7 +4093,7 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "frontend_src_app_app",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "app()"
     },
@@ -4104,8 +4104,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_api_client_test",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "client.test.ts"
     },
     {
@@ -4115,8 +4115,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_api_client_test_mockfetchonce",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "mockfetchonce()"
     },
     {
@@ -4126,8 +4126,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_api_client",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "client.ts"
     },
     {
@@ -4137,8 +4137,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_api_client_apierror",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "apierror"
     },
     {
@@ -4148,8 +4148,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_src_api_client_apierror_constructor",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": ".constructor()"
     },
     {
@@ -4159,8 +4159,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "frontend_src_api_client_request",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "request()"
     },
     {
@@ -4170,8 +4170,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "frontend_src_api_client_createclient",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "createclient()"
     },
     {
@@ -4181,8 +4181,8 @@
       "source_location": "L118",
       "_origin": "ast",
       "id": "frontend_src_api_client_apiclient",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "apiclient"
     },
     {
@@ -4192,8 +4192,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_api_types",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "types.ts"
     },
     {
@@ -4203,8 +4203,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_api_types_graph",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "graph"
     },
     {
@@ -4214,8 +4214,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_api_types_graphnode",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "graphnode"
     },
     {
@@ -4225,8 +4225,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_api_types_graphedge",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "graphedge"
     },
     {
@@ -4236,8 +4236,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_api_types_subgraph",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "subgraph"
     },
     {
@@ -4247,8 +4247,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_api_types_mutations",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "mutations"
     },
     {
@@ -4258,8 +4258,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "frontend_src_api_types_position",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "position"
     },
     {
@@ -4269,8 +4269,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "frontend_src_api_types_viewport",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "viewport"
     },
     {
@@ -4280,8 +4280,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "frontend_src_api_types_manifestnode",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "manifestnode"
     },
     {
@@ -4291,8 +4291,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "frontend_src_api_types_manifestedge",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "manifestedge"
     },
     {
@@ -4302,8 +4302,8 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "frontend_src_api_types_visualizationmanifest",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "visualizationmanifest"
     },
     {
@@ -4313,8 +4313,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "frontend_src_api_types_savevisualizationoptions",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "savevisualizationoptions"
     },
     {
@@ -4324,8 +4324,8 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "frontend_src_api_types_visualization",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "visualization"
     },
     {
@@ -4335,8 +4335,8 @@
       "source_location": "L111",
       "_origin": "ast",
       "id": "frontend_src_api_types_slice",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slice"
     },
     {
@@ -4346,8 +4346,8 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "frontend_src_api_types_slicedetail",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "slicedetail"
     },
     {
@@ -4412,8 +4412,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_graph_curvyedge_curvyedgedata",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "curvyedgedata"
     },
     {
@@ -4511,7 +4511,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "grapheditor.test.tsx"
     },
@@ -4522,7 +4522,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_viz",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "viz()"
     },
@@ -4533,7 +4533,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_fakeclient",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "fakeclient()"
     },
@@ -4544,7 +4544,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_settle",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "settle()"
     },
@@ -4555,7 +4555,7 @@
       "source_location": "L356",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_legacydiffclient",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "legacydiffclient()"
     },
@@ -4566,7 +4566,7 @@
       "source_location": "L707",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_constructor",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "constructor()"
     },
@@ -4577,7 +4577,7 @@
       "source_location": "L806",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_edgemid",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "edgemid()"
     },
@@ -4588,7 +4588,7 @@
       "source_location": "L815",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_bendclient",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "bendclient()"
     },
@@ -4599,7 +4599,7 @@
       "source_location": "L934",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_sliceclient",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "sliceclient()"
     },
@@ -4610,7 +4610,7 @@
       "source_location": "L1160",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_contextmenuon",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "contextmenuon()"
     },
@@ -4621,7 +4621,7 @@
       "source_location": "L1323",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_measuredclient",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "measuredclient()"
     },
@@ -4632,7 +4632,7 @@
       "source_location": "L800",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_test_rationale_800",
-      "community": 11,
+      "community": 23,
       "community_name": "GraphEditor.test.tsx",
       "norm_label": "note: node-click selection rides d3's native mousedown (not simulable in"
     },
@@ -4643,8 +4643,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "grapheditor.tsx"
     },
     {
@@ -4654,8 +4654,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_grapheditorprops",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "grapheditorprops"
     },
     {
@@ -4665,8 +4665,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "frontend_src_graph_grapheditor_grapheditor",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "grapheditor()"
     },
     {
@@ -4676,8 +4676,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_slicecontextmenu_test",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slicecontextmenu.test.tsx"
     },
     {
@@ -4687,8 +4687,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_graph_slicecontextmenu_test_slices",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slices"
     },
     {
@@ -4698,8 +4698,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_slicecontextmenu",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slicecontextmenu.tsx"
     },
     {
@@ -4709,8 +4709,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_graph_slicecontextmenu_slicecontextmenuprops",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slicecontextmenuprops"
     },
     {
@@ -4720,8 +4720,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_graph_slicecontextmenu_slicecontextmenu",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slicecontextmenu()"
     },
     {
@@ -4731,8 +4731,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel_test",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slicepanel.test.tsx"
     },
     {
@@ -4742,8 +4742,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel_test_slices",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slices"
     },
     {
@@ -4753,8 +4753,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel_test_props",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "props()"
     },
     {
@@ -4764,8 +4764,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slicepanel.tsx"
     },
     {
@@ -4775,8 +4775,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel_slicepanelprops",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slicepanelprops"
     },
     {
@@ -4786,8 +4786,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_graph_slicepanel_slicepanel",
-      "community": 7,
-      "community_name": "GraphEditor.test.tsx",
+      "community": 28,
+      "community_name": "Slice",
       "norm_label": "slicepanel()"
     },
     {
@@ -4797,7 +4797,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_typefilterpanel_test",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "typefilterpanel.test.tsx"
     },
@@ -4808,7 +4808,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_graph_typefilterpanel_test_styles",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "styles"
     },
@@ -4819,7 +4819,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_typefilterpanel",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "typefilterpanel.tsx"
     },
@@ -4830,7 +4830,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_graph_typefilterpanel_typefilterpanelprops",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "typefilterpanelprops"
     },
@@ -4841,7 +4841,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_graph_typefilterpanel_typefilterpanel",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "typefilterpanel()"
     },
@@ -4918,7 +4918,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiffbar_test",
-      "community": 20,
+      "community": 18,
       "community_name": "VizDiffBar.test.tsx",
       "norm_label": "vizdiffbar.test.tsx"
     },
@@ -4929,7 +4929,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiffbar_test_props",
-      "community": 20,
+      "community": 18,
       "community_name": "VizDiffBar.test.tsx",
       "norm_label": "props()"
     },
@@ -4940,7 +4940,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiffbar",
-      "community": 20,
+      "community": 18,
       "community_name": "VizDiffBar.test.tsx",
       "norm_label": "vizdiffbar.tsx"
     },
@@ -4951,7 +4951,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiffbar_vizdiffbarprops",
-      "community": 20,
+      "community": 18,
       "community_name": "VizDiffBar.test.tsx",
       "norm_label": "vizdiffbarprops"
     },
@@ -4962,7 +4962,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiffbar_vizdiffbar",
-      "community": 20,
+      "community": 18,
       "community_name": "VizDiffBar.test.tsx",
       "norm_label": "vizdiffbar()"
     },
@@ -4973,8 +4973,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_commit_test",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "commit.test.ts"
     },
     {
@@ -4984,8 +4984,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_graph_commit_test_clientwith",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "clientwith()"
     },
     {
@@ -4995,8 +4995,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_commit",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "commit.ts"
     },
     {
@@ -5006,8 +5006,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_graph_commit_commitresult",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "commitresult"
     },
     {
@@ -5017,8 +5017,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "frontend_src_graph_commit_commitmutation",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "commitmutation()"
     },
     {
@@ -5028,8 +5028,8 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "frontend_src_graph_commit_newnodemutation",
-      "community": 0,
-      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
+      "community": 22,
+      "community_name": "types.ts",
       "norm_label": "newnodemutation()"
     },
     {
@@ -5083,8 +5083,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_graph_edgegeometry_bend",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "bend"
     },
     {
@@ -5105,8 +5105,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_graph_edgegeometry_pickhandles",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "pickhandles()"
     },
     {
@@ -5149,8 +5149,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test",
-      "community": 18,
-      "community_name": "filterFlow.test.ts",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "filterflow.test.ts"
     },
     {
@@ -5160,8 +5160,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_node",
-      "community": 18,
-      "community_name": "filterFlow.test.ts",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "node()"
     },
     {
@@ -5171,8 +5171,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_edge",
-      "community": 18,
-      "community_name": "filterFlow.test.ts",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "edge()"
     },
     {
@@ -5182,8 +5182,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_allnodes",
-      "community": 18,
-      "community_name": "filterFlow.test.ts",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "allnodes"
     },
     {
@@ -5193,8 +5193,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_alledges",
-      "community": 18,
-      "community_name": "filterFlow.test.ts",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "alledges"
     },
     {
@@ -5204,8 +5204,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_tedges",
-      "community": 18,
-      "community_name": "filterFlow.test.ts",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "tedges"
     },
     {
@@ -5215,8 +5215,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_test_snode",
-      "community": 18,
-      "community_name": "filterFlow.test.ts",
+      "community": 7,
+      "community_name": "GraphEditor.test.tsx",
       "norm_label": "snode()"
     },
     {
@@ -5226,8 +5226,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "filterflow.ts"
     },
     {
@@ -5237,8 +5237,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "frontend_src_graph_filterflow_filterflow",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "filterflow()"
     },
     {
@@ -5248,8 +5248,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_followdrag_test",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "followdrag.test.ts"
     },
     {
@@ -5259,8 +5259,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_graph_followdrag_test_node",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "node()"
     },
     {
@@ -5270,8 +5270,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_graph_followdrag_test_edge",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "edge()"
     },
     {
@@ -5281,8 +5281,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_followdrag",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "followdrag.ts"
     },
     {
@@ -5292,8 +5292,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_graph_followdrag_planfollowers",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "planfollowers()"
     },
     {
@@ -5303,8 +5303,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "frontend_src_graph_followdrag_addadjacent",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "addadjacent()"
     },
     {
@@ -5314,8 +5314,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "frontend_src_graph_followdrag_applyfollowdrag",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "applyfollowdrag()"
     },
     {
@@ -5325,8 +5325,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_layout_test",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "layout.test.ts"
     },
     {
@@ -5336,8 +5336,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_layout",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "layout.ts"
     },
     {
@@ -5347,8 +5347,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_graph_layout_extractpositions",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "extractpositions()"
     },
     {
@@ -5358,7 +5358,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_toflow_test",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "toflow.test.ts"
     },
@@ -5369,7 +5369,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_graph_toflow_test_styles",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "styles"
     },
@@ -5380,7 +5380,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_graph_toflow_test_sg",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "sg"
     },
@@ -5391,7 +5391,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_toflow",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "toflow.ts"
     },
@@ -5402,7 +5402,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "frontend_src_graph_toflow_typednodedata",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "typednodedata"
     },
@@ -5413,8 +5413,8 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "frontend_src_graph_toflow_typededgedata",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "typededgedata"
     },
     {
@@ -5424,7 +5424,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_src_graph_toflow_toflownodes",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "toflownodes()"
     },
@@ -5435,7 +5435,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "frontend_src_graph_toflow_toflowedges",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "toflowedges()"
     },
@@ -5446,7 +5446,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_typestyle",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "typestyle.ts"
     },
@@ -5457,7 +5457,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_typestyle_nodeshape",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "nodeshape"
     },
@@ -5468,7 +5468,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_graph_typestyle_typestyle",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "typestyle"
     },
@@ -5479,7 +5479,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "frontend_src_graph_typestyle_typestylemap",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "typestylemap"
     },
@@ -5490,7 +5490,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "frontend_src_graph_typestyle_default_style",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "default_style"
     },
@@ -5501,7 +5501,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "frontend_src_graph_typestyle_resolvestyle",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "resolvestyle()"
     },
@@ -5512,8 +5512,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_usegraph_test",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "usegraph.test.tsx"
     },
     {
@@ -5523,8 +5523,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_graph_usegraph_test_dragevt",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "dragevt"
     },
     {
@@ -5534,8 +5534,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "frontend_src_graph_usegraph_test_drag",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "drag()"
     },
     {
@@ -5545,8 +5545,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "frontend_src_graph_usegraph_test_styles",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "styles"
     },
     {
@@ -5556,8 +5556,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_src_graph_usegraph_test_fakeclient",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "fakeclient()"
     },
     {
@@ -5567,8 +5567,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_usegraph",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "usegraph.ts"
     },
     {
@@ -5578,8 +5578,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "frontend_src_graph_usegraph_positionmap",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "positionmap"
     },
     {
@@ -5589,8 +5589,8 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "frontend_src_graph_usegraph_usegraph",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "usegraph"
     },
     {
@@ -5600,8 +5600,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "frontend_src_graph_usegraph_dragsession",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "dragsession"
     },
     {
@@ -5611,8 +5611,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "frontend_src_graph_usegraph_shiftof",
-      "community": 23,
-      "community_name": "useGraph.test.tsx",
+      "community": 19,
+      "community_name": "App.tsx",
       "norm_label": "shiftof()"
     },
     {
@@ -5622,8 +5622,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff_test",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "vizdiff.test.ts"
     },
     {
@@ -5633,8 +5633,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff_test_viz",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "viz()"
     },
     {
@@ -5644,8 +5644,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff_test_node",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "node()"
     },
     {
@@ -5655,8 +5655,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff_test_edge",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "edge()"
     },
     {
@@ -5666,8 +5666,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff_test_mn",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "mn()"
     },
     {
@@ -5677,8 +5677,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff_test_me",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "me()"
     },
     {
@@ -5688,8 +5688,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "vizdiff.ts"
     },
     {
@@ -5699,8 +5699,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff_vizdiffmode",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "vizdiffmode"
     },
     {
@@ -5710,8 +5710,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff_vizdiff",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "vizdiff"
     },
     {
@@ -5721,8 +5721,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff_labelof",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "labelof()"
     },
     {
@@ -5732,8 +5732,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "frontend_src_graph_vizdiff_computevizdiff",
-      "community": 22,
-      "community_name": "layout.ts",
+      "community": 0,
+      "community_name": "AEiG \u2014 \u0414\u0438\u0437\u0430\u0439\u043d: \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043d\u044b\u0439 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0442\u0438\u043f\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0430\u0444\u043e\u0432 \u0441 \u043c\u0435\u0442\u0430\u043c\u043e\u0434\u0435\u043b\u044f\u043c\u0438 \u0438 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u0435\u0439",
       "norm_label": "computevizdiff()"
     },
     {
@@ -5743,7 +5743,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_main",
-      "community": 19,
+      "community": 25,
       "community_name": "App.tsx",
       "norm_label": "main.tsx"
     },
@@ -18308,7 +18308,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/graph/GraphEditor.tsx",
-      "source_location": "L505",
+      "source_location": "L512",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_graph_grapheditor_grapheditor",
@@ -18320,7 +18320,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/graph/GraphEditor.tsx",
-      "source_location": "L238",
+      "source_location": "L239",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_graph_grapheditor_grapheditor",
@@ -18332,7 +18332,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/graph/GraphEditor.tsx",
-      "source_location": "L520",
+      "source_location": "L527",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_graph_grapheditor_grapheditor",
@@ -18356,7 +18356,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/graph/GraphEditor.tsx",
-      "source_location": "L412",
+      "source_location": "L419",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_graph_grapheditor_grapheditor",
@@ -20233,5 +20233,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "154d98a07218ab4350d2f7ce03cebdea718b8887"
+  "built_at_commit": "6bf9885b7b884095839c0a5de298e24dda8c60b7"
 }
