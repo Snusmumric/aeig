@@ -284,9 +284,15 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
     (event: ReactMouseEvent, node: Node) => {
       event.preventDefault() // suppress the browser menu
       void refreshSlices()
-      setNodeMenu({ x: event.pageX, y: event.pageY, nodeId: node.id })
+      // right-click on a node that IS part of a multi-selection → bulk menu
+      // (adding just that one node when the user selected many is a bug)
+      if (selectionIds.size > 1 && selectionIds.has(node.id)) {
+        setSelectionMenu({ x: event.pageX, y: event.pageY })
+      } else {
+        setNodeMenu({ x: event.pageX, y: event.pageY, nodeId: node.id })
+      }
     },
-    [refreshSlices],
+    [refreshSlices, selectionIds],
   )
 
   // Right-click on the multi-selection overlay (after box-selection) — open the
