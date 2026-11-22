@@ -178,7 +178,8 @@ export function GraphEditor({ client, graphId, styles, initialVizName }: GraphEd
   }, [refreshSlices])
 
   const activateSlice = useCallback((id: string) => {
-    setActiveSliceId(id)
+    // toggle: clicking the already-active slice deactivates it
+    setActiveSliceId((prev) => (prev === id ? null : id))
   }, [])
 
   const handleCreateSlice = useCallback(

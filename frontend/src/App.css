@@ -375,13 +375,17 @@
   padding-top: 4px;
 }
 
-/* ── active-slice markers: member outline + derived thicker edge stroke ── */
+/* ── active-slice markers: member outline + derived thicker edge stroke ──
+   Green — deliberately distinct from the selection blue (#2563eb), so slice
+   membership and multi-selection never look like each other. */
 
 .react-flow__node.slice-member {
-  outline: 2px solid #2563eb;
+  outline: 2px dashed #16a34a;
+  outline-offset: 2px;
 }
 
 .react-flow__edge.slice-member-edge .react-flow__edge-path {
+  stroke: #16a34a !important;
   stroke-width: 3;
 }
 

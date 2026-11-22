@@ -146,7 +146,7 @@ export function SlicePanel({
                   </span>
                 )}
                 <button data-testid={`slice-activate-${s.id}`} onClick={() => onActivate(s.id)}>
-                  Показать
+                  {s.id === activeSliceId ? 'Скрыть' : 'Показать'}
                 </button>
                 <button data-testid={`slice-rename-${s.id}`} onClick={() => startEdit(s)}>
                   Изменить
